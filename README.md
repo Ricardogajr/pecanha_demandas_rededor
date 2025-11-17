@@ -1,47 +1,153 @@
-# Peçanha — Rede D’Or
+# Peçanha — RedeD’or · Lista de Demandas
 
-Hub de demandas e documentação relacionadas ao contato Peçanha na Rede D’Or.  
-Aqui centralizo links, reuniões e anotações técnicas para acompanhamento e execução.
+Este repositório consolida as demandas solicitadas pelo cliente Peçanha — RedeD’or e serve como base de versionamento de artefatos, fontes e documentação de entrega.
 
-> Banco fonte no Notion: Peçanha — RedeD’or
+Fonte dos itens: Lista de Demandas no Notion.[[1]](https://www.notion.so/2aa4a28b9f2380fb9f7cf2d8a0b482c5?pvs=21)
 
-## Sumário
-- [Visão geral](#visão-geral)
-- [Estrutura](#estrutura)
-- [Páginas recentes](#páginas-recentes)
-- [Tags e classificação](#tags-e-classificação)
-- [Como contribuir](#como-contribuir)
-- [Licença](#licença)
+Itens detalhados: ID‑1, ID‑2, ID‑3 e ID‑4.[[2]](https://www.notion.so/ID-1-2aa4a28b9f238011a1ded9e7d6218850?pvs=21)[[3]](https://www.notion.so/ID-2-2aa4a28b9f23805ebaf7f2e0c77be50e?pvs=21)[[4]](https://www.notion.so/ID-3-2aa4a28b9f238016ab31efa5769f0979?pvs=21)[[5]](https://www.notion.so/ID-4-2aa4a28b9f23802f9c2efa214221bafa?pvs=21)
 
-## Visão geral
-Este repositório agrega material público ou compartilhável referente às demandas tratadas com a Rede D’Or.  
-Itens sensíveis permanecem apenas no Notion.
+---
 
-- Cliente: Rede D’Or
-- Contato: Peçanha
-- Origem: Base de conhecimento e demandas no Notion
- 
-## Estrutura
-No Notion, o hub é mantido como um banco de páginas com os campos:
-- Página (título)
-- Proprietário
-- Tags
-- Verificação
-- Última edição
+## Etapas do Trabalho
 
-## Páginas recentes
-- Reuniões — última edição em 2025-11-13 20:45:48Z
+1) Levantamento e especificação
 
-## Tags e classificação
-As páginas podem receber as tags:
-- Integração
-- Design
+- Alinhar objetivo, escopo e campos envolvidos em SP, SE2 e SC7.
+- Validar restrições de acesso para “Portador” e regras de somatório de retenção.
+
+2) Modelagem e desenho técnico
+
+- Definir novos campos e impactos em integrações e lançamentos padrão.
+- Mapear origem dos dados: M0_MUNICIPIO → SE2.
+
+3) Desenvolvimento
+
+- Implementar campos nas telas/rotinas e nas tabelas (SE2, SC7).
+- Adequar lançamentos para considerar retenção contratual.
+
+4) Testes e validação
+
+- Casos de teste por cenário de pagamento, retenção e desconto.
+- Homologação funcional com o solicitante.
+
+5) Implantação e handover
+
+- Publicar fontes e scripts.
+- Entregar documentação final e atualizar o histórico.
+
+---
+
+## Demandas
+
+### ID‑1 — Retenção contratual no contas a pagar
+
+- Status: Concluído
+- Prioridade: Alta
+- Prazo: 2025‑11‑18
+- Conclusão: 2025‑11‑15
+- Solicitante: Marcus Peçanha
+- Descrição: Criar novo campo na SP e no contas a pagar para indicar retenção contratual e ajustar lançamentos padrão para considerar a retenção.
+- Regra na SE2: carregar o valor de retenção em E2_DECRES somando ao desconto de C7_XDESFIN quando houver.[[2]](https://www.notion.so/ID-1-2aa4a28b9f238011a1ded9e7d6218850?pvs=21)
+
+Entrega esperada
+
+- Campo de retenção disponível na SP e refletido em SE2.
+- Lançamentos padrão atualizados para considerar a retenção.
+
+Métricas de aceite
+
+- Título em SE2 com E2_DECRES = Retenção + C7_XDESFIN quando aplicável.
+- Sem regressão em cenários sem retenção.
+
+---
+
+### ID‑2 — CNPJ gerador da despesa (serviço)
+
+- Status: Não iniciada
+- Prioridade: Alta
+- Prazo: 2025‑11‑21
+- Solicitante: Marcus Peçanha
+- Descrição: Criar novo campo na SP e no contas a pagar para destacar o CNPJ da empresa geradora da despesa. O campo deve ser alimentado pela NF‑se do sistema de captura de notas (integração).[[3]](https://www.notion.so/ID-2-2aa4a28b9f23805ebaf7f2e0c77be50e?pvs=21)
+
+Entrega esperada
+
+- Campo de CNPJ visível na SP e persistido em SE2.
+- Alimentação automática via integração da NF‑se.
+
+Critérios de aceite
+
+- CNPJ preenchido corretamente para NFs de serviço integradas.
+- Logs de integração sem erros de mapeamento.
+
+---
+
+### ID‑3 — Município e descrição do município no contas a pagar
+
+- Status: Não iniciada
+- Prioridade: Alta
+- Prazo: 2025‑11‑23
+- Solicitante: Marcus Peçanha
+- Descrição: Criar novo campo na transação de SP e na SE2 para identificar Município e Descrição do Município da unidade tomadora. Carregar a partir de M0_MUNICIPIO (SYS_COMPANY).[[4]](https://www.notion.so/ID-3-2aa4a28b9f238016ab31efa5769f0979?pvs=21)
+
+Entrega esperada
+
+- Novos campos em SP e SE2.
+- Carga automática a partir de SYS_COMPANY.M0_MUNICIPIO.
+
+Critérios de aceite
+
+- Preenchimento consistente entre SP e SE2.
+- Validação cruzada com a filial/unidade tomadora.
+
+---
+
+### ID‑4 — Portador de pagamento com acesso restrito
+
+- Status: Não iniciada
+- Prioridade: Alta
+- Prazo: 2025‑11‑27
+- Solicitante: Marcus Peçanha
+- Descrição: Criar campo “Portador” na SP para informar o portador do título a pagar. Edição somente para usuários com o grupo “ACESSO PORTADOR SP”.[[5]](https://www.notion.so/ID-4-2aa4a28b9f23802f9c2efa214221bafa?pvs=21)
+
+Entrega esperada
+
+- Campo Portador disponível na SP.
+- Regra de permissão por grupo aplicada na edição.
+
+Critérios de aceite
+
+- Usuário sem o grupo não consegue editar o campo.
+- Auditoria de alteração registrando usuário e data.
+
+---
+
+## Tabela Resumo
+
+| Código | Prioridade | Status | Prazo | Conclusão | Solicitante |
+| --- | --- | --- | --- | --- | --- |
+| ID‑1 | Alta | Concluído | 2025‑11‑18 | 2025‑11‑15 | Marcus Peçanha |
+| ID‑2 | Alta | Não iniciada | 2025‑11‑21 | — | Marcus Peçanha |
+| ID‑3 | Alta | Não iniciada | 2025‑11‑23 | — | Marcus Peçanha |
+| ID‑4 | Alta | Não iniciada | 2025‑11‑27 | — | Marcus Peçanha |
+
+---
 
 ## Como contribuir
-1. Crie uma branch com o nome da tarefa.
-2. Faça commits pequenos e descritivos.
-3. Abra um Pull Request relacionando à página/tarefa do Notion quando aplicável.
+
+- Abra issues por demanda, vinculando o ID correspondente.
+- Commits devem referenciar o ID: feat(ID‑3): descrição curta.
+- Use PRs com checklist de testes funcionais e validação de dados.
 
 ## Licença
-Este repositório pode conter informações relacionadas a clientes.  
-Evite incluir dados sensíveis. Siga os termos de confidencialidade acordados com a Rede D’Or.
+
+Defina aqui a licença do repositório.
+
+[[1]](https://www.notion.so/2aa4a28b9f2380fb9f7cf2d8a0b482c5?pvs=21): Página “Lista de Demandas”.
+
+[[2]](https://www.notion.so/ID-1-2aa4a28b9f238011a1ded9e7d6218850?pvs=21): Detalhes da demanda ID‑1.
+
+[[3]](https://www.notion.so/ID-2-2aa4a28b9f23805ebaf7f2e0c77be50e?pvs=21): Detalhes da demanda ID‑2.
+
+[[4]](https://www.notion.so/ID-3-2aa4a28b9f238016ab31efa5769f0979?pvs=21): Detalhes da demanda ID‑3.
+
+[[5]](https://www.notion.so/ID-4-2aa4a28b9f23802f9c2efa214221bafa?pvs=21): Detalhes da demanda ID‑4.
