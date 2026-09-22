@@ -1,0 +1,173 @@
+<%
+   #INCLUDE "PROTHEUS.CH"
+   #INCLUDE "APWEBEX.CH" 
+   
+/*/{Protheus.doc} F1302402
+Estrutura organizacional portal
+@type function
+@author henrique.toyada
+@since 29/12/2017
+@version 1.0
+@return ${return}, ${return_description}
+@Project    MAN0000007423048_EF_024
+/*/
+   Local nCnt				:= 0
+   Local nCntL				:= 0
+   %>
+<?xml version="1.0" encoding="iso-8859-1"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+      <script src="pplanguage.js" type="text/javascript"></script>
+      <script src="criaobj.js" type="text/javascript"></script>
+      <script src="scripts/prototype.js" language="JavaScript" type="text/javascript"></script>
+      <script src="scripts/scriptaculous.js" language="JavaScript" type="text/javascript"></script>
+      <script src="scripts/ajax.js" language="JavaScript" type="text/javascript"></script>
+      <link href="styles/consulta.css" rel="stylesheet" type="text/css">
+      <link href="styles/estilo.css" rel="stylesheet" type="text/css">
+      <title></title>
+      <script language="JavaScript" >
+         
+         function FiltroSelec(nOpc) {
+         	
+         	var pos = document.getElementById("ddlFiltroSolicitacao");
+         	
+         	var campo = pos.options[pos.selectedIndex].value;
+         	
+         	var valor = document.getElementById("txtFiltroSolicitacao").value;
+			
+			if (nOpc == 2){
+				document.forms[0].action = "U_F1302402.APW?cFilPosto=<%=HttpSession->aStructureAux[Len(HttpSession->aStructureAux)][1]%>&cCodPosto=<%=HttpSession->aStructureAux[Len(HttpSession->aStructureAux)][2]%>&cLista=<%Len(HttpSession->aStructureAux)%>";
+				document.forms[0].submit();
+			return
+			}
+
+			<% If Len(HttpSession->aStructureAux) > 0 %>
+				document.forms[0].action = "U_F1302402.APW?cFiltro=2&cCampo=" + campo + "&cValor=" + valor +"&cFilPosto=<%=HttpSession->aStructureAux[Len(HttpSession->aStructureAux)][1]%>&cCodPosto=<%=HttpSession->aStructureAux[Len(HttpSession->aStructureAux)][2]%>&cLista=<%Len(HttpSession->aStructureAux)%>";
+			<% Else %>
+				document.forms[0].action = "U_F1302402.APW?cFiltro=2&cCampo=" + campo + "&cValor=" + valor +"";
+			<% EndIf %>
+			
+         	document.forms[0].submit();
+         	
+         }
+         
+      </script>
+   </head>
+   <body>
+      <div id="divPostos" name="divPostos">
+      <h2>Estrutura Organizacional</h2>
+      <h4></h4>
+      
+      	<h3>Postos na estrutura</h3>
+      	<fieldset>
+         <form method="post">
+            <select name="ddlFiltroSolicitacao" id="ddlFiltroSolicitacao">
+               <option value="RCL_FILIAL" >Filial                </option>
+               <option value="TMP_FILIAL" >Descrição Filial      </option>
+               <option value="RCL_DEPTO"  >Código do departamento</option>
+               <option value="TMP_DEPTO"  >Descrição do departamento</option>
+               <option value=""           >Responsável           </option>
+               <option value="RCL_POSTO"  >Código do posto       </option>
+               <option value="RCL_FUNCAO" >Função                </option>
+               <option value="TMP_FUNCAO" >Descrição Função      </option>
+            </select>
+            <input name="txtFiltroSolicitacao" id="txtFiltroSolicitacao" type="text" size="36" maxlength="50" class="texto" value="">
+            <input name="btnFiltraSolicitacao" id="btnFiltraSolicitacao" type="button" value="Filtrar" onClick="javascript:FiltroSelec(1);">
+            <input name="btnLimpaSolicitacao" id="btnLimpaSolicitacao" type="button" value="Limpar Filtro" onClick="javascript:FiltroSelec(2);">
+         </form>
+      </fieldset>
+      <br>
+      	<%If !(EMPTY(cLista)) %>
+	      	<h4>Minha Estrutura </h4>
+	         <p></p>
+	         
+	         <%If !(EMPTY(HttpSession->aStructureAux)) %>
+		         <% For nCntL := 1 to Len(HttpSession->aStructureAux)%>
+		         <ul style="list-style-type: none;">
+		            <% If nCntL == 1 %>
+			            <li name="superior"value="">
+			               <a href="U_F1302401.APW" class="links" onclick="">
+			               <%=nCntL%> . <%=HttpSession->aStructureAux[nCntL][2]%>
+			               </a>
+			            </li>
+		            <% Else %>
+			            <li name="superior" id="superior" value="">
+			               <a href="U_F1302402.APW?cFilPosto=<%=HttpSession->aStructureAux[nCntL][1]%>&cCodPosto=<%=HttpSession->aStructureAux[nCntL][2]%>&cLista=<%=Len(HttpSession->aStructureAux)%>&nLista<%=Len(HttpSession->aStructureAux)%>" class="links" onclick="">
+			               <%=nCntL%> . <%=HttpSession->aStructureAux[nCntL][2]%> - <%=HttpSession->aStructureAux[nCntL][3]%>
+			               </a>
+			            </li>
+		            <% EndIf %>
+		         <% Next nCntL %>
+		         <% For nCntL := 1 to Len(HttpSession->aStructureAux) %>
+		         	</ul>
+		         <% Next nCntL %>
+	         <% Else %>
+	        	 <p align="center" colspan="1">Nao existem registros para exibicao</p>
+	         <% EndIf %>		
+	         <p></p>
+         <% EndIf %>
+         <br>
+         <form method="post">
+            <table width="100%">
+                  <tr>
+                     <th>Filial         </th>
+                     <th>Descrição      </th>
+                     <th>Código do posto</th>
+                     <th>Tipo de posto  </th>
+                     <th>Quantidade     </th>
+                     <th>Ocupado        </th>
+                     <th>Reservado      </th>
+                     <!--   <th>Handover       </th>  -->
+                   	 <th>Departamento   </th>
+                     <th>Descrição      </th>
+                     <th>Função         </th>
+                     <th>Descrição      </th>
+                     <th>Responsável    </th>
+                     <th>Estrutura      </th>
+                  </tr>
+                  <% If oLista != NIL %>
+                  <% For nCnt := 1 to Len(oLista)%>
+                  <tr>
+                     <td><%= oLista[nCnt]:cFilialEs %> </td>
+                     <td><%= oLista[nCnt]:cDescricao %> </td>
+                     <td>
+                     	<%If !(EMPTY(cLista)) %>
+		                	<a href="U_F1302403.APW?cFilPosto=<%=oLista[nCnt]:cFilialEs%>&cLista=<%=Len(HttpSession->aStructureAux)%>&cCodPosto=<%=oLista[nCnt]:cposto%>" class="links"><%= oLista[nCnt]:cposto %></a>
+		             	<%Else%>
+		             		<%=oLista[nCnt]:cposto%>
+		             	<%EndIf%>
+		             </td>
+                     <td><%= oLista[nCnt]:cTipo %> </td>
+                     <td><%= cvaltochar(oLista[nCnt]:nQuantidade) %> </td>
+                     <td><%= cvaltochar(oLista[nCnt]:nOcupado) %> </td>
+                     <td><%= cvaltochar(oLista[nCnt]:nReservado) %> </td>
+                     <!--   <td><%= oLista[nCnt]:cHandover %> </td> -->
+                     <td><%= oLista[nCnt]:cCoddepart %></td>
+                     <td><%= oLista[nCnt]:cdepartamento %> </td>
+                     <td><%= oLista[nCnt]:cCodFuncao %></td>
+                     <td><%= oLista[nCnt]:cFuncao %> </td>
+                     <td><%= oLista[nCnt]:cResponsavel %> </td>
+                     <% IF (oLista[nCnt]:lEquipe) %>
+                     <td class="TituloMenor">
+                        <a href="U_F1302402.APW?cFilPosto=<%=oLista[nCnt]:cFilialEs%>&cCodPosto=<%=oLista[nCnt]:cposto%>&cLista=<%=Len(HttpSession->aStructureAux)%>&cDescDpto=<%=oLista[nCnt]:cdepartamento%>" >
+                        <img id="img_equipe" name="img_equipe" src="imagens-rh/icone_equipe.gif" title="">
+                        </a>
+                     </td>
+                     <% Else%>
+                     <td class="TituloMenor"></td>
+                     <% EndIf  %>
+                  </tr>
+                  <% Next %>
+                  <% Else %>
+                  <tr bgcolor="#F2F2F2" class="Texto">
+                     <td align="center" colspan="14">Nao existem registros para exibicao</td>
+                  </tr>
+                  <% EndIf %> 
+                  <tr>
+		             <td align="center" colspan="14"></td>
+                  </tr>
+            </table>
+         </form>
+   </body>
+</html>

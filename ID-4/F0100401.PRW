@@ -307,6 +307,8 @@ Static Function ModelDef()
 	Local cVldXDoc	 := "Empty(M->C7_XDOC)    .Or. U_TrataXDoc()                              "
 	Local cVldXSerie := "U_TrataXSer()"
 	Local cVldPlan   := "U_fValR2()"
+	Local cVldCnpj   := "U_fvlCNPJ()"
+	Local cVldPort   := "ExistCpo('SA6', M->C7_XPORTAD)"
 	Local aTrigCond	 :=	FwStruTrigger("C7_COND"   , "C7_CONDD" , "SE4->E4_DESCRI"	                   , .T., "SE4",  01, "xFilial('SE4') + M->C7_COND"   , )
 	Local aTrigVenc  :=	FwStruTrigger("C7_XDTEMI" , "C7_XDTVEN", "U_F0100411(M->C7_XDTEMI, M->C7_COND)", .T., "SE4",  01, "xFilial('SE4') + M->C7_COND"   , )
 	Local aTrigTipo	 :=	FwStruTrigger("C7_XTIPO"  , "C7_XTIPOD", "P02->P02_DESC"	                   , .T., "P02",  01, "xFilial('P02') + M->C7_XTIPO"  , )
@@ -316,6 +318,7 @@ Static Function ModelDef()
 	Local aTrigProd1 :=	FwStruTrigger("C7_PRODUTO", "C7_UM"    , "SB1->B1_UM"		                   , .T., "SB1",  01, "xFilial('SB1') + M->C7_PRODUTO", )
 	Local aTrigProd2 :=	FwStruTrigger("C7_PRODUTO", "C7_DESCRI", "SB1->B1_DESC"	                       , .T., "SB1",  01, "xFilial('SB1') + M->C7_PRODUTO", )
 	Local aTrigProd3 :=	FwStruTrigger("C7_PRODUTO", "C7_LOCAL" , "U_F0100413()"                        , .F.,      ,    ,                                 , )
+	Local aTrigCNPJ	 :=	FwStruTrigger("C7_XCNPJ"  , "C7_XNOMFIL", "U_fDesCNPJ()"	                   , .F., ,  ,  , )
 	Local nOper		 := oModel:GetOperation()
 	Local aGrps := UsrRetGrp()
 	Local nX := 1
@@ -348,7 +351,16 @@ Static Function ModelDef()
 	oStruSC7p:AddField("C7_XREPMED","C7_XREPMED" ,"C7_XREPMED" , "C", TamSX3("C7_XREPMED")[01], TamSX3("C7_XREPMED")[02],   , , , .F.,																					  , .F., .F., .F., )
 	oStruSC7p:AddField("C7_XPLANRE","C7_XPLANRE" ,"C7_XPLANRE" , "C", TamSX3("C7_XPLANRE")[01], TamSX3("C7_XPLANRE")[02], FWBuildFeature(STRUCT_FEATURE_VALID, cVldPlan)  , , , .F.,																					  , .F., .F., .F., )
 	oStruSC7p:AddField("C7_XRETINS","C7_XRETINS" ,"C7_XRETINS" , "C", TamSX3("C7_XRETINS")[01], TamSX3("C7_XRETINS")[02],   , , , .F.,																					  , .F., .F., .F., )
-	oStruSC7p:AddField("C7_XRETCON","C7_XRETCON" ,"C7_XRETCON" , "N", TamSX3("C7_XRETCON")[01] , TamSX3("C7_XRETCON" )[02],                                                                           , , ,    ,                      , .F., .F., .F., )
+		
+	oStruSC7p:AddField("C7_XVLRET","C7_XVLRET" ,"C7_XVLRET" , "N", TamSX3("C7_XVLRET")[01] , TamSX3("C7_XVLRET" )[02], , , ,.F.,                      , .F., .F., .F., )
+	oStruSC7p:AddField("C7_XCNPJ","C7_XCNPJ" ,"C7_XCNPJ" , "C", TamSX3("C7_XCNPJ")[01] , TamSX3("C7_XCNPJ" )[02], FWBuildFeature(STRUCT_FEATURE_VALID, cVldCnpj) , , ,.F.,                      , .F., .F., .F., )
+	oStruSC7p:AddField("C7_XNOMFIL","C7_XNOMFIL" ,"C7_XNOMFIL" , "C", TamSX3("C7_XNOMFIL")[01] , TamSX3("C7_XNOMFIL" )[02], , , ,.F.,                      , .F., .F., .F., )
+	oStruSC7p:AddField("C7_XPORTAD","C7_XPORTAD" ,"C7_XPORTAD" , "C", TamSX3("C7_XPORTAD")[01] , TamSX3("C7_XPORTAD" )[02], FwBuildFeature(STRUCT_FEATURE_VALID, cVldPort), , ,.F.,                      , .F., .F., .F., )
+	oStruSC7p:AddField("C7_XAGEPOR","C7_XAGEPOR" ,"C7_XAGEPOR" , "C", TamSX3("C7_XAGEPOR")[01] , TamSX3("C7_XAGEPOR" )[02], , , ,.F.,                      , .F., .F., .F., )
+	oStruSC7p:AddField("C7_XDVAPOR","C7_XDVAPOR" ,"C7_XDVAPOR" , "C", TamSX3("C7_XDVAPOR")[01] , TamSX3("C7_XDVAPOR" )[02], , , ,.F.,                      , .F., .F., .F., )
+	oStruSC7p:AddField("C7_XCONPOR","C7_XCONPOR" ,"C7_XCONPOR" , "C", TamSX3("C7_XCONPOR")[01] , TamSX3("C7_XCONPOR" )[02], , , ,.F.,                      , .F., .F., .F., )
+	oStruSC7p:AddField("C7_XDVCPOR","C7_XDVCPOR" ,"C7_XDVCPOR" , "C", TamSX3("C7_XDVCPOR")[01] , TamSX3("C7_XDVCPOR" )[02], , , ,.F.,                      , .F., .F., .F., )
+
 	// Adiciona gatilhos ao cabeçalho.
 	//oStruSC:AddTrigger(cField      , cTargetField, bPre        , bSetValue   )
 	oStruSC7p:AddTrigger(aTrigCond[1], aTrigCond[2], aTrigCond[3], aTrigCond[4])
@@ -357,6 +369,8 @@ Static Function ModelDef()
 	oStruSC7p:AddTrigger(aTrigTipo2[1], aTrigTipo2[2], aTrigTipo2[3], aTrigTipo2[4])
 	oStruSC7p:AddTrigger(atrigTipo3[1], atrigTipo3[2], atrigTipo3[3], atrigTipo3[4])
 	oStruSC7p:AddTrigger(atrigTipo4[1], atrigTipo4[2], atrigTipo4[3], atrigTipo4[4])
+	oStruSC7p:AddTrigger(aTrigCNPJ[1], aTrigCNPJ[2], aTrigCNPJ[3], aTrigCNPJ[4])
+	
 	//oStruSC7p:AddTrigger(aTrigDtFix[1], aTrigDtFix[2], aTrigDtFix[3], aTrigDtFix[4])
 	//oStruSC7p:AddTrigger(aTrigfFor1[1], aTrigfFor1[2], aTrigfFor1[3], aTrigfFor1[4])
 	// Adiciona os campos ao grid.
@@ -421,7 +435,11 @@ Static Function ModelDef()
 		oStruSC7p:SetProperty("C7_XREPMED" , MODEL_FIELD_WHEN, {|| u_fvldrmed() })
 		oStruSC7p:SetProperty("C7_XPLANRE" , MODEL_FIELD_WHEN, {|| u_fvldrmed() })
 		oStruSC7p:SetProperty("C7_XDBAUT" , MODEL_FIELD_WHEN, {|| u_fxdbaut1() })
+		
+		oStruSC7p:SetProperty("C7_XPORTAD" , MODEL_FIELD_WHEN, {|| u_fvldport() })
+
 		oStruSC7:SetProperty("C7_XTXEXPE" , MODEL_FIELD_WHEN, {|| .F.})
+
 		For nX := 01 To Len(aGrps)
 			If aGrps[nX] $ GetNewPar("FS_XTXEXP","000000")
 				oStruSC7:SetProperty("C7_XTXEXPE" , MODEL_FIELD_WHEN, {|| .T.})
@@ -549,7 +567,15 @@ Static Function ViewDef()
 	oStruSC7p:AddField("C7_XRETINS", "23", "Código de retenção INSS", "Código de retenção INSS", , "C", "@!", , "QM"    , .T., "01", , , , , .F., , ,  )
 
 	oStruSC7p:AddField("C7_XDBAUT", "24", "Deb. Automatico", "Deb. Automatico", , "C", "@!", ,         , .T., "01", , {"2=Não", "1=Sim"},1 , , .F., , ,  )
-	oStruSC7p:AddField("C7_XRETCON", "25", "Ret. Contratual"               , "Ret. Contratual"              , , "N", "@E 99,999,999,999.99", , ""     , .T., "01", , , , , .F., , ,  )
+
+	oStruSC7p:AddField("C7_XVLRET", "25", "Ret. Contratual"               , "Ret. Contratual"              , , "N", "@E 99,999,999,999.99", , ""     , .T., "01", , , , , .F., , ,  )
+	oStruSC7p:AddField("C7_XCNPJ", "26", "CNPJ Tomador", "CNPJ Tomador", , "C", "@!", , "EMCNPJ"     , .T., "01", , , , , .F., , ,  )
+	oStruSC7p:AddField("C7_XNOMFIL", "27", "Nome da Filial", "Nome da Filial", , "C", "@!", , ""     , .F., "01", , , , , .F., , ,  )
+	oStruSC7p:AddField("C7_XPORTAD", "28", "Bco Portador", "Bco Portador", , "C", "@!", , "SA6DV"     , .T., "01", , , , , .F., , ,  )
+	oStruSC7p:AddField("C7_XAGEPOR", "29", "Agência", "Agência", , "C", "@!", , ""     , .F., "01", , , , , .F., , ,  )
+	oStruSC7p:AddField("C7_XDVAPOR", "30", "DV Agência", "DV Agência", , "C", "@!", , ""     , .F., "01", , , , , .F., , ,  )
+	oStruSC7p:AddField("C7_XCONPOR", "31", "Conta", "Conta", , "C", "@!", , ""     , .F., "01", , , , , .F., , ,  )
+	oStruSC7p:AddField("C7_XDVCPOR", "32", "DV Conta", "DV Conta", , "C", "@!", , ""     , .F., "01", , , , , .F., , ,  )
 
 
 	oStruSC7:AddField("C7_ITEM"   , "01", "Item"                , "Item",                 , "C", "@!"                  , ,        , .F., "01", , , , , .F., , ,  )
@@ -737,6 +763,7 @@ Static Function SaveModel(oModel)
 	AAdd(aCabec, {"C7_USER"   , cUserTemp                        , Nil}) //Thais
 	AAdd(aCabec, {"C7_XUSRSP" , cUserIdBk						 , Nil})//Lucas Miranda de Aguiar
 	AAdd(aCabec, {"C7_XRETENC" , oMdlMain:GetValue("C7_XRETENC") , Nil})//Lucas Miranda de Aguiar
+
 	If oMdlMain:GetValue("C7_XREPMED") <> '1'
 		AAdd(aCabec, {"C7_XREPMED" , oMdlMain:GetValue("C7_XREPMED") , Nil})
 		AAdd(aCabec, {"C7_XPLANRE" , oMdlMain:GetValue("C7_XPLANRE") , Nil})
@@ -749,10 +776,19 @@ Static Function SaveModel(oModel)
 		AAdd(aCabec, {"C7_XDBAUT" , oMdlMain:GetValue("C7_XDBAUT"), Nil})
 		cDbaut := oMdlMain:GetValue("C7_XDBAUT")
 	EndIf
-	
-		If nOperation == MODEL_OPERATION_INSERT
-			AAdd(aCabec, {"C7_XANEXO" , "NAO" , Nil})
-		EndIf
+
+	AAdd(aCabec, {"C7_XVLRET" , oMdlMain:GetValue("C7_XVLRET") , Nil})
+	AAdd(aCabec, {"C7_XCNPJ" , oMdlMain:GetValue("C7_XCNPJ") , Nil})
+	AAdd(aCabec, {"C7_XNOMFIL" , oMdlMain:GetValue("C7_XNOMFIL") , Nil})
+	AAdd(aCabec, {"C7_XPORTAD" , oMdlMain:GetValue("C7_XPORTAD") , Nil})
+	AAdd(aCabec, {"C7_XAGEPOR" , oMdlMain:GetValue("C7_XAGEPOR") , Nil})
+	AAdd(aCabec, {"C7_XDVAPOR" , oMdlMain:GetValue("C7_XDVAPOR") , Nil})
+	AAdd(aCabec, {"C7_XCONPOR" , oMdlMain:GetValue("C7_XCONPOR") , Nil})
+	AAdd(aCabec, {"C7_XDVCPOR" , oMdlMain:GetValue("C7_XDVCPOR") , Nil})
+
+	If nOperation == MODEL_OPERATION_INSERT
+		AAdd(aCabec, {"C7_XANEXO" , "NAO" , Nil})
+	EndIf
 	
 	For nI := 1 To oMdlDetail:Length()
 
@@ -789,6 +825,17 @@ Static Function SaveModel(oModel)
 		AAdd(aItem, {"C7_XTXEXPE", oMdlDetail:GetValue("C7_XTXEXPE" ),Nil}) // ticket n° 10326179 -- novo campo Tx Expediente
 		AAdd(aItem, {"C7_XNUMPRO", oMdlMain:GetValue("C7_XNUMPRO" ),Nil}) // ticket n° 10326179 -- novo campo Tx Expediente
 		AAdd(aItem, {"C7_XTPCJU", oMdlMain:GetValue("C7_XTPCJU" ),Nil}) // ticket n° 10326179 -- novo campo Tx Expediente
+		
+		AAdd(aItem, {"C7_XVLRET" , oMdlMain:GetValue("C7_XVLRET") , Nil})
+		AAdd(aItem, {"C7_XCNPJ" , oMdlMain:GetValue("C7_XCNPJ") , Nil})
+		AAdd(aItem, {"C7_XNOMFIL" , oMdlMain:GetValue("C7_XNOMFIL") , Nil})
+		AAdd(aItem, {"C7_XPORTAD" , oMdlMain:GetValue("C7_XPORTAD") , Nil})
+		AAdd(aItem, {"C7_XAGEPOR" , oMdlMain:GetValue("C7_XAGEPOR") , Nil})
+		AAdd(aItem, {"C7_XDVAPOR" , oMdlMain:GetValue("C7_XDVAPOR") , Nil})
+		AAdd(aItem, {"C7_XCONPOR" , oMdlMain:GetValue("C7_XCONPOR") , Nil})
+		AAdd(aItem, {"C7_XDVCPOR" , oMdlMain:GetValue("C7_XDVCPOR") , Nil})
+
+	
 		If oMdlMain:GetValue("C7_XREPMED") <> '1'
 		AAdd(aItem, {"C7_XREPMED" , oMdlMain:GetValue("C7_XREPMED") , Nil})
 		AAdd(aItem, {"C7_XPLANRE" , oMdlMain:GetValue("C7_XPLANRE") , Nil})
@@ -1883,3 +1930,62 @@ Help("", 1, "F0100401", , aRet[2], 1, 0, , , , , , {"Revise a condição de pagame
 EndIf
 
 Return aRet[1]
+
+/*/{Protheus.doc} fDesCNPJ
+Pega descrição da empresa pelo CNPJ
+@type function
+@version P122410 
+@author Ricardo Junior
+@since 11/28/2025
+@return variant, return_description
+/*/
+User Function fDesCNPJ()
+	Local cRet := ""
+
+	aFiliais := FWLoadSM0()
+	//aScan(aFiliais, {|x| x == "M0_CGC"})
+	nPos := aScan(aFiliais, {|x| AllTrim(x[18]) == AllTrim(M->C7_XCNPJ) })
+	if nPos > 0
+		cRet := aFiliais[nPos][7]
+	endif
+Return cRet
+/*/{Protheus.doc} fvldport
+Valida when campo portador
+@type function
+@version P122410 
+@author Ricardo Junior
+@since 11/28/2025
+@return variant, valida
+/*/
+User Function fvldport()
+	Local cGetGrp 	:= SuperGetMV("FS_GRPPORT",,"000000")	
+	Local cCodUsr   := RetCodUsr()
+    Local cNomUsr   := UsrRetName(cCodUsr)
+    Local aGrupos   := UsrRetGrp(cNomUsr, cCodUsr)
+	Local lRet 		:= .F.
+	
+	nPos := aScan(aGrupos, {|x| Alltrim(x) $ AllTrim(cGetGrp) })
+
+	if nPos > 0
+		lRet := .T.
+	endif
+
+Return lRet 
+
+/*/{Protheus.doc} fvlCNPJ
+Valida o CNPJ
+@type function
+@version P122410  
+@author Ricardo Junior
+@since 12/1/2025
+@return variant, Valida ou não valida
+/*/
+User Function fvlCNPJ()
+	Local lRet := .T.	
+	aFiliais := FWLoadSM0()
+	//aScan(aFiliais, {|x| x == "M0_CGC"})
+	nPos := aScan(aFiliais, {|x| AllTrim(x[18]) == AllTrim(M->C7_XCNPJ) })
+	if nPos <= 0
+		lRet := .F.
+	endif
+Return lRet

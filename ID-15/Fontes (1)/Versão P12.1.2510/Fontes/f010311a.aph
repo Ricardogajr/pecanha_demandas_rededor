@@ -1,0 +1,32 @@
+<% 
+/*
+{Protheus.doc} F010311A.aph
+Posto já vinculado com uma vaga. Efetue a admissão para preenchimento da mesma.
+@Author     Bruno de Oliveira
+@Since      10/11/2016
+@Version    P12.1.07
+@Project    MAN00000462901_EF_003
+@Return 	lRet
+*/
+
+Local cJanela := "window"
+%>
+
+<html>
+<head>
+<title>Portal Protheus - Solicitação de Vagas</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link href="styles/estilo.css" rel="stylesheet" type="text/css">
+</head>
+<body >
+	<form name="form" method="post" action="">
+  		<h2><%="ATENÇÃO"%></h2>
+		<fieldset>
+			<p class="alerta"><%="Posto já vinculado com uma vaga."%></p>
+			<p class="alerta"><%="Efetue a admissão para preenchimento da mesma."%></p>
+		</fieldset>
+		<br>
+		<input name="Button" type="button" class="botoes" value="<%="Voltar"%>" onClick="javascript:history.go(-1);">
+	</form>
+</body>
+</html>

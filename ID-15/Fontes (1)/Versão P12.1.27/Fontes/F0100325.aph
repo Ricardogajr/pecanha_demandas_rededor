@@ -1,0 +1,47 @@
+<% 
+/*
+{Protheus.doc} F0100325.aph
+Mensagem de aviso da indisponibilidade de orçamento e\ou posto.
+@Author     Bruno de Oliveira
+@Since      08/11/2016
+@Version    P12.1.07
+@Project    MAN00000462901_EF_003
+@Return 	lRet
+*/
+%>
+<?xml version="1.0" encoding="iso-8859-1"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<link href="styles/consulta.css" rel="stylesheet" type="text/css">
+<link href="styles/estilo.css" rel="stylesheet" type="text/css">
+<script src="scripts/prototype.js" language="JavaScript" type="text/javascript"></script>
+<script src="scripts/scriptaculous.js" language="JavaScript" type="text/javascript"></script>
+<script language="JavaScript" type="text/JavaScript">
+function OpcSelec() {
+
+	document.forms[0].action = "U_F0100311.APW?cOpcRej=1&cAceita=2&cSolic=<%=cCodSol%>&cFilil=<%=cFilSol%>";
+	document.forms[0].submit();
+
+}
+</script>
+</head>
+
+<body>
+<form name="form25" id="form25" method="post">
+<input name="cLugar" type="hidden" id="cLugar" value="<%=cLugar%>" />
+<h2><%="Portal Protheus - Solicitação de Vagas"%></h2>
+	
+		<label><%="Observa&ccedil;&atilde;o:"%></label>
+		<textarea name="cObs" cols="82" rows="8" id="cObs" required></textarea> 
+		<br>
+			
+	<br>
+
+	<fieldset style="align-top:5px;">
+		<input name="Button" type="button" class="botoes" value="Voltar" onClick="javascript:history.go(-1);" />
+		<input name="Button1" type="button" class="botoes" value="<%='Confirmar'%>" onClick="javascript:OpcSelec();" />
+	</fieldset>
+</form>
+</body>
+</html>

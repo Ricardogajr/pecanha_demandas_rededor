@@ -1,0 +1,126 @@
+<%
+   /*
+   {Protheus.doc} F0200303()
+   
+   @Author     Henrique Madureira
+   @Since      
+   @Version    P12.7
+   @Project    MAN00000463701_EF_004
+   @Return	 
+   */
+   
+   Local nCnt := 1
+   Local nReg          	:= 0
+   Local nInicio       	:= 2
+   Local cEmployeeFilial 	:= Iif(Valtype(HttpGet->EmployeeFilial) == "U", "", HttpGet->EmployeeFilial)
+   Local cRegistration  	:= Iif(Valtype(HttpGet->Registration) == "U", "", HttpGet->Registration)
+   Local cTitulo			:= ''
+   Local cEmployeeEmp 	:= Iif(Valtype(HttpGet->EmployeeEmp) == "U", "", HttpGet->EmployeeEmp)
+   %>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link href="styles/consulta.css" rel="stylesheet" type="text/css">
+<link href="styles/estilo.css" rel="stylesheet" type="text/css">
+<script src="scripts/ajax.js" language="JavaScript" type="text/javascript"></script>
+<script src="scripts/prototype.js" language="JavaScript" type="text/javascript"></script>
+<script src="scripts/scriptaculous.js" language="JavaScript" type="text/javascript"></script>
+<script language="Javascript"></script>
+<body>
+   <div id="divSolicitacoes" name="divSolicitacoes">
+      <Form name="form1" action="U_F0300404.APW" method="post">
+         <h3>Minha Equipe </h3>
+         <!-- Equipe -->
+         <h4>Selecione as informações para adicionar no PDI do participante.</h4>
+         <fieldset>
+            <table width="900">
+               <tr>
+                  <td>
+                     <h3>Ação:</h3>
+                  </td>
+                  <td>
+                     <h3>Descrição:</h3>
+                  </td>
+                  <td>
+                     <h3>Periodo:</h3>
+                  </td>
+                  <td>
+                     <h3>De:</h3>
+                  </td>
+                  <td>
+                     <h3>Até:</h3>
+                  </td>
+               </tr>
+               <tr>
+                  <td>
+                     <select name="ItmAcao" onchange="javascript:changeTest();" id="ItmAcao" required>
+                        <option value="" selected></option>
+                        <% If oAcao1 != Nil%>
+                        <% For nCnt := 1 to Len(OACAO1:OWSINFRDW:OWSACAO)%>
+                        <option value="<%=ALLTRIM(OACAO1:OWSINFRDW:OWSACAO[nCnt]:CRDWDESCIT)%>" ><%=OACAO1:OWSINFRDW:OWSACAO[nCnt]:CRDWITEM + '-' + OACAO1:OWSINFRDW:OWSACAO[nCnt]:CRDWCODOBJ%></option>
+                        <% Next %>
+                        <% EndIf %>
+                     </select>
+                  </td>
+                  <td><input id="testStar" type="text" name="testStar" size="40" maxlength="150" value="" ></td>
+                  <td>
+                     <select name="periodo" onchange="javascript:changePeriodo ();" id="periodo" required>
+                        <option value="" selected></option>
+                        <% If oPerio != Nil%>
+                        <% For nCnt := 1 to Len(OPERIO:OWSINFRDU:OWSPERI)%>
+                        <option value="<%=ALLTRIM(OPERIO:OWSINFRDU:OWSPERI[nCnt]:CRDUCODIGO) - OPERIO:OWSINFRDU:OWSPERI[nCnt]:CRDUDATINI - OPERIO:OWSINFRDU:OWSPERI[nCnt]:CRDUDATFIM%>" ><%=OPERIO:OWSINFRDU:OWSPERI[nCnt]:CRDUDESC%></option>
+                        <% Next %>
+                        <% EndIf %>
+                     </select>
+                  </td>
+                  <td><input type="date" name="dtInicio" id="dtInicio" onblur="javascript:changeInicial();" value="" required></td>
+                  <td><input type="date" name="dtFim" id="dtFim" onblur="javascript:changeFinal();" value="" required></td>
+               </tr>
+            </table>
+         </fieldset>
+         <br>
+         <input name="ItmAcaoRes" type="hidden" id="ItmAcaoRes" value="">	
+         <table width="900">
+            <tbody>
+               <tr>
+                  <th>Filial</th>
+                  <th>Matricula</th>
+                  <th>Nome </th>
+                  <th>Admissão</th>
+                  <th>Departamento</th>
+                  <th>Situação </th>
+                  <th><input type='checkbox' class="ckb" name="ckb" onclick="javascript:marcarTodos(this.checked);"/><span id="acao">Marc</span></th>
+                  <th></th>
+               </tr>
+               <%If Len(HttpSession->aStructure) > 1 %>
+               <% For nReg := nInicio to Len(HttpSession->aStructure)%>
+               <tr height="21" bgcolor="#F2F2F2">
+                  <td  class="info-cent"><%=HttpSession->aStructure[nReg]:CEMPLOYEEFILIAL%></td>
+                  <td  class="info-cent"><%=HttpSession->aStructure[nReg]:cRegistration%></td>
+                  <td class="info-cent"><%=HttpSession->aStructure[nReg]:cName%></td>
+                  <td class="info-cent"><%=HttpSession->aStructure[nReg]:cAdmissionDate%></td>
+                  <td class="info-cent"><%=HttpSession->aStructure[nReg]:cDepartment%></td>
+                  <td class="info-cent"><%=Iif(Empty(HttpSession->aStructure[nReg]:cDescSituacao),HttpSession->aStructure[nReg]:cSituacao,HttpSession->aStructure[nReg]:cDescSituacao)%></td>
+                  <td><input type="checkbox"  class="ckb" name="ckb" value="<%=HttpSession->aStructure[nReg]:CPARTICIPANTID%> "/></td>
+                  <% IF (HttpSession->aStructure[nReg]:lPossuiEquipe) %>
+                  <td class="info-cent">
+                     <a href="U_F0300406.APW?codsubfun=<%=HttpSession->aStructure[nReg]:cRegistration%>&depsubfun=<%=HttpSession->aStructure[nReg]:cDepartment%>&nmsuper=<%=HttpSession->aStructure[nReg]:cName%>" >
+                     <img id="img_equipe" name="img_equipe" src="imagens-rh/icone_equipe.gif" title="Visualizar equipe do funcionário: <%=HttpSession->aStructure[nReg]:cRegistration%>">
+                     </a>
+                  </td>
+                  <% Else%>
+                  <td class="info-cent" colspan="6"></td>
+                  <% EndIf  %>   			
+               </tr>
+               <% Next nReg %>
+               <% Else %> 
+               <tr bgcolor="#F2F2F2" class="Texto">
+                  <td align="center" colspan="6">Nao existem registros para exibicao</td>
+               </tr>
+               <% EndIf %>
+            </tbody>
+         </table>
+         <br>
+         <div><input type="submit" name="Button" onClick="javascript:changeSalvar();" class="botoes" value="Salvar"></div>
+      </form>
+   </div>
+</body>
+</html>

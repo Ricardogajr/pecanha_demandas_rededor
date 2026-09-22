@@ -1,0 +1,128 @@
+<%
+   /*
+      {Protheus.doc} F0200302()
+      Tela das informações da pessoa logada e de seus subordinados
+      @Author     Henrique Madureira
+      @Since      
+      @Version    P12.7
+      @Project    MAN00000463301_EF_003
+      @Return	 
+      */
+      
+      Local nCnt := 1
+      Local nReg          	:= 0
+      Local nInicio       	:= 2
+      Local cEmployeeFilial 	:= Iif(Valtype(HttpGet->EmployeeFilial) == "U", "", HttpGet->EmployeeFilial)
+      Local cRegistration  	:= Iif(Valtype(HttpGet->Registration) == "U", "", HttpGet->Registration)
+      Local cTitulo			:= ''
+      Local cEmployeeEmp 	:= Iif(Valtype(HttpGet->EmployeeEmp) == "U", "", HttpGet->EmployeeEmp)
+      %>
+<html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <title></title>
+      <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+      <link href="styles/consulta.css" rel="stylesheet" type="text/css">
+      <link href="styles/estilo.css" rel="stylesheet" type="text/css">
+      <script src="scripts/ajax.js" language="JavaScript" type="text/javascript"></script>
+      <script src="scripts/prototype.js" language="JavaScript" type="text/javascript"></script>
+      <script src="scripts/scriptaculous.js" language="JavaScript" type="text/javascript"></script>
+   <body>
+      <div id="divFuncionarios" name="divFuncionarios">
+         <h3>Meus Subsídios</h3>
+         <form method="POST" action="U_F0200316.APW">
+            <table width="800">
+               <tbody>
+                  <tr>
+                     <th>Cód. </th>
+                     <!-- Matricula -->
+                     <th>Nome </th>
+                     <!-- Nome -->
+                     <th>Admissão</th>
+                     <!-- Admissao -->
+                     <th>Departamento</th>
+                     <!-- Departamento -->
+                     <th>Situação </th>
+                     <!-- Situacao -->
+                  </tr>
+                  <%If Len(HttpSession->aStructure) > 0 %>
+                  <tr height="21" bgcolor="#F2F2F2">
+                     <td class="info-cent"><%=HttpSession->aStructure[1]:cRegistration%> </td>
+                     <td class="TituloMenor"><%=HttpSession->aStructure[1]:cName%></td>
+                     <td class="TituloMenor"><%=HttpSession->aStructure[1]:cAdmissionDate%></td>
+                     <td class="TituloMenor"><%=HttpSession->aStructure[1]:cDepartment%></td>
+                     <td class="TituloMenor"><%=Iif(Empty(HttpSession->aStructure[1]:cDescSituacao),HttpSession->aStructure[1]:cSituacao,HttpSession->aStructure[1]:cDescSituacao)%></td>
+                  </tr>
+                  <% Else %> 
+                  <tr bgcolor="#F2F2F2" class="Texto">
+                     <td align="center" colspan="6">Nao existem registros para exibicao</td>
+                     <!--Nao existem registros para exibicao-->
+                  </tr>
+                  <% EndIf %>
+               </tbody>
+            </table>
+            <p>&nbsp;</p>
+            <h3>Minha Equipe</h3>
+            <!-- Equipe -->
+            <table width="800">
+               <%If Len(HttpSession->aStructure) > 0 %>
+               <input name="cMatSup" type="hidden" id="cMatSup" value="<%=HttpSession->aStructure[1]:cRegistration%>">
+               <input name="cDepartame" type="hidden" id="cDepartame" value="<%=HttpSession->aStructure[1]:cDepartment%>">
+               <% ELSE %>
+               <input name="cMatSup" type="hidden" id="cMatSup" value="<%=""%>">
+               <input name="cDepartame" type="hidden" id="cDepartame" value="<%=""%>">
+               <% ENDIF %>
+               <tbody>
+                  <tr>
+                     <th>Cód. </th>
+                     <!-- Matricula -->
+                     <th>Nome </th>
+                     <!-- Nome -->
+                     <th>Admissão</th>
+                     <!-- Admissao -->
+                     <th>Departamento</th>
+                     <!-- Departamento -->
+                     <th>Situação </th>
+                     <!-- Situação -->
+                     <th></th>
+                  </tr>
+                  <%If Len(HttpSession->aStructure) > 1 %>
+                  <% For nReg := nInicio to Len(HttpSession->aStructure)%>
+                  <tr height="21" bgcolor="#F2F2F2">
+                     <% IF !(HttpSession->aStructure[nReg]:cSituacao ==" ") %>
+                     <td  class="info-cent"> <%=HttpSession->aStructure[nReg]:cRegistration%> </td>
+                     <% Else %>	    			
+                     <td  class="info-cent">
+                        <a href="U_F0200317.APW?cMatSup=<%=HttpSession->aStructure[1]:cRegistration%>&cSolic=''&funcodigo=<%=HttpSession->aStructure[nReg]:cRegistration%>&nReg=<%=nReg%>"  class="links"><%=HttpSession->aStructure[nReg]:cRegistration%> </a>
+                     </td>
+                     <% EndIf %>	    			
+                     <td class="TituloMenor"><%=HttpSession->aStructure[nReg]:cName%></td>
+                     <td class="TituloMenor"><%=HttpSession->aStructure[nReg]:cAdmissionDate%></td>
+                     <td class="TituloMenor"><%=HttpSession->aStructure[nReg]:cDepartment%></td>
+                     <td class="TituloMenor"><%=Iif(Empty(HttpSession->aStructure[nReg]:cDescSituacao),HttpSession->aStructure[nReg]:cSituacao,HttpSession->aStructure[nReg]:cDescSituacao)%></td>
+                     <% IF (HttpSession->aStructure[nReg]:lPossuiEquipe) %>
+                     <td class="TituloMenor">
+                        <a href="U_F0200321.APW?EmployeeFilial=<%=HttpSession->aStructure[nReg]:cEmployeeFilial%>&codsubfun=<%=HttpSession->aStructure[nReg]:cRegistration%>&depsubfun=<%=HttpSession->aStructure[nReg]:cDepartment%>&nmsuper=<%=HttpSession->aStructure[nReg]:cName%>" >
+                        <img id="img_equipe" name="img_equipe" src="imagens-rh/icone_equipe.gif" title="Visualizar equipe do funcionário: <%=HttpSession->aStructure[nReg]:cRegistration%>">
+                        </a>
+                     </td>
+                     <% Else%>
+                     <td class="TituloMenor"></td>
+                     <% EndIf  %>	    			
+                  </tr>
+                  <% Next nReg %>
+                  <% Else %> 
+                  <tr bgcolor="#F2F2F2" class="Texto">
+                     <td align="center" colspan="6">Nao existem registros para exibicao</td>
+                     <!--Nao existem registros para exibicao-->
+                  </tr>
+                  <% EndIf %>
+                  <tr>
+                     <td class="info-cent" colspan="6">
+                     </td>
+                  </tr>
+               </tbody>
+            </table>
+         </form>
+      </div>
+   </body>
+</html>

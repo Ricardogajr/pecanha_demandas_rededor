@@ -1,0 +1,118 @@
+<% 
+
+/*
+{Protheus.doc} F0200308()
+Tela de escolha dos treinamentos/eventos
+@Author     Henrique Madureira
+@Since      
+@Version    P12.7
+@Project    MAN00000463301_EF_003
+@Return	 
+*/  
+Local lBtAprova 		:= .F.
+Local lAprova 		:= .F.
+Local lPontoRH 		:= .F.              
+
+Local nCnt				:= 0
+Local OACADGRANT		
+%>
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!doctype html public "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title></title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link href="styles/consulta.css" rel="stylesheet" type="text/css">
+<link href="styles/estilo.css" rel="stylesheet" type="text/css">
+<script src="scripts/prototype.js" language="JavaScript" type="text/javascript"></script>
+<script src="scripts/scriptaculous.js" language="JavaScript" type="text/javascript"></script>
+<script src="scripts/ajax.js" language="JavaScript" type="text/javascript"></script>
+</head>
+<body>
+<h3>Solicitação de Treinamento/Evento</h3><!--Solicitação de Subsídio Acadêmico-->	
+
+<div id="divCabecalho" name="divCabecalho"> 
+
+<fieldset>                   
+	<div class="container-cabec">
+		<div class="div-titulo">Matrícula:  </div><!--Matricula:-->
+		<div class="div-conteudo"><%= IIF(VALTYPE(cMatricu1)== "U","",cMatricu1)%></div>
+	</div>
+	<div class="container-cabec">
+		<div class="div-titulo">Nome: </div><!--Nome:-->
+		<div class="div-conteudo"><%= IIF(VALTYPE(cNome1)== "U","",cNome1)%></div>
+	</div>
+	<div class="container-cabec">
+		<div class="div-titulo">Admissão: </div><!--Admissao:-->
+		<div class="div-conteudo"><%= IIF(VALTYPE(cAdmissao1)== "U","",cAdmissao1)%></div>
+	</div>
+	<!--
+	<div class="container-cabec">
+		<div class="div-titulo">Superior: </div>
+		<div class="div-conteudo"><%= IIF(VALTYPE(Superior1)== "U","",Superior1)%></div>
+	</div>
+	-->
+	<div class="container-cabec">
+		<div class="div-titulo">Cargo: </div><!--Cargo:-->
+		<div class="div-conteudo"><%= IIF(VALTYPE(cCargo1)== "U","",cCargo1) + ' - ' + IIF(VALTYPE(cNmCarg1)== "U","",cNmCarg1)%></div>
+	</div>
+	<div class="container-cabec">
+		<div class="div-titulo">Departamento:</div><!-- Departamento -->
+		<div class="div-conteudo"><%= IIF(VALTYPE(cDepartam1)== "U","",cDepartam1) + ' - ' + IIF(VALTYPE(cNmDepa1)== "U","",cNmDepa1)%></div>
+	</div>
+	<div class="container-cabec">
+		<div class="div-titulo">Centro de custo: </div><!--Centro de custo:-->
+		<div class="div-conteudo"><%= IIF(VALTYPE(cCenCusto1)== "U","",cCenCusto1) + ' - ' + IIF(VALTYPE(cNmCeCu1)== "U","",cNmCeCu1)%></div>
+	</div>
+<hr>	
+<p>&nbsp;</p>
+</fieldset>
+</div>
+<div id="divSolicitacao" name="divSolicitacao">
+
+<h3>Treinamentos Disponíveis</h3> <!-- Treinamentos Disponíveis -->
+
+<table width="800">	
+	<tbody>
+	<tr>
+		<th>Treinamento</th>
+		<th>Curso</th>
+		<th>Inicio</th>
+		<th>Término</th>
+		<th>Horário</th>
+		<th>Vagas</th>
+	</tr>
+
+	<% If oLista3 != NIL %>
+		<% For nCnt := 1 to Len(oLista3:OWSTRM:OWSTREINAMENTO)%>
+		<tr>
+			<td>
+				<a href="U_F0200311.APW?cMatricula1=<%=cMatricu1%>&cNome1=<%=cNome1%>&cTrm=<%=oLista3:OWSTRM:OWSTREINAMENTO[nCnt]:CCalendario%>&cCurso=<%=oLista3:OWSTRM:OWSTREINAMENTO[nCnt]:CCurso%>&cFilTrm=<%=oLista3:OWSTRM:OWSTREINAMENTO[nCnt]:cFilTrm%>&cFilFun=<%=cFilFun%>" class="links">
+				<%=oLista3:OWSTRM:OWSTREINAMENTO[nCnt]:CTREINAMENTO%>
+				</a>
+			</td>
+			<td><%=oLista3:OWSTRM:OWSTREINAMENTO[nCnt]:CCurso%></td>
+			<td><%=STOD(oLista3:OWSTRM:OWSTREINAMENTO[nCnt]:CInicio)%></td>
+			<td><%=STOD(oLista3:OWSTRM:OWSTREINAMENTO[nCnt]:CTermino)%></td>
+			<td><%=oLista3:OWSTRM:OWSTREINAMENTO[nCnt]:CHorario%></td>
+			<td><%=oLista3:OWSTRM:OWSTREINAMENTO[nCnt]:CVagas%></td>
+	 	
+		</tr>
+		<% Next %>
+	<% Else %> 
+      <tr bgcolor="#F2F2F2" class="Texto">
+         <td align="center" colspan="6">Nao existem registros para exibicao</td>
+         <!--Nao existem registros para exibicao-->
+      </tr>
+	<% EndIf %>  
+	<tr>
+		<td class="info-cent" colspan="6"></td>
+	</tr>
+	
+	</tbody>
+</table> 
+	
+</div>
+<input name="Button" type="button" class="botoes" value="VOLTAR" onClick="javascript:history.go(-1);" /> <!--VOLTAR-->
+</body>
+</html>

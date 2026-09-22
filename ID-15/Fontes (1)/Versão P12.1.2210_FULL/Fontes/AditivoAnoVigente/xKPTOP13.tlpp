@@ -1,0 +1,57 @@
+#INCLUDE "TOTVS.ch"
+
+/*/{Protheus.doc} xKPTOP13
+Rotina realiza o Cadastro de Fabricantes para o Taxfy.
+@type function
+@version 1.0  
+@author Joalisson Laurentino
+@since 01/06/2024
+/*/
+User Function xKPTOP13(aParam,oGrid,lLogado,oSay,lGeral)
+	Default oGrid	 := Nil
+	Default lLogado  := Type('cEmpAnt') == 'C'
+    Default aParam   := {"01","01010001"}
+	Default oSay     := Nil
+	Default lGeral   := .F.
+	
+	U_xKPTLogMsg("INICIO INTEGRAÇÃO TaxFy - xKPTOP13.prw")
+			
+	If !lLogado .AND. !lGeral
+		RPCSetType(3)
+		
+		If RPCSetEnv(aParam[1],aParam[2])
+			U_xKPTLogMsg("VIA JOB RPCSetEnv Iniciado Emp: "+aParam[1]+" Fil: "+aParam[2])
+			cEmpAnt := aParam[1] 
+			cFilAnt := aParam[2]	
+			
+			xFilterP13(oGrid,lLogado,oSay)
+		Else
+			U_xKPTLogMsg("Não foi possivel conectar no ambiente VIA JOB RPCSetEnv - xKPTOP13.prw")
+		Endif 
+    Else
+        xFilterP13(oGrid,lLogado,oSay)
+    EndIf
+
+	U_xKPTLogMsg("FIM INTEGRAÇÃO TaxFy - xKPTOP13.prw")
+
+	If !lLogado
+		RpcClearEnv()
+	EndIf
+Return
+
+Static Function xFilterP13(oGrid,lLogado,oSay)
+	Local cFilter := " P13->P13_ZONERG = .T. .AND. P13->P13_ZINTOG = '1' .AND. P13->P13_MSBLQL = '2'"
+	Local aAlias  := {}
+	Local cID	  := "P1301"
+	Local cRotina := "F0700701"
+	Local lRet    := .F.
+
+	Default oSay := Nil
+
+	P13->(DBClearFilter())
+
+	aAdd(aAlias,{"P13",Nil,Nil,Nil})
+
+	lRet := U_xKPTOutbound(oGrid,lLogado,aAlias,cFilter,cID,cRotina,oSay) 
+
+Return lRet

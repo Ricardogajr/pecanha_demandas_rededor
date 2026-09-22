@@ -1,0 +1,58 @@
+#INCLUDE "TOTVS.ch"
+
+/*/{Protheus.doc} xKPTOSE4
+Rotina realiza a exportação de dados da Condição de Pagamento SE4 para o Taxfy.
+Caminho: Ambiente Faturamento (SIGAFAT) [05] ? Atualizações ? Cadastros ? Condições de Pagamento [MATA360]
+@type function
+@version 1.0  
+@author Joalisson Laurentino
+@since 27/09/2021
+/*/
+User Function xKPTOSE4(aParam,oGrid,lLogado,oSay,lGeral)
+	Default oGrid	 := Nil
+	Default lLogado  := Type('cEmpAnt') == 'C'
+    Default aParam   := {"01","01010001"}
+	Default oSay     := Nil
+	Default lGeral   := .F.
+	
+	U_xKPTLogMsg("INICIO INTEGRAÇÃO TaxFy - xKPTOSE4.prw")
+			
+	If !lLogado .AND. !lGeral
+		RPCSetType(3)
+		
+		If RPCSetEnv(aparam[1],aparam[2])
+			U_xKPTLogMsg("VIA JOB RPCSetEnv Iniciado Emp: "+aparam[1]+" Fil: "+aparam[2])
+			cEmpAnt := aparam[1] 
+			cFilAnt := aparam[2]	
+			
+			xFilterSE4(oGrid,lLogado,oSay)
+		Else
+			U_xKPTLogMsg("Não foi possivel conectar no ambiente VIA JOB RPCSetEnv - xKPTOSE4.prw")
+		Endif 
+    Else
+        xFilterSE4(oGrid,lLogado,oSay)
+    EndIf
+
+	U_xKPTLogMsg("FIM INTEGRAÇÃO TaxFy - xKPTOSE4.prw")
+
+	If !lLogado
+		RpcClearEnv()
+	EndIf
+Return
+
+Static Function xFilterSE4(oGrid,lLogado,oSay)
+	Local cFilter := " SE4->E4_ZONERGY = .T. .AND. SE4->E4_ZINTOGY = '1' .AND. SE4->E4_MSBLQL = '2'"
+	Local aAlias  := {}
+	Local cID	  := "SE401"
+	Local cRotina := "MATA360"
+	Local lRet    := .F.
+
+	Default oSay := Nil
+
+	SE4->(DBClearFilter())
+
+	aAdd(aAlias,{"SE4",Nil,Nil,Nil})
+
+	lRet := U_xKPTOutbound(oGrid,lLogado,aAlias,cFilter,cID,cRotina,oSay) 
+
+Return lRet

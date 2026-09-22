@@ -1,0 +1,80 @@
+<%
+
+/*
+{Protheus.doc} F0200301()
+Tela inicial do incentivo a educação
+@Author     Henrique Madureira
+@Since      
+@Version    P12.7
+@Project    MAN00000463301_EF_003
+@Return	
+*/
+
+%>
+
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
+<title></title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link href="styles/consulta.css" rel="stylesheet" type="text/css">
+<link href="styles/estilo.css" rel="stylesheet" type="text/css">
+<script src="scripts/ajax.js" language="JavaScript" type="text/javascript"></script>
+<script src="scripts/prototype.js" language="JavaScript" type="text/javascript"></script>
+<script src="scripts/scriptaculous.js" language="JavaScript" type="text/javascript"></script>
+<script language="Javascript">
+<!--
+	
+function GoToPage(nPageType) {
+
+	if (nPageType == 1) {
+		cURL = 'U_F0200315.APW';
+		cDestination = 'divFuncionarios';
+	}
+	else {
+		cURL = 'U_F0200316.APW';
+		cDestination = 'divSolicitacoes';
+	}			
+		
+	new Ajax.Updater(	cDestination, cURL);
+	return false;
+}
+
+<%	If(valtype(cMsg) != "U" .OR. cMsg != NIL) %>
+	alert('<%=cMsg%>');
+<%	EndIf %>		
+//-->
+</script>
+		
+	<body>
+		<h2>Solicitação de Incentivo Acadêmico</h2>
+		<div id="divFuncionarios" name="divFuncionarios">
+			<div style="text-align: center; vertical-align: middle; width: 600px;">
+				<img src="imagens-rh/ajax-loader.gif"><br>
+				<span class="TituloMenor">Aguarde</span>
+			</div>
+			<script language="Javascript">
+
+				GoToPage(1);
+
+			</script>
+		</div>
+		
+		 <p class="Titulo">
+			<span class="TituloMenorBold">
+				<font size="3">	
+					&raquo;&nbsp;Minhas solicitações
+				</font>
+			</span>
+		</p>
+		<div id="divSolicitacoes" name="divSolicitacoes">
+			<div style="text-align: center; vertical-align: middle; width: 600px;">
+				<img src="imagens-rh/ajax-loader.gif"><br>
+				<span class="TituloMenor">Aguarde</span>
+			</div>
+			<script language="Javascript">
+	
+				GoToPage(2);
+
+			</script>
+		</div> 
+	</body>
+</html>

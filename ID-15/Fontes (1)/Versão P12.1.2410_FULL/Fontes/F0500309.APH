@@ -1,0 +1,239 @@
+<%
+   #Include 'Protheus.ch'
+   #INCLUDE "APWEBEX.CH"
+   
+	Local nCnt := 0
+   %>
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!doctype html public "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <title></title>
+      <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+      <link href="styles/consulta.css" rel="stylesheet" type="text/css">
+      <link href="styles/estilo.css" rel="stylesheet" type="text/css">
+      <script src="pplanguage.js" type="text/javascript"></script>
+      <script src="criaobj.js" type="text/javascript"></script>
+      <script src="scripts/prototype.js" language="JavaScript" type="text/javascript"></script>
+      <script src="scripts/scriptaculous.js" language="JavaScript" type="text/javascript"></script>
+      <script src="scripts/ajax.js" language="JavaScript" type="text/javascript"></script>	
+      <script language="Javascript">
+         function fAprova() {
+         	var r = confirm("Solicitação será aprovada, continuar?");
+         	if(r == true){
+         		document.getElementById('button3').disabled=true;
+         		document.forms[0].action = "U_F0500312.APW?cAceita=1&cSolic=<%=cCodigo%>";
+         		document.forms[0].submit();
+         	}
+         }
+         function fReprova() {
+         	var r = confirm("Solicitação será reprovada, continuar?");
+         	if(r == true){
+         		document.getElementById('button2').disabled=true;
+         		document.forms[0].action = "U_F0500312.APW?cAceita=2&cSolic=<%=cCodigo%>";
+         		document.forms[0].submit();
+         	}
+         }
+      </script>
+   </head>
+   <body>
+      <p class="Titulo">
+      <H2>	
+         Aprovações
+      </H2>
+      </p>
+      <div id="divCabec" name="divCabec">
+         <fieldset>
+            <div class="container-cabec">
+               <div class="div-titulo">Codigo Solicitação</div>
+               <div class="div-conteudo"><%=cCodigo%></div>
+            </div>
+            <div class="container-cabec">
+               <div class="div-titulo">Tipo Solicitação</div>
+               <div class="div-conteudo"><%=cDesc%></div>
+            </div>
+            <div class="container-cabec">
+               <div class="div-titulo">Filial solicitação - descrição</div>
+               <div class="div-conteudo"><%=cFilSoli + " - " + cDescFil%></div>
+            </div>
+            <% If !(cTipo $ "002|003") %>
+            <div class="container-cabec">
+               <div class="div-titulo">Filial Funcionario</div>
+               <div class="div-conteudo"><%=cFilSltd + " - " + cDecSltd%></div>
+            </div>
+            <div class="container-cabec">
+               <div class="div-titulo">Matricula Funcionario - Nome</div>
+               <div class="div-conteudo"><%=cMatSltd + " - " + cNomSltd%></div>
+            </div>
+            <div class="container-cabec">
+               <div class="div-titulo">cargo do funcionário</div>
+               <div class="div-conteudo"><%=cCARSLTD%></div>
+            </div>
+            <% EndIf %>
+            <div class="container-cabec">
+               <div class="div-titulo">Filial solicitante - descrição</div>
+               <div class="div-conteudo"><%=cFilIniS + " - " + cDescFlS%></div>
+            </div>
+            <div class="container-cabec">
+               <div class="div-titulo">Matricula solicitante - Nome</div>
+               <div class="div-conteudo"><%=cMatrFlS + " - " + cNomeFlS%></div>
+            </div>
+            <div class="container-cabec">
+               <div class="div-titulo">cargo do solicitante</div>
+               <div class="div-conteudo"><%=cDescCar%></div>
+            </div>
+            <div class="container-cabec">
+               <div class="div-titulo">centro de custo solicitante</div>
+               <div class="div-conteudo"><%=cDescCtt%></div>
+            </div>
+         </fieldset>
+      </div>
+      <form name="formSolicVg" id="formSolicVg" onSubmit="return CheckOut(this)" action="U_F0100310.APW" method="post">
+         <div id="divSolicitvaga" name="divSolicitvaga">
+         <title></title>
+         <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+         <link href="styles/consulta.css" rel="stylesheet" type="text/css">
+         <link href="styles/estilo.css" rel="stylesheet" type="text/css">
+         <br>
+         <label><%="Filial Vaga"%></label>
+         <input type="text" name="cTMPFILVAGA" class="Texto" size="6" disabled="true" value="<%=cTMPFILVAGA%>">
+         <input type="text" name="cTMPDESCVG" class="Texto" size="60" disabled="true" value="<%=cTMPDESCVG%>">
+         <br>
+         <label><%="Vaga"%></label>
+         <input type="text" name="cCodVg" class="Texto" size="6" disabled="true" value="<%=cCodVg%>">
+         <input type="text" name="cNomVg" class="Texto" size="60" disabled="true" value="<%=cNomVg%>">
+         <br>
+         <label><%="Tipo da Fap"%></label>
+         <input type="text" name="cTMPTIPOFAP" class="Texto" size="12" disabled="true" value="<%=cTMPTIPOFAP%>">
+         <br>
+         <label><%="Cargo"%></label>
+         <input type="text" name="cTMPCARGOVG" class="Texto" size="6" disabled="true" value="<%=cTMPCARGOVG%>">
+         <input type="text" name="cTMPDSCCGVG" class="Texto" size="60" disabled="true" value="<%=cTMPDSCCGVG%>">
+         <br>
+         <label><%="Centro de Custo"%></label>
+         <input type="text" name="cTMPCCVAGA" class="Texto" size="12" disabled="true" value="<%=cTMPCCVAGA%>">
+         <input type="text" name="cTMPDSCVAGA" class="Texto" size="60" disabled="true" value="<%=cTMPDSCVAGA%>">
+         <br>
+         <label><%="Departamento"%></label>
+         <input type="text" name="cTMPDPTVAGA" class="Texto" size="12" disabled="true" value="<%=cTMPDPTVAGA%>">
+         <input type="text" name="cTMPDSCDVAGA" class="Texto" size="60" disabled="true" value="<%=cTMPDSCDVAGA%>">
+         <br>
+         <% If !lSesmt %>
+         <label><%="Custo da Vaga"%></label>
+         <input type="text" name="cValVg" class="Texto" size="12" disabled="true" value="<%=cValVg%>">
+         <br>
+         <% EndIf %>
+         <% If !lSesmt %>
+         <label><%="Salário Fechamento"%></label>
+         <input type="text" name="cSalFe" class="Texto" size="12" disabled="true" value="<%=cSalFe%>">
+         <br>
+         <% EndIf %>
+         <label><%="Filial Candidato"%></label>
+         <input type="text" name="CPA2FILCAN" class="Texto" size="6" disabled="true" value="<%=CPA2FILCAN%>">
+         <input type="text" name="CPA2DESFIL" class="Texto" size="50" disabled="true" value="<%=CPA2DESFIL%>">
+         <br>
+         <label><%="Candidato"%></label>
+         <input type="text" name="cCodCand" class="Texto" size="6" disabled="true" value="<%=cCodCand%>">
+         <input type="text" name="cNomCand" class="Texto" size="50" disabled="true" value="<%=cNomCand%>">
+         <% If !(EMPTY(cTMPMATCOLA)) %>
+         <br>
+         <label><%="Funcionário"%></label>
+         <input type="text" name="cTMPMATCOLA" class="Texto" size="6" disabled="true" value="<%=cTMPMATCOLA%>">
+         <input type="text" name="cTMPNOMECOLA" class="Texto" size="50" disabled="true" value="<%=cTMPNOMECOLA%>">
+         <%EndIf%>
+         <br>
+         <label><%="CPF do Candidato"%></label>
+         <input type="text" name="cCpf" class="Texto" size="14" disabled="true" value="<%=cCpf%>">
+         <% If !(EMPTY(CPA2CARGO)) %>
+         <br>
+         <label><%="Cargo atual"%></label>
+         <input type="text" name="CPA2CARGO" class="Texto" size="6" disabled="true" value="<%=CPA2CARGO%>">
+         <input type="text" name="CPA2DESCAR" class="Texto" size="50" disabled="true" value="<%=CPA2DESCAR%>">
+         <%EndIf%>
+         <% If !(EMPTY(CPA2TURNO)) %>
+         <br>
+         <label><%="Horário de Trabalho"%></label>
+         <input type="text" name="CPA2TURNO" class="Texto" size="6" disabled="true" value="<%=CPA2TURNO%>">
+         <input type="text" name="CPA2DESCTU" class="Texto" size="50" disabled="true" value="<%=CPA2DESCTU%>">
+         <%EndIf%>
+         <% If !(EMPTY(CPA2DEPART)) %>
+         <br>
+         <label><%="Departamento atual"%></label>
+         <input type="text" name="CPA2DEPART" class="Texto" size="12" disabled="true" value="<%=CPA2DEPART%>">
+         <input type="text" name="CPA2DESDEP" class="Texto" size="60" disabled="true" value="<%=CPA2DESDEP%>">
+         <%EndIf%>
+         <% If !(EMPTY(CPA2CC)) %>
+         <br>
+         <label><%="Centro de Custo atual "%></label>
+         <input type="text" name="CPA2CC" class="Texto" size="12" disabled="true" value="<%=CPA2CC%>">
+         <input type="text" name="CPA2DESCC" class="Texto" size="60" disabled="true" value="<%=CPA2DESCC%>">
+         <%EndIf%>
+         <% If CPA2HRMES != "0" %>
+         <br>
+         <label><%="Carga horária atual"%></label>
+         <input type="text" name="CPA2HRMES" class="Texto" size="6" disabled="true" value="<%=CPA2HRMES%>">
+         <%EndIf%>
+         <% If !lSesmt %>
+         <% If CPA2SALHR != "0" %>
+         <br>
+         <label><%="Salário hora atual"%></label>
+         <input type="text" name="CPA2SALHR" class="Texto" size="50" disabled="true" value="<%=CPA2SALHR%>">
+         <%EndIf%>
+         <% If cTMPSALARIO!= "0" %>
+         <br>
+         <label><%="Salário"%></label>
+         <input type="text" name="cTMPSALARIO" class="Texto" size="50" disabled="true" value="<%=cTMPSALARIO%>">
+         <%EndIf%>
+         <%EndIf%>
+         <% If !(EMPTY(CPA2DTADMI)) %>
+         <br>
+         <label><%="Data de admissão"%></label>
+         <input type="text" name="CPA2DTADMI" class="Texto" size="50" disabled="true" value="<%=CPA2DTADMI%>">
+         <%EndIf%>
+         <% If cObsApr == 'S' %>
+         <%If oLista2 != NIL%>
+         <% If OLISTA2:OWSREGISTRO:OWSINFHIS[1]:lLRET != .F. %>
+         <p class="Titulo">
+         <h3>	
+            Histórico de Aprovações
+         </h3>
+         </p>
+         <% For nCnt := 1 to Len(OLISTA2:OWSREGISTRO:OWSINFHIS)%>
+         <label><%="Nome Aprovador: "%></label>
+         <input type="text" name="cPAENOMEAP" class="Texto" size="35" disabled="true" value="<%=OLISTA2:OWSREGISTRO:OWSINFHIS[nCnt]:cPAENOMEAP%>">
+         <br> 
+         <label><%="Função Aprovador: "%></label>
+         <input type="text" name="cPAEFUNAPR" class="Texto" size="35" disabled="true" value="<%=OLISTA2:OWSREGISTRO:OWSINFHIS[nCnt]:cPAEFUNAPR%>">
+         <br> 
+         <label><%="Desc C.C. Aprovador: "%></label>
+         <input type="text" name="cPAEDCCAPR" class="Texto" size="35" disabled="true" value="<%=OLISTA2:OWSREGISTRO:OWSINFHIS[nCnt]:cPAEDCCAPR%>">
+         <br> 
+         <label><%="Observacao da Aprovação/Reprovação:"%></label>
+         <textarea name="cPAEOBS" cols="80" rows="5" id="cPAEOBS" disabled="true"><%=OLISTA2:OWSREGISTRO:OWSINFHIS[nCnt]:cPAEOBS%></textarea>
+         <br> 
+         <hr>
+         <br>
+         <% Next %>
+         <%EndIf%>
+         <%EndIf%>
+         <br>
+         <label><%="Observacao da Aprovação/Reprovação:"%></label>
+         <textarea name="cObs" cols="80" rows="5" id="cObs"> </textarea>
+         <br>  
+         <%EndIf%>
+         <% If lRet %>
+         <br> 
+         <input name="cLocal" type="hidden" id="cLocal" value="004">
+         <input name="cFilRh3" type="hidden" id="cFilRh3" value="<%=cFilRh3%>">
+         <br>
+         <br>
+         <input name="Button" type="button" class="botoes" value="VOLTAR" onClick="javascript:history.go(-1);" />
+         <input name="Button1" id="button3" type="button" class="botoes" value="Aprovar" onClick="javascript:fAprova()">
+         <input name="Button2" id="button2" type="button" class="botoes" value="Rejeitar" onClick="javascript:fReprova()">
+         <% Else %>
+         <br>
+         <input name="Button" type="button" class="botoes" value="VOLTAR" onClick="javascript:history.go(-1);" />
+         <% EndIf %>       	
+      </form>
+   </body>
+</html>

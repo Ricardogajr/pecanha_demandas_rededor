@@ -1,0 +1,415 @@
+#INCLUDE "TOTVS.ch"
+#include "topconn.ch"
+
+/*/{Protheus.doc} MSTXFYS1
+Rotina realiza a exportação de dados da tabela SAJ para o Taxfy.
+@type function
+@version 1.0  
+@author Lucas Miranda - Miranda Solution
+@since 09/05/2025
+/*/
+User Function MSTAXFY1(aParam,oGrid,lLogado,oSay,lGeral)
+	Default oGrid	 := Nil
+	Default lLogado  := Type('cEmpAnt') == 'C'
+	Default aParam   := {"01","01010001"}
+	Default oSay     := Nil
+	Default lGeral   := .F.
+
+	U_xKPTLogMsg("INICIO INTEGRAÇÃO TaxFy - MSTAXFY1.tlpp")
+ 
+	If !lLogado .AND. !lGeral
+		RPCSetType(3)
+
+		If RPCSetEnv(aParam[1],aParam[2])
+			U_xKPTLogMsg("VIA JOB RPCSetEnv Iniciado Emp: "+aParam[1]+" Fil: "+aParam[2])
+			cEmpAnt := aParam[1]
+			cFilAnt := aParam[2]
+
+			xFilterSAJ(oGrid,lLogado,oSay)
+		Else
+			U_xKPTLogMsg("Não foi possivel conectar no ambiente VIA JOB RPCSetEnv - MSTAXFY1.tlpp")
+		Endif
+	Else
+		xFilterSAJ(oGrid,lLogado,oSay)
+	EndIf
+
+	U_xKPTLogMsg("FIM INTEGRAÇÃO TaxFy - MSTAXFY1.tlpp")
+
+	If !lLogado
+		RpcClearEnv()
+	EndIf
+Return
+
+Static Function xFilterSAJ(oGrid,lLogado,oSay)
+	Local cFilter := " "
+	Local aAlias  := {}
+	Local cID	  := "SAJ01"
+	Local cRotina := "COMA086"
+	Local lRet    := .F.
+
+	Default oSay := Nil
+
+
+	aAdd(aAlias,{"SAJ",Nil,Nil,Nil})
+
+	lRet := fEnvAJ(oGrid,lLogado,aAlias,cFilter,cID,cRotina,oSay)
+
+Return lRet
+
+Static Function fEnvAJ(oGrid,lLogado,aAlias,cFilter,cID,cRotina,oSay)
+	Local lActiveLog 	:= SuperGetMv("KPT_MNTLOG",,.T.)
+	Local aArea 		:= FWGetArea()
+	Local cNameAlias 	:= "SAJ"
+	Local cSX2Unico	 	:= ""
+	Local aStruCabec 	:= {}
+	Local aStruItem		:= {}
+	Local cAliasCab	    := GetNextAlias()
+	Local cPrxCpo		:= ""
+	Local cMSBLQL 		:= ""
+	Local cOnergy		:= ""
+	Local cZINTOGY		:= ""
+	Local cZIDONGY		:= ""
+	Local lMSBLQL 		:= .F.
+	Local lSAJ			:= .F.
+	Local nCpo     	    := 0
+	Local nI		 	:= 0
+	Local nRegs		 	:= 0
+	Local nItens		:= 0
+	Local Count		 	:= 0
+	Local nOrder 		:= 1
+	Local bCondicao		:= {||}
+	Local cSeek			:= {||}
+	Local oCampos    	:= Nil
+	Local oFils			:= Nil
+	Local cResponse  	:= ""
+	Local aRetorno   	:= {.F.,"",""}
+	Local oData      	:= Nil
+	Local cIDNew		:= ""
+	Local lRet	  		:= .T.
+	Local cFilOri       := cFilAnt
+	Local cFilBkp       := ""
+	Local lEstocavel    := .F.
+	Local nY := 0
+	Local aFilAJ		:= {}
+	Local cTabela := "SAJ"
+
+	Default lLogado		:= .F.
+	Default aAlias		:= {}
+	Default cFilter 	:= ""
+	Default cRotina		:= ""
+	Default oSay 		:= Nil
+	Default nOperation	:= 3
+
+
+	DbUseArea(.T.,"TOPCONN",TcGenQry(,,fMontaAlias(cAliasCab)),cAliasCab,.F.,.T.)
+
+
+	While !(cAliasCab)->(Eof())
+		cMsg 	:= "Enviando os dados dos usuários..."
+		If oSay <> Nil
+			oSay:cCaption := cMsg
+			oSay:Refresh()
+		EndIf
+
+		If lLogado .AND. !(oGrid == Nil)
+			oGrid:SetIncMeter(2,cMsg)
+		Else
+			U_xKPTLogMsg(cMsg)
+		EndIf
+
+		cFilOri := cFilAnt
+
+
+		// ---------------------------------------------------------------
+		// RECUPERA O CONTEUDO DE CADA CAMPO DO ALIAS FILHO
+		oData := JsonObject():New()
+		oData["cEmpAnt"]  := cEmpAnt
+		oData["tenantId"] := cFilOri
+		oData["log"] 	  := JsonObject():New()
+		oData["id"]		  := cID
+		oData["rotina"]	  := cRotina
+		oData["nOpc"]	  := GetMSBLQL(lMSBLQL,cMSBLQL,cOnergy,nOperation)
+		oData["id-onergy"]:= cOnergy
+		oData["data_env"] := FwTimeStamp(5,Date(),"00:00:00")
+		oData["data"]	  := JsonObject():New()
+
+		oLog := JsonObject():New()
+		oLog["EmpFil"]      := cEmpAnt + "/" + cFilAnt
+		oLog["Empresa"]     := Capital(AllTrim(GetAdvFVal("SM0","M0_NOMECOM",cEmpAnt + cFilAnt,1,"")))
+		oLog["Filial"]      := Capital(AllTrim(GetAdvFVal("SM0","M0_FILIAL" ,cEmpAnt + cFilAnt,1,"")))
+		oLog["Environment"] := GetEnvServer()
+		oLog["StartPath"]   := GetSrvProfString("StartPath","")
+		oLog["RootPath"]    := GetSrvProfString("RootPath" ,"")
+		oLog["Versao"]      := GetVersao(.T.)
+		oLog["User"]        := __cUserId + " " +  cUserName
+		oLog["Computer"]    := GetComputerName()
+
+		oData["log"]["Ambiente"] := oLog
+
+		oCampos := JsonObject():New()
+
+		// ---------------------------------------------------------------
+		// RECUPERA O CONTEUDO DE CADA CAMPO DO ALIAS PRINCIPAL
+		cCampo 	 := ""
+		cTypeCpo := ""
+		xValue	 := ""
+
+		oFils := JsonObject():New()
+
+		oCampos["ativo_colaborador"] 		:= AllTrim((cAliasCab)->ATIVO)
+		oCampos["codigo_grupo_de_compras"] 	:= STRTOKARR(AllTrim((cAliasCab)->GRUPOS_COMERCIAIS),",")
+		//oCampos["cpf"] 						:= AllTrim((cAliasCab)->USR_CODIGO)
+		oCampos["email_colaborador"] 		:= AllTrim((cAliasCab)->USR_EMAIL)
+		oCampos["nome_colaborador"] 		:= AllTrim((cAliasCab)->USR_NOME)
+
+		aFilAJ := STRTOKARR(AllTrim((cAliasCab)->FILIAIS),",")
+		oFils["cnpj_filial"] := {}
+		oFils["codigo_filial_empresa"] := {}
+		For nY := 01 To Len(aFilAJ)
+			AADD(oFils["cnpj_filial"],FWSM0Util():GetSM0Data( cEmpAnt , aFilAJ[nY] , {"M0_CGC"} )[1][2])
+			AADD(oFils["codigo_filial_empresa"],aFilAJ[nY])
+		Next nY
+		//aAdd(oData["data"]["filiais"],oFils)
+		oData["data"]["filiais"]	:= oFils
+
+		oData["data"]["header"]	:= oCampos
+
+
+		cPostParams := oData:ToJson()
+
+		If cPostParams <> Nil
+			aRetorno := MsEnvRest("POST",/*cUrl*/,/*cSetPath*/,cPostParams,/*aHeader*/,/*lCallBack*/,cOnergy,cTabela)
+
+			If aRetorno[1]
+				U_xKPTLogMsg("Extração realizada com SUCESSO: "+aRetorno[3])
+
+				oRetorno := JsonObject():New()
+				cJson := oRetorno:FromJson(aRetorno[3])
+
+				If ValType(cJson) == "U"
+					cIDNew := Alltrim(aRetorno[2])
+					lRet  := .T.//oRetorno["Status"]
+				Else
+					aRetorno[3] := "Falha ao popular JsonObject. Erro: " + cJson
+				EndIf
+
+				fAlteraAJ((cAliasCab)->AJ_USER,aRetorno[2])
+
+			Else
+				If Empty(aRetorno[2])
+					aRetorno[2] := "Falha na requisição."
+					U_xKPTLogMsg("Error: "+aRetorno[3])
+				EndIf
+
+				lRet	  := .F.
+				lErro     := .F.
+				cRequest  := cPostParams
+				cResponse += "Erro ao realizar a extração de: "+cNameAlias+" ERROR: "+aRetorno[3]
+				cUrl      := aRetorno[4]
+			EndIf
+		Else
+			U_xKPTLogMsg("ERROR NIL oData:ToJson :"+cNameAlias)
+		EndIf
+
+		U_xKPTGrvLog(lActiveLog,cFilOri,cID,cRotina,cIDNew,"PROTHEUS","TAXFY",cPostParams,Alltrim(aRetorno[3]),IIf(lRet,"2","3"),dDatabase,Substr(Time(),1,5))
+		(cAliasCab)->(DBSkip())
+	EndDo
+	(cAliasCab)->(DbCloseArea())
+
+Return lRet
+
+
+Static Function fMontaAlias(cAliasCab)
+
+	Local cQuery := ""
+
+	Default cAliasCab := ""
+
+	cQuery += " WITH BASE_SAJ AS (                                                                      "
+	cQuery += " SELECT AJ_USER                                                                          "
+	cQuery += " FROM SAJ010                                                                             "
+	cQuery += " WHERE D_E_L_E_T_ = ' '                                                                  "
+	cQuery += " AND AJ_ZONERGY = 'T' AND AJ_ZINTOGY = '1')                                              "
+	//cquery += " AND ROWNUM = 1)"
+	cQuery += " SELECT                                                                                  "
+	cQuery += " USR.USR_NOME,   AJ.AJ_USER,                                                                        "
+	cQuery += " USR.USR_EMAIL,                                                                          "
+	cQuery += " USR.USR_CODIGO,		                                                                    "
+	cQuery += " TRIM(LISTAGG(DISTINCT TRIM(SYS.M0_CODFIL), ',')                                         "
+	cQuery += " WITHIN GROUP (ORDER BY SYS.M0_CODFIL)) AS FILIAIS,                                      "
+	cQuery += " TRIM(LISTAGG(DISTINCT TRIM(AJ.AJ_GRCOM), ',')                                           "
+	cQuery += " WITHIN GROUP (ORDER BY AJ.AJ_GRCOM)) AS GRUPOS_COMERCIAIS,                              "
+	cQuery += " CASE                                                                                    "
+	cQuery += " WHEN MAX(USR.USR_MSBLQL) = '1' THEN 'NÃO'                                               "
+	cQuery += " ELSE 'SIM'                                                                              "
+	cQuery += " END AS ATIVO                                                                            "
+	cQuery += " FROM SAJ010 AJ                                                                          "
+	cQuery += " INNER JOIN BASE_SAJ BASE ON BASE.AJ_USER = AJ.AJ_USER                                   "
+	cQuery += " INNER JOIN SYS_COMPANY SYS ON SYS.D_E_L_E_T_ = ' ' AND SYS.M0_CODFIL = AJ.AJ_FILIAL     "
+	cQuery += " INNER JOIN SYS_USR USR ON USR.D_E_L_E_T_ = ' ' AND USR.USR_ID = AJ.AJ_USER              "
+	cQuery += " WHERE AJ.D_E_L_E_T_ = ' '                                                               "
+	cQuery += " GROUP BY                                                                                "
+	cQuery += " USR.USR_NOME,  AJ.AJ_USER,                                                              "
+	cQuery += " USR.USR_EMAIL,                                                                          "
+	cQuery += " USR.USR_CODIGO                                                                          "
+	cQuery += " ORDER BY                                                                                "
+	cQuery += " USR.USR_NOME																			"
+
+Return cQuery
+
+Static Function MsEnvRest(cTipo,cUrl,cSetPath,cPostParams,aHeader,lCallBack,cIDOnergy,cTabela)
+	Local aRet        := {"","","","","",""} //Posição 1 indica o sucesso da requisição, Posição 2 traz o retorno da requisição em objeto, 3 json de retorno em string
+	Local nTimeOut	  := SuperGetMv("KT_TMOUTR",,10)
+	Local cUrlOut	  := SuperGetMv("KT_URLOUT",,"")
+	Local cUrlInb	  := SuperGetMv("KT_URLINB",,"")
+	Local cOpcApim	  := SuperGetMv("KT_OPCAPM",,"")
+	Local lAtivaLog   := SuperGetMv("KT_LOGMSG",,.F.)
+	Local oRest		  := Nil
+	Local oRetorno    := Nil
+	Local cInbSetPath := ""
+	Local cOutSetPath := ""
+	Local nAttempt 	  := 1
+	Local nSecond     := 0
+	Local cRetorno    := ""
+	Local cJson 	  := ""
+	Local lRet		  := .F.
+	Local lRest		  := .F.
+	Local lErro 	  := .F.
+	Local lErroConn   := .T.
+
+
+	//cUrl := GetNewPar("MS_XURLAJ","https://gateway.onergy.com.br")
+	//cSetPath := GetNewPar("MS_XPSAJ","/v1/api/Analytics/Save")
+
+
+	aHeader	:= {}
+	aAdd(aHeader,'Ocp-Apim-Subscription-Key: '+cOpcApim)
+	aAdd(aHeader,'Content-Type: application/json')
+
+
+//Token ambiente de Produção
+	cASSID := ""
+	cUSRID := ""
+	cOutSetPath := ""
+
+	cASSID := "&assid="+GetNewPar("KT_ASSID","28b4878d-c931-4cec-9b74-7ce819b5a527")
+	cUSRID := "&usrid="+GetNewPar("KT_USRID","61dd12ea-b581-4a72-957f-2dedfce70f0a")
+
+
+//TOKEN OUTBOUND -> Protheus para TAXFY
+	cOutSetPath += "?fdtid="+GetNewPar("KT_FDTIDAJ","fd12e999-c3a6-452d-9dd8-5d4d9b14b650")
+	cOutSetPath += cASSID+cUSRID
+
+	Default cTabela = ""
+	Default cTipo      := "GET"
+	Default cUrl       := IIf(Empty(cUrl),IIf(cTipo == "GET",cUrlInb,cUrlOut),cUrl)
+	Default cSetPath   := IIf(Empty(cSetPath),IIf(cTipo == "GET",cInbSetPath,cOutSetPath),cSetPath)
+	Default cPostParams:= ""
+	Default aHeader    := {}
+	Default lCallBack  := .F.
+	Default cIDOnergy   := ""
+
+
+	oRest := FWREST():New(cUrl)
+	oRest:SetPath(cSetPath)
+	oRest:SetPostParams(cPostParams)
+	oRest:nTimeOut := nTimeOut	//tempo em segundos para resposta
+
+	lRest := oRest:POST(aHeader)
+	cHttpCode := oRest:GetHTTPCode()
+
+	If lAtivaLog
+		Conout(" cHttpCode: "+cHttpCode +" TIPO: "+cTipo)
+	EndIf
+
+	If lRest
+		lRet 	  := .T.
+		lErroConn := .F.
+		lErro 	  := .F.
+
+		cRetorno := oRest:GetResult()
+		oRetorno := JsonObject():New()
+		cJson := oRetorno:FromJson(DecodeUtf8(cRetorno))
+
+		If ValType(cJson) == "U"
+			If !lCallBack .AND. cTabela <> "SC7"
+				cIDOnergy := oRetorno:GetJsonText('Id')
+			Else
+				cIDOnergy := SubStr(oRetorno:GetJsonText('message'),31,36)
+				If lAtivaLog
+					Conout("lCallBack RETORNO message cIDOnergy: "+cIDOnergy)
+				EndIf
+			EndIf
+		Else
+			cRetorno := "Falha ao popular JsonObject. Erro: " + cJson
+		EndIf
+
+		If lAtivaLog
+			Conout(" Foi enviado: "+cRetorno)
+		EndIf
+	Else
+		cRetorno  := cValtoChar(oRest:GetLAstError())
+		cRetorno  += " - " + oRest:GetResult()
+
+		If lAtivaLog
+			Conout(" Erro envio: "+cRetorno)
+		EndIf
+
+		lErroConn := .T.
+		lErro 	  := .T.
+		lRet 	  := .F.
+
+		If (nSecond > 0)
+			Sleep(nSecond * 1000)
+		EndIf
+
+		nAttempt++
+	EndIf
+
+	If lRet
+		aRet[1] := .T.
+		aRet[2] := IIf(Empty(cIDOnergy),oRetorno,cIDOnergy)
+		aRet[3] := DecodeUTF8(cRetorno)
+		aRet[4] := cUrl+cSetPath
+		aRet[5] := lErro
+		aRet[6] := lErroConn
+	Else
+		aRet[1] := .F.
+		aRet[2] := cIDOnergy
+		aRet[3] := cRetorno
+		aRet[4] := cUrl+cSetPath
+		aRet[5] := lErro
+		aRet[6] := lErroConn
+	EndIf
+	FreeObj(oRetorno)
+Return(aRet)
+
+Static Function GetMSBlQL(lMSBLQL,cMSBLQL,cOnergy,nOperation)
+	Local cRet := ""
+
+	If nOperation ==  5
+		cRet := "5"
+	Else
+		If Empty(cOnergy)
+			cRet := "I"
+		Else
+			If (lMSBLQL)
+				cRet := IIF(cMSBLQL <> "1","A","E")
+			Else
+				cRet := "A"
+			EndIf
+		EndIf
+	EndIf
+Return(cRet)
+
+
+				
+Static Function fAlteraAJ(cUser,cIdOnergy)
+
+Local cUpD := " UPDATE "+RETSQLNAME("SAJ") + " SET AJ_ZINTOGY = '2', AJ_ZIDONGY = '"+cIdOnergy+"' "
+
+cUpD += " WHERE D_E_L_E_T_ = ' ' AND AJ_ZINTOGY = '1' AND AJ_ZONERGY = 'T' AND AJ_USER = '"+CUSER+"'"
+
+TCSQLEXEC(cUpD) 
+
+Return

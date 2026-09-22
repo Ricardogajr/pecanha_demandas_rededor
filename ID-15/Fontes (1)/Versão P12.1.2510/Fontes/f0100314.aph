@@ -1,0 +1,91 @@
+<%
+#Include 'Protheus.ch'
+#INCLUDE "APWEBEX.CH" 
+
+/*
+{Protheus.doc} F0100314.aph
+Escolha da opção a ser realizada de solicitação.
+@Author     Bruno de Oliveira, Henrique Madureira
+@Since      07/10/2016
+@Version    P12.1.07
+@Project    MAN00000462901_EF_003
+*/
+	
+Local nIndiceDepto := 1
+Local msg          := HttpGet->msg
+Local cOpcao := "1"	
+
+Default HttpGet->nIndiceDepto := '1'
+
+nIndiceDepto := val(HttpGet->nIndiceDepto)
+%>
+<?xml version="1.0" encoding="iso-8859-1"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<link href="styles/consulta.css" rel="stylesheet" type="text/css">
+<link href="styles/estilo.css" rel="stylesheet" type="text/css">
+<script src="scripts/prototype.js" language="JavaScript" type="text/javascript"></script>
+<script src="scripts/scriptaculous.js" language="JavaScript" type="text/javascript"></script>
+<script language="JavaScript" type="text/JavaScript">
+function ItemSelec() {
+
+	var e = document.getElementById("ddltpvaga");
+	var f = document.getElementById("ddlNvposto");
+	var strUser = e.options[e.selectedIndex].value;
+	var strPost = f.options[f.selectedIndex].value;
+	
+	if (strUser == "1"){
+	document.forms[0].action = "U_F0100315.APW?cOpc=1&nIndiceDepto=<%=nIndiceDepto%>&cNPost="+strPost+"";
+	document.forms[0].submit();
+	}
+	if (strUser == "2"){
+	document.forms[0].action = "U_F0100315.APW?cOpc=2&nIndiceDepto=<%=nIndiceDepto%>&cNPost="+strPost+"";
+	document.forms[0].submit();
+	}
+	if (strUser == "3"){
+	document.forms[0].action = "U_F0100315.APW?cOpc=3&nIndiceDepto=<%=nIndiceDepto%>&cNPost="+strPost+"";
+	document.forms[0].submit();
+	}
+}
+<%	If(valtype(cMsg) != "U" .OR. cMsg != NIL) %>
+		alert('<%=cMsg%>');
+<%	EndIf %>
+</script>
+</head>
+
+<body>
+<form name="form14" id="form14" method="post">
+<h2><%="Aumento de Quadro\Orçamento"%></h2>
+	<div class="container-cabec">
+		<div class="div-titulo"><%="Código"%></div>
+		<div class="div-conteudo"><%=HttpSession->Department[nIndiceDepto]:cDepartment%></div>
+	</div>	
+	<div class="container-cabec">
+		<div class="div-titulo"><%="Departamento"%></div>
+		<div class="div-conteudo"><%=HttpSession->Department[nIndiceDepto]:cDescrDepartment%></div>
+	</div>	
+	
+	<h3><%="Selecione a opção desejada:"%></h3>
+		
+			<label><%="Tipo:"%></label>
+			<select name="ddltpvaga" class="Texto" id="ddltpvaga" disabled >
+				<option value="1"><%="Aumento de Quadro(Posto)"%></option>
+				<!-- <option value="2"><%="Aumento de Orçamento"%></option> -->
+				<!-- <option value="3"><%="Aumento de Quadro(Posto) e Orçamento"%></option> -->				
+			</select>
+			<br>
+			<label><%="Novo Posto:"%></label>
+			<select name="ddlNvposto" class="Texto" id="ddlNvposto" >
+				<option value="1"><%="Sim"%></option>
+				<option value="2"><%="Não"%></option>				
+			</select>
+	<br>
+	<h3><%=""%></h3>
+	<fieldset>
+		<input name="Button1" type="button" class="botoes" value="<%='Voltar'%>" onClick="javascript:history.go(-1);" />
+		<input name="Button1" type="button" class="botoes" value="<%='Confirmar'%>" onClick="javascript:ItemSelec();" />
+	</fieldset>
+</form>
+</body>
+</html>

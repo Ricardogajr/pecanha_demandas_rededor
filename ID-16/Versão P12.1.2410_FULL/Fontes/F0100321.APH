@@ -1,0 +1,243 @@
+<%
+   #Include 'Protheus.ch'
+   #INCLUDE "APWEBEX.CH"
+
+   Local nCnt	:= 0
+   /* 
+   {Protheus.doc} F0100321.aph
+   Exibe informações da solicitaçãos escolhida para aprovação ou rejeição. 
+   @Author     Bruno de Oliveira
+   @Since      07/10/2016
+   @Version    P12.1.07
+   @Project    MAN00000462901_EF_003
+   */
+   %>
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!doctype html public "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <title></title>
+      <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+      <link href="styles/consulta.css" rel="stylesheet" type="text/css">
+      <link href="styles/estilo.css" rel="stylesheet" type="text/css">
+      <script src="pplanguage.js" type="text/javascript" ></script>
+      <script src="criaobj.js" type="text/javascript" > </script>
+      <script src="scripts/prototype.js" language="JavaScript" type="text/javascript" > </script>
+      <script src="scripts/scriptaculous.js" language="JavaScript" type="text/javascript" > </script>
+      <script src="scripts/ajax.js" language="JavaScript" type="text/javascript" > </script>
+      <script language="Javascript">
+         function fAprova() {
+         	var r = confirm("Solicitação será aprovada, continuar?");
+         	if(r == true){
+         		document.getElementById('button3').disabled=true;
+         		document.forms[0].action = "U_F0100322.APW?cAceita=1&cSolic=<%=cCodSol%>&cFilil=<%=cFililS%>";
+         		document.forms[0].submit();
+         	}
+         }
+         function fReprova() {
+         	var r = confirm("Solicitação será reprovada, continuar?");
+         	if(r == true){
+         		document.getElementById('button2').disabled=true;
+         		document.forms[0].action = "U_F0100322.APW?cAceita=2&cSolic=<%=cCodSol%>&cFilil=<%=cFililS%>";
+         		document.forms[0].submit();
+            }
+	     }
+		function fCancela() {
+		var cvalor = document.getElementById('cObsCan').value.replace(" ","");  	
+		if( cvalor == "") {
+			alert("É Obrigatório o preenchimento do motivo do cancelamento");
+			return false;
+		}
+		var r = confirm("Solicitação será cancelada, continuar?");
+		if(r == true){
+			document.getElementById('button1').disabled=true;
+       		document.forms[0].action = "U_F1302501.APW?cSolic=<%=cCodSol%>&cFilil=<%=cFililS%>&cTipSol=<%='003'%>";
+       		document.forms[0].submit();
+         	}
+         }
+      </script>	
+   </head>
+   <body>
+      <h2><%= "Aumento de Quadro – " + cOrgSl%></h2>
+      <div id="divCabec" name="divCabec">
+         <fieldset>
+            <div class="container-cabec">
+               <div class="div-titulo">Codigo Solicitação</div>
+               <div class="div-conteudo"><%=cCodigo%></div>
+            </div>
+            <div class="container-cabec">
+               <div class="div-titulo">Tipo Solicitação</div>
+               <div class="div-conteudo"><%=cDesc%></div>
+            </div>
+            <div class="container-cabec">
+               <div class="div-titulo">Filial solicitação - descrição</div>
+               <div class="div-conteudo"><%=cFilSoli + " - " + cDescFil%></div>
+            </div>
+            <% If !(cTipo $ "002|003") %>
+            <div class="container-cabec">
+               <div class="div-titulo">Filial Funcionario</div>
+               <div class="div-conteudo"><%=cFilSltd + " - " + cDecSltd%></div>
+            </div>
+            <div class="container-cabec">
+               <div class="div-titulo">Matricula Funcionario - Nome</div>
+               <div class="div-conteudo"><%=cMatSltd + " - " + cNomSltd%></div>
+            </div>
+            <% EndIf %>
+            <div class="container-cabec">
+               <div class="div-titulo">cargo do funcionário</div>
+               <div class="div-conteudo"><%=cCARSLTD%></div>
+            </div>
+            <div class="container-cabec">
+               <div class="div-titulo">Filial solicitante - descrição</div>
+               <div class="div-conteudo"><%=cFilIniS + " - " + cDescFlS%></div>
+            </div>
+            <div class="container-cabec">
+               <div class="div-titulo">Matricula solicitante - Nome</div>
+               <div class="div-conteudo"><%=cMatrFlS + " - " + cNomeFlS%></div>
+            </div>
+            <div class="container-cabec">
+               <div class="div-titulo">cargo do solicitante</div>
+               <div class="div-conteudo"><%=cDescCar%></div>
+            </div>
+            <div class="container-cabec">
+               <div class="div-titulo">centro de custo solicitante</div>
+               <div class="div-conteudo"><%=cDescCtt%></div>
+            </div>
+         </fieldset>
+      </div>
+      <% If !(EMPTY(AlPstRpr)) .AND. !(EMPTY(AlDpRpr)) .AND. !(EMPTY(AlFlRpr)) %>
+	      <fieldset>
+	         <div class="container-cabec">
+	            <div class="div-titulo"><%="Filial Reporte"%></div>
+	            <div class="div-conteudo"><%=AlFlRpr%></div>
+	         </div>
+	         <div class="container-cabec">
+	            <div class="div-titulo"><%="Descrição"%></div>
+	            <div class="div-conteudo"><%=AlDscRpr%></div>
+	         </div>
+	         <div class="container-cabec">
+	            <div class="div-titulo"><%="Departamento Reporte"%></div>
+	            <div class="div-conteudo"><%=AlDpRpr%></div>
+	         </div>
+	         <div class="container-cabec">
+	            <div class="div-titulo"><%="Descrição"%></div>
+	            <div class="div-conteudo"><%=AlDsDpRpr%></div>
+	         </div>
+	         <div class="container-cabec">
+	            <div class="div-titulo"><%="Posto Reporte"%></div>
+	            <div class="div-conteudo"><%=AlPstRpr%></div>
+	         </div>
+	      </fieldset>
+      <% EndIf %>
+      <form name="formSolicQd" id="formSolicQd" onSubmit="return CheckOut(this)" method="post">
+         <div id="divSolicitQdro" name="divSolicitQdro">
+         <br>	
+         <label><%="Origem:"%></label>
+         	<input name="cOrigS" type="text" class="Texto" id="cOrigS" size="25" disabled value="<%=cOrgSl%>">
+         <% If !Empty(cCdPst) %>	
+	         <br>	
+	         <label><%="Posto:"%></label>
+	         	<input name="cCPost" type="text" class="Texto" id="cCPost" size="10" disabled value="<%=cCdPst%>">		
+         <% EndIf %>
+         <br>	
+         <% If !(EMPTY(AlFlSl)) .AND. !(EMPTY(AlDptSl)) %>
+	         <label><%="Filial:"%></label>
+	         	<input name="AlFlSl" type="text" class="Texto" id="AlFlSl" size="10" disabled value="<%=AlFlSl%>">
+	         	<input name="AlDscSl" type="text" class="Texto" id="AlDscSl" size="24" disabled value="<%=AlDscSl%>">
+	         <br>	
+	         <label><%="Departamento:"%></label>
+	         	<input name="AlDptSl" type="text" class="Texto" id="AlDptSl" size="10" disabled value="<%=AlDptSl%>">
+	         	<input name="AlDscDptSl" type="text" class="Texto" id="AlDscDptSl" size="24" disabled value="<%=AlDscDptSl%>">
+	         <br>
+	     <% Else %>
+         <label><%="Depto:"%></label>
+         	<input name="cDepto" type="text" class="Texto" id="cDepto" size="10" disabled value="<%=cCDept%>">
+         	<input name="cDDepto" type="text" class="Texto" id="cDDepto" size="24" disabled value="<%=cDDept%>">
+         <br>
+         <% EndIf %>	
+         <label><%="Funcao:"%></label>
+         	<input name="cFuncao" type="text" class="Texto" id="cFuncao" size="10" disabled value="<%=cCFunc%>">
+         	<input name="cFuncaod" type="text" class="Texto" id="cFuncaod" size="24" disabled value="<%=cDFunc%>">
+         <br>	        	
+         <label><%="Cargo:"%></label>
+         	<input name="cCargo" type="text" class="Texto" id="cCargo" size="10" disabled value="<%=cCCarg%>">
+         	<input name="cCargod" type="text" class="Texto" id="cCargod" size="24" disabled value="<%=cDCarg%>" >		
+         <br>
+         <label><%="Centro de custo:"%></label>
+         	<input name="cCcusto" type="text" class="Texto" id="cCcusto" size="10" disabled value="<%=cCCtt%>">
+         	<input name="cDscCC" type="text" class="Texto" id="cDscCC" size="40" disabled value="<%=cDCtt%>">
+         <% If !Empty(cSalar) %>	
+	         <br>
+	         <label><%="Salário R$:"%></label>
+	         	<input name="cSalario" type="text" class="Texto" id="cSalario" size="10" disabled value="<%=cSalar%>">
+         <% EndIf %>
+         <br>
+         <label><%="Tipo de contrato:"%></label>
+         	<input name="cTipCon" type="text" id="cTipCon" disabled value="<%=cTpCnt%>"/>  
+         <br>
+         <label><%="Quantidade:"%></label>
+         	<input name="cQtd" type="text" id="cQtd" size="10" disabled value="<%=cQntQd%>" >
+         <br>
+         <label><%="Tipo do posto:"%></label>
+	         <% If ALLTRIM(cTpPst) == "Individual" %>
+	         	<input name="cTipPos" type="text" id="cTipPos" disabled value="<%=cTpPst%>" />
+		         <% If !("Novo" $ cOrgSl) %>
+		         	<span style="color:red;"><%="Atenção, o posto será alterado para Genérico!"%></span>
+		         <% EndIf %>
+	         <% Else %>
+	         	<input name="cTipPos" type="text" id="cTipPos" disabled value="<%=cTpPst%>" />
+	         <% EndIf %>
+         <br>
+         <label><%="Observacao:"%></label>
+         	<textarea name="cObs" cols="80" rows="5" id="cObs" class="Texto" disabled><%=cObs%></textarea>
+         <br>	
+         <% If cObsApr == 'S' %>
+         	<%If oLista2 != NIL%>
+         		<% If OLISTA2:OWSREGISTRO:OWSINFHIS[1]:lLRET != .F. %>
+         			<p class="Titulo">
+				         <h3>	
+				            Histórico de Aprovações
+				         </h3>
+				         </p>
+				         <% For nCnt := 1 to Len(OLISTA2:OWSREGISTRO:OWSINFHIS)%>
+					         <label><%="Nome Aprovador: "%></label>
+					        	 <input type="text" name="cPAENOMEAP" class="Texto" size="35" disabled value="<%=OLISTA2:OWSREGISTRO:OWSINFHIS[nCnt]:cPAENOMEAP%>">
+					         <br> 
+					         <label><%="Função Aprovador: "%></label>
+					         	<input type="text" name="cPAEFUNAPR" class="Texto" size="35" disabled value="<%=OLISTA2:OWSREGISTRO:OWSINFHIS[nCnt]:cPAEFUNAPR%>">
+					         <br> 
+					         <label><%="Desc C.C. Aprovador: "%></label>
+					         	<input type="text" name="cPAEDCCAPR" class="Texto" size="35" disabled value="<%=OLISTA2:OWSREGISTRO:OWSINFHIS[nCnt]:cPAEDCCAPR%>">
+					         <br> 
+					         <label><%="Observacao da Aprovação/Reprovação:"%></label>
+					         	<textarea name="cPAEOBS" cols="80" rows="5" id="cPAEOBS" disabled><%=OLISTA2:OWSREGISTRO:OWSINFHIS[nCnt]:cPAEOBS%></textarea>
+					         <br> 
+					         <hr>
+					         <br>
+				         <% Next %>
+	         	<%EndIf%>
+	         <%EndIf%>
+	         <label><%="Observacao da Aprovação/Reprovação:"%></label>
+	         	<textarea name="cObs" cols="80" rows="5" id="cObs"> </textarea>
+	         <br>  
+         <%EndIf%>
+         <% If nOperac == '9' %>
+	         <input name="cLugar" type="hidden" id="cLugar" value="<%=cLugar%>" />
+	         <input name="Button1" id="button3"type="button" class="botoes" value="<%="Aprovar"%>" onClick="javascript:fAprova()">
+	         <input name="Button2" id="button2" type="button" class="botoes" value="<%="Rejeitar"%>" onClick="javascript:fReprova()">
+         <% Else %>
+			<%	If cStatus == '1' .OR. cStatus == '4' %>
+	         	<br>
+	          	<label><%="Motivo Cancelamento:"%></label>
+	          	<textarea name="cObsCan" cols="80" rows="5" id="cObsCan"> </textarea>
+	         	<br> 
+         	<% EndIf %>
+         	<br>			
+			<input name="Button" type="button" class="botoes" value="Voltar" onClick="javascript:history.go(-1);" />
+			<%	If cStatus == '1' .OR. cStatus == '4' %>
+				<input name="Button1" id="button1" type="button" class="botoes" value="Cancelar" onClick="javascript:fCancela()" />
+			<% EndIf %>
+<% EndIf %>
+      </form>
+   </body>
+</html>

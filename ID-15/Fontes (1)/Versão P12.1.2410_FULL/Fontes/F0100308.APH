@@ -1,0 +1,40 @@
+<% 
+/*
+{Protheus.doc} F0100308.aph
+Mensagem de aviso da indisponibilidade de orçamento e\ou posto.
+@Author     Bruno de Oliveira
+@Since      07/10/2016
+@Version    P12.1.07
+@Project    MAN00000462901_EF_003
+@Return 	lRet
+*/
+
+Local cJanela := "window"
+%>
+
+<html>
+<head>
+<script>
+function fSubmit()
+	{    
+		form.action='<%="U_F0100301.apw"%>';
+		form.submit();
+	}
+</script>	
+<title>Portal Protheus - Solicitação de Vagas</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link href="styles/estilo.css" rel="stylesheet" type="text/css">
+</head>
+<body >
+	<form name="form" method="post" action="">
+  		<h2><%="ATENÇÃO"%></h2>
+		<fieldset>
+			<p class="alerta"><%=cMsg+" Necessário solicitar aumento de quadro!"%></p>
+		</fieldset>
+		<% If lPostV%>
+		<br>
+		<input name="Button" type="button" class="botoes" value="<%="Voltar"%>" onClick="javascript:history.go(-1);">
+		<% EndIf %>	
+	</form>
+</body>
+</html>

@@ -1,0 +1,97 @@
+#include "tlpp-core.th"
+#include "protheus.ch"
+/*/{Protheus.doc} customExcel
+Classe responsável por gerar o excel.
+@type class
+@version P12 
+@author Ricardo Junior
+@since 4/23/2024
+/*/
+class customExcel
+	public data cAba 		as character
+	public data cTitulo 	as character
+	public data cArquivo 	as character
+
+	private data oFWMsExcel as object
+
+	public method new(cArquivo, cAba, cTitulo) Constructor
+	public method AddStruct()
+	public method addRow()
+	public method generate()	
+end class
+
+/*/{Protheus.doc} customExcel::new
+Metodo construtor da classe
+@type method
+@version P12 
+@author Ricardo Junior
+@since 4/23/2024
+@param cArquivo, character, Caminho do arquivo
+@param cAba, character, aba do excel
+@param cTitulo, character, Titulo excel
+@return variant, Self
+/*/
+method new(cArquivo as character, cAba as character, cTitulo as character) class customExcel
+	::cArquivo  := cArquivo
+	::cAba      := cAba
+	::cTitulo   := cTitulo
+
+	::oFWMsExcel := FWMSExcel():New()
+	::oFWMsExcel:AddworkSheet(::cAba) //Não utilizar número junto com sinal de menos. Ex.: 1-
+	::oFWMsExcel:AddTable(::cAba,::cTitulo)
+Return (Self)
+
+/*/{Protheus.doc} customExcel::AddStruct
+Metodo para gerar Colunas do Excel
+@type method
+@version P12 
+@author Ricardo Junior
+@since 4/23/2024
+@param aCampos, array, nome dos campos
+@return variant, Nulo
+/*/
+Method AddStruct(aCampos) class customExcel
+	Local nX := 01
+	for nX := 01 To Len(aCampos)
+		::oFWMsExcel:AddColumn(::cAba,::cTitulo,aCampos[nX][1],aCampos[nX][2],aCampos[nX][3])
+	next nX
+Return
+
+/*/{Protheus.doc} customExcel::addRow
+metodo para gerar linha conforme acols
+@type method
+@version P12 
+@author Ricardo Junior
+@since 4/23/2024
+@param aDados, array, conteudo dos campos
+@return variant, Nulo
+/*/ 
+Method addRow(aDados) class customExcel
+	::oFWMsExcel:AddRow(::cAba,::cTitulo,aDados)
+Return
+
+/*/{Protheus.doc} customExcel::generate
+Metodo para gerar arquivo e executar
+@type method
+@version P12 
+@author Ricardo Junior
+@since 4/23/2024
+@return variant, Nulo
+/*/
+Method generate() class customExcel
+	// Local oExcel := nil
+
+	::oFWMsExcel:Activate()
+	::oFWMsExcel:GetXMLFile(::cArquivo)
+	
+	If ApOleClient("MSEXCEL")
+		// oExcel := MsExcel():New()
+		// oExcel:WorkBooks:Open(::cArquivo)
+		// oExcel:SetVisible(.T.)
+		// oExcel:Destroy()
+		ShellExecute("OPEN", "excel.exe", ::cArquivo, "", 5)
+	else
+		MsgInfo("Excel não instalado! Por favor, pegar o arquivo no caminho.: " +::cArquivo, "Atenção")
+	EndIf
+
+Return

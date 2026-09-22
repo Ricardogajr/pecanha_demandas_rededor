@@ -1,0 +1,244 @@
+#INCLUDE "TOTVS.ch"
+
+/*/{Protheus.doc} xKPTOSC7
+Rotina realiza a exportação de dados do Pedido de Compras para o Taxfy.
+@type function
+@version 1.0  
+@author Joalisson Laurentino
+@since 27/09/2021
+/*/
+User Function xKPTOSC7(cParm01,cParm02,oGrid,lLogado,oSay,lGeral,lUnico)
+	Private cCadastro  := "Rotina realiza a exportação de dados do Pedido de Compras para o Taxfy."
+
+	Default cParm01 := ''
+	Default cParm02 := ''
+	Default oGrid	 := Nil
+	Default lLogado  := Type('cEmpAnt') == 'C'
+	Default aParam  := {}
+	Default oSay     := Nil
+	Default lGeral   := .F.
+	Default lUnico   := .F.
+
+	U_xKPTLogMsg("INICIO INTEGRAÇÃO TaxFy - xKPTOSC7.prw")
+
+	If !lLogado .AND. !lGeral
+		If !Empty(cParm01) .AND. !Empty(cParm02)
+			aParam := {cParm01, cParm02}
+		ElseIf !Empty(cParm01) .AND. Valtype(cParm01) == "A"
+			aParam := {cParm01[1], cParm01[2]}
+		Endif
+
+	//	RPCSetType(3)
+	//	If RpcSetEnv(aParam[1], aParam[2])
+			U_xKPTLogMsg("VIA JOB RPCSetEnv Iniciado Emp: "+aParam[1]+" Fil: "+aParam[2])
+			cEmpAnt := aParam[1]
+			cFilAnt := aParam[2]
+
+			BatchProcess(cCadastro, cCadastro, "xKPTOSC7", {|| xFilterSC7(oGrid,lLogado,oSay,cFilAnt,lUnico)}, {|| .F. })
+	//	Else
+	//		U_xKPTLogMsg("Não foi possivel conectar no ambiente VIA JOB RPCSetEnv - xKPTOSC7.prw")
+	//	Endif
+	Else
+		xFilterSC7(oGrid,lLogado,oSay,,lUnico)
+	EndIf
+
+	U_xKPTLogMsg("FIM INTEGRAÇÃO TaxFy - xKPTOSC7.prw")
+
+	//If !lLogado
+	//	RpcClearEnv()
+	//EndIf
+Return
+
+Static Function xFilterSC7(oGrid,lLogado,oSay,xFilial,lUnico)
+	Local cFilter   := IIF(!Empty(AllTrim(xFilial))," SC7->C7_FILIAL = '"+xFilial+"' .AND. ","")
+	Local aAlias	:= {}
+	Local cID	    := "SC701"
+	Local cRotina   := "MATA120"
+	Local cSeek 	:= ""
+	Local cCondicao := ""
+	Local lRet      := .F.
+	Local aPergs    := {}
+	Local aRet 		:= {}
+	Local cProdC7   := ""
+	Local lProx 	:= .T.
+	Local lEstocavel := .T.
+	Local cTimeIni := ""
+	Local cTimeFim := ""
+
+	Default oSay := Nil
+	Default xFilial  := ""
+	Default lUnico := .F.
+
+	If !lUnico
+
+		aAdd(aPergs ,{9,"Reenvio de pedidos TaxyFy (Deixar em branco para enviar tudo)",200, 40,.T.})
+		aAdd(aPergs,{1,"Código da filial",Space(8),"","","SM0","",0,.F.})
+
+		If !IsBlind()
+			If !ParamBox(aPergs,"Saneamento de cadastros RDSL",@aRet)
+				Return lRet
+			EndIf
+			If !Empty(aRet[2])
+				xFilial := aRet[2]
+			EndIf
+		EndIf
+		cTimeIni := Time()
+
+
+		cQuery := " SELECT COUNT(*) OVER (PARTITION BY ' ') TOTREG,C7_FILIAL,C7_NUM,MIN(C7_ITEM) C7_ITEM"
+		cQuery += " FROM " + RetSQLName("SC7") + " SC7 "
+		cQuery += " WHERE "
+		If !Empty(xFilial)
+			cQuery += " SC7.C7_FILIAL = '"+xFilial+"' AND"
+		EndIf
+		cQuery += " SC7.C7_ZINTOGY = '1'"
+		cQuery += " AND SC7.C7_ZONERGY = 'T'"
+		cQuery += " AND SC7.C7_XSOLPAG <> '1'"
+		cQuery += " AND SC7.C7_CONAPRO = 'L' "
+		cQuery += " AND SC7.D_E_L_E_T_ = ' ' "
+		cQuery += " GROUP BY C7_FILIAL,C7_NUM"
+		cQuery += " ORDER BY C7_FILIAL,C7_NUM"
+		cAliasSC7 := MPSysOpenQuery(ChangeQuery(cQuery))
+
+		DbSelectArea("SC7")
+		SC7->(DbSetOrder(1))
+		If (cAliasSC7)->TOTREG > 0
+			While (cAliasSC7)->(!Eof())
+				aAlias	:= {}
+				lProx   := .T.
+				SC7->(DBClearFilter())
+
+				cProdC7 := POSICIONE("SC7",1,(cAliasSC7)->C7_FILIAL+(cAliasSC7)->C7_NUM+(cAliasSC7)->C7_ITEM,"C7_PRODUTO")
+
+				If P17->(MsSeek(FWxFilial("P17")+cProdC7+(cAliasSC7)->C7_FILIAL))
+					lEstocavel := ( P17->P17_ESTOQ == "S" )
+				EndIf
+
+				If lEstocavel
+					If Empty(POSICIONE("SC7",1,(cAliasSC7)->C7_FILIAL+(cAliasSC7)->C7_NUM+(cAliasSC7)->C7_ITEM,"C7_XNUM"))
+						lProx := .F.
+					EndIf
+				EndIf
+
+				If lProx
+					If !Empty(POSICIONE("SC7",1,(cAliasSC7)->C7_FILIAL+(cAliasSC7)->C7_NUM+(cAliasSC7)->C7_ITEM,"C7_XIDEXNF"))
+						lProx := .F.
+					EndIf
+				EndIf
+				If lProx
+					cFilter   := " SC7->C7_FILIAL = '"+(cAliasSC7)->C7_FILIAL+"' .AND. SC7->C7_NUM = '"+(cAliasSC7)->C7_NUM+"' .AND. SC7->C7_ZINTOGY = '1' .AND. SC7->C7_ZONERGY = .T. .AND. SC7->C7_XSOLPAG <> '1' .AND. SC7->C7_CONAPRO = 'L' .AND. SC7->C7_ITEM = '"+(cAliasSC7)->C7_ITEM+"'"
+
+					cCondicao := " SC7->C7_FILIAL = '"+(cAliasSC7)->C7_FILIAL+"' .AND. SC7->C7_NUM = '"+(cAliasSC7)->C7_NUM+"' .AND. SC7->C7_ZINTOGY = '1' .AND. SC7->C7_ZONERGY = .T. .AND. SC7->C7_XSOLPAG <> '1'"
+
+					aAdd(aAlias,{"SC7",Nil,Nil,Nil})
+					aAdd(aAlias,{"SC7",cCondicao,1,cSeek})
+
+					lRet := U_xKPTOutbound(oGrid,lLogado,aAlias,cFilter,cID,cRotina,oSay)
+				EndIf
+				(cAliasSC7)->( DbSkip() )
+			EndDo
+		EndIf
+		(cAliasSC7)->(DBCloseArea())
+		cTimeFim := Time()
+		If !IsBlind()
+			If !empty(xFilial)
+				MsgInfo("Processamento concluído para a filial " +xFilial+ " em " + ElapTime(cTimeIni, cTimeFim) + "h")
+			Else
+				MsgInfo("Processamento concluído para todas as filiais em " + ElapTime(cTimeIni, cTimeFim) + "h")
+			EndIf
+		EndIf
+	Else
+
+		aAdd(aPergs ,{9,"Reenvio manual de pedidos TaxyFy",200, 40,.T.})
+		aAdd(aPergs,{1,"Código da filial",Space(8),"","","SM0","",0,.F.})
+		aAdd(aPergs,{1,"Número do pedido",Space(6),"","","","",0,.F.})
+
+		If ParamBox(aPergs,"Saneamento de cadastros RDSL",@aRet)
+
+			cTimeIni := Time()
+
+			cQuery := " SELECT COUNT(*) OVER (PARTITION BY ' ') TOTREG,C7_FILIAL,C7_NUM,MIN(C7_ITEM) C7_ITEM"
+			cQuery += " FROM " + RetSQLName("SC7") + " SC7 "
+			cQuery += " WHERE "
+			cQuery += " SC7.C7_FILIAL = '"+aRet[2]+"' AND"
+			cQuery += " SC7.C7_NUM = '"+aRet[3]+"' AND "
+			cQuery += " SC7.C7_ZINTOGY = '1'"
+			cQuery += " AND SC7.C7_ZONERGY = 'T'"
+			cQuery += " AND SC7.C7_XSOLPAG <> '1'"
+			cQuery += " AND SC7.C7_CONAPRO = 'L' "
+			cQuery += " AND SC7.D_E_L_E_T_ = ' ' "
+			cQuery += " GROUP BY C7_FILIAL,C7_NUM"
+			cQuery += " ORDER BY C7_FILIAL,C7_NUM"
+			cAliasSC7 := MPSysOpenQuery(ChangeQuery(cQuery))
+
+			DbSelectArea("SC7")
+			SC7->(DbSetOrder(1))
+			If (cAliasSC7)->TOTREG > 0
+				While (cAliasSC7)->(!Eof())
+					aAlias	:= {}
+					lProx   := .T.
+					SC7->(DBClearFilter())
+
+					cProdC7 := POSICIONE("SC7",1,(cAliasSC7)->C7_FILIAL+(cAliasSC7)->C7_NUM+(cAliasSC7)->C7_ITEM,"C7_PRODUTO")
+
+					If P17->(MsSeek(FWxFilial("P17")+cProdC7+(cAliasSC7)->C7_FILIAL))
+						lEstocavel := ( P17->P17_ESTOQ == "S" )
+					EndIf
+
+					If lEstocavel
+						If Empty(POSICIONE("SC7",1,(cAliasSC7)->C7_FILIAL+(cAliasSC7)->C7_NUM+(cAliasSC7)->C7_ITEM,"C7_XNUM"))
+							lProx := .F.
+							AlerT("Pedido com produtos estocáveis não integrado ao FRONT, o envio não será realizado.")
+						EndIf
+					EndIf
+
+					If lProx
+						If !Empty(POSICIONE("SC7",1,(cAliasSC7)->C7_FILIAL+(cAliasSC7)->C7_NUM+(cAliasSC7)->C7_ITEM,"C7_XIDEXNF"))
+							lProx := .F.
+							AlerT("Pedido oriundo de devolução de mês fechado, o envio não será realizado!")
+						EndIf
+					EndIf
+					If lProx
+						cFilter   := " SC7->C7_FILIAL = '"+(cAliasSC7)->C7_FILIAL+"' .AND. SC7->C7_NUM = '"+(cAliasSC7)->C7_NUM+"' .AND. SC7->C7_ZINTOGY = '1' .AND. SC7->C7_ZONERGY = .T. .AND. SC7->C7_XSOLPAG <> '1' .AND. SC7->C7_CONAPRO = 'L' .AND. SC7->C7_ITEM = '"+(cAliasSC7)->C7_ITEM+"'"
+
+						cCondicao := " SC7->C7_FILIAL = '"+(cAliasSC7)->C7_FILIAL+"' .AND. SC7->C7_NUM = '"+(cAliasSC7)->C7_NUM+"' .AND. SC7->C7_ZINTOGY = '1' .AND. SC7->C7_ZONERGY = .T. .AND. SC7->C7_XSOLPAG <> '1'"
+
+						aAdd(aAlias,{"SC7",Nil,Nil,Nil})
+						aAdd(aAlias,{"SC7",cCondicao,1,cSeek})
+
+						lRet := U_xKPTOutbound(oGrid,lLogado,aAlias,cFilter,cID,cRotina,oSay)
+					EndIf
+					(cAliasSC7)->( DbSkip() )
+				EndDo
+			EndIf
+			(cAliasSC7)->(DBCloseArea())
+			cTimeFim := Time()
+			If lProx
+				MsgInfo("Processamento concluído para o pedido " + aRet[3] + " da filial " + aRet[2] + " em " + ElapTime(cTimeIni, cTimeFim) + "h")
+			EndIf
+		Endif
+
+	EndIf
+Return lRet
+
+//-------------------------------------------------------------------
+/*/{Protheus.doc} Scheddef
+    Função para definição de parametros na tela de schedule
+@author Lucas Miranda de Aguiar
+@since 29/01/2025
+//-----------------------------------------------------------------*/
+Static Function Scheddef()
+    Local aParam as array
+    Local aOrd as array
+ 
+    aParam := {}
+
+ 
+    Aadd(aParam, "P"            ) // 01 - Tipo R para relatorio P para processo
+    Aadd(aParam, ""       ) // 02 - Pergunte do relatorio, caso nao use passar ParamDef
+    Aadd(aParam, ""          ) // 03 - Alias
+    Aadd(aParam, aOrd           ) // 04 - Array de ordens
+    Aadd(aParam, "" ) // 05 - Titulo
+ 
+Return aParam
+

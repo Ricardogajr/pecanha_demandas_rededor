@@ -1,0 +1,177 @@
+<%
+ /*
+{Protheus.doc} F0801102()
+Tela das informações da pessoa logada e de seus subordinados
+@Author     Henrique Madureira
+@Since      27/03/2017
+@Version    P12.7
+@Project    MAN0000007423042_EF_011
+@Return	 
+*/
+      
+   Local nCnt 			:= 1
+   Local nReg          	:= 0
+   Local nInicio       	:= 2
+   Local cTitulo			:= ''
+   Local cEmployeeFilial	:= IIf(Type("HttpGet->EmployeeFilial") == "U", "", HttpGet->EmployeeFilial)
+   Local cEmployeeEmp 	:= IIf(Type("HttpGet->EmployeeEmp")    == "U", "", HttpGet->EmployeeEmp)
+   Local cRegistration  	:= IIf(Type("HttpGet->Registration")   == "U", "", HttpGet->Registration)
+%>
+<html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <title></title>
+      <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+      <link href="styles/consulta.css" rel="stylesheet" type="text/css">
+      <link href="styles/estilo.css" rel="stylesheet" type="text/css">
+      <script src="scripts/ajax.js" language="JavaScript" type="text/javascript"></script>
+      <script src="scripts/prototype.js" language="JavaScript" type="text/javascript"></script>
+      <script src="scripts/scriptaculous.js" language="JavaScript" type="text/javascript"></script>
+   <body>
+      <div id="divFuncionarios" name="divFuncionarios">
+         <h3>Minhas Férias</h3>
+         <form method="POST" >
+            <table width="800">
+               <tbody>
+                  <tr>
+                     <th>Cód. </th>
+                     <!-- Matricula -->
+                     <th>Nome </th>
+                     <!-- Nome -->
+                     <th>Admissão</th>
+                     <!-- Admissao -->
+                     <th>Departamento</th>
+                     <!-- Departamento -->
+                     <th>Situação </th>
+                     <!-- Situacao -->
+                  </tr>
+                  <% If Len(HttpSession->aStructure) > 0 %>
+	                  <tr height="21" bgcolor="#F2F2F2">
+	                     <% If !(HttpSession->aStructure[1]:cSituacao ==" ") %>
+		                     <td  class="info-cent"> <%=HttpSession->aStructure[1]:cRegistration%> 
+		                     </td>
+	                     <% Else %>	
+		                     <td class="info-cent">
+		                        <a href="U_F0801104.APW?nOperacao=1&funcodigo=<%=HttpSession->aStructure[1]:cRegistration%>&cFilFun=<%=HttpSession->aStructure[1]:CEMPLOYEEFILIAL%>&nIndiceSolic=1&nIndice=1" class="links">
+		                        <%=HttpSession->aStructure[1]:cRegistration%>
+		                        </a>
+		                     </td>
+	                     <%EndIf%>
+	                     <td class="TituloMenor"><%=HttpSession->aStructure[1]:cName%></td>
+	                     <td class="TituloMenor"><%=HttpSession->aStructure[1]:cAdmissionDate%></td>
+	                     <td class="TituloMenor"><%=HttpSession->aStructure[1]:cDepartment%></td>
+	                     <td class="TituloMenor"><%=IIf(Empty(HttpSession->aStructure[1]:cDescSituacao), HttpSession->aStructure[1]:cSituacao, HttpSession->aStructure[1]:cDescSituacao)%></td>
+	                  </tr>
+                  <% Else %> 
+	                  <tr bgcolor="#F2F2F2" class="Texto">
+	                     <td align="center" colspan="6">Nao existem registros para exibicao</td>
+	                     <!--Nao existem registros para exibicao-->
+	                  </tr>
+                  <% EndIf %>
+               </tbody>
+            </table>
+            <p>&nbsp;</p>
+            <h3>Busca de Participantes</h3>
+			<div class="buscaequipe">
+					<select name="ddlFiltroSolicitacao" id="ddlFiltroSolicitacao">
+						<option value="1" >Matrícula</option>
+						<option value="2" >Nome</option>
+					</select>
+					<input name="txtFiltroSolicitacao" id="txtFiltroSolicitacao" type="text" size="36" maxlength="50" class="texto" value="">
+					<input name="btnFiltraSolicitacao" id="btnFiltraSolicitacao" type="button" value="Filtrar" onClick="AplicFiltro();">
+					<input name="btnLimpaSolicitacao" id="btnLimpaSolicitacao" type="submit" value="Limpar Filtro" onClick="">
+				</form>  				
+			</div>       
+			<br>     
+            <h3>Minha Equipe</h3>
+            <!-- Equipe -->
+            <table width="800">
+               <% If Len(HttpSession->aStructure) > 0 %>
+               <input name="cMatSup" type="hidden" id="cMatSup" value="<%= HttpSession->aStructure[1]:cRegistration%>">
+               <input name="cDepartame" type="hidden" id="cDepartame" value="<%= HttpSession->aStructure[1]:cDepartment%>">
+               <% Else %>
+               <input name="cMatSup" type="hidden" id="cMatSup" value="<%=""%>">
+               <input name="cDepartame" type="hidden" id="cDepartame" value="<%=""%>">
+               <% EndIf %>
+               <tbody>
+                  <tr> 
+                     <th>Cód. </th>
+                     <!-- Matricula -->
+                     <th>Nome </th>
+                     <!-- Nome -->
+                     <th>Admissão</th>
+                     <!-- Admissao -->
+                     <th>Departamento</th>
+                     <!-- Departamento -->
+                     <th>Situação </th>
+                     <!-- Situação -->
+                     <th></th>
+                  </tr>
+                  <%If Len(HttpSession->aStructure) > 1 %>
+	                  <% For nReg := nInicio to Len(HttpSession->aStructure)%>
+		                  <tr height="21" bgcolor="#F2F2F2">
+		                     <% If !(HttpSession->aStructure[nReg]:cSituacao ==" ") %>
+			                     <td  class="info-cent"> <%=HttpSession->aStructure[nReg]:cRegistration%> 
+			                     </td>
+		                     <% Else %>	    			
+			                     <td  class="info-cent">
+			                        <a href="U_F0801104.APW?nOperacao=1&funcodigo=<%=HttpSession->aStructure[nReg]:cRegistration%>&cFilFun=<%=HttpSession->aStructure[nReg]:CEMPLOYEEFILIAL%>&nIndiceSolic=<%=nReg%>&nIndice=<%=nReg%>"  
+							  class="links"><%=HttpSession->aStructure[nReg]:cRegistration%> </a>
+			                     </td>
+		                     <% EndIf %>	    			
+		                     <td class="TituloMenor"><%=HttpSession->aStructure[nReg]:cName%></td>
+		                     <td class="TituloMenor"><%=HttpSession->aStructure[nReg]:cAdmissionDate%></td>
+		                     <td class="TituloMenor"><%=HttpSession->aStructure[nReg]:cDepartment%></td>
+		                     <td class="TituloMenor"><%=IIf(Empty(HttpSession->aStructure[nReg]:cDescSituacao), HttpSession->aStructure[nReg]:cSituacao, HttpSession->aStructure[nReg]:cDescSituacao)%></td>
+		                     <% If (HttpSession->aStructure[nReg]:lPossuiEquipe) %>
+			                     <td class="TituloMenor">
+			                        <a href="U_F0801107.APW?EmployeeFilial=<%=HttpSession->aStructure[nReg]:cEmployeeFilial%>&codsubfun=<%=HttpSession->aStructure[nReg]:cRegistration%>&depsubfun=<%=HttpSession->aStructure[nReg]:cDepartment%>&nmsuper=<%=HttpSession->aStructure[nReg]:cName%>" >
+			                        <img id="img_equipe" name="img_equipe" src="imagens-rh/icone_equipe.gif" title="Visualizar equipe do funcionário: <%=HttpSession->aStructure[nReg]:cRegistration%>">
+			                        </a>
+			                     </td>
+		                     <% Else%>
+		                     	<td class="TituloMenor"></td>
+		                     <% EndIf  %>	    			
+		                  </tr>
+	                  <% Next nReg %>
+                  <% Else %> 
+	                  <tr bgcolor="#F2F2F2" class="Texto">
+	                     <td align="center" colspan="6">Nao existem registros para exibicao</td>
+	                     <!--Nao existem registros para exibicao-->
+	                  </tr>
+                  <% EndIf %>
+                  <tr>
+                     <td class="info-cent" colspan="6">
+                     </td>
+                  </tr>
+               </tbody>
+            </table>
+         </form>
+         <form method="get" >
+<% 		If (nPTotal > 1) %>
+			<div class='container-pagin'>
+				<div class="pagin-esq">
+					Pagina: <!-- Pagina: -->
+					<input id="txtPagina" class="pagin" name="txtPagina" type="text" value="<%=nCurrentPage%>" size="3" maxlength="3"><%=nPTotal%>
+				</div>
+				<div class="pagin-dir">
+<%				If (nCurrentPage > 1) %>
+						<input type="button" name="button2" onClick="fNextPage( 1, <%=nPTotal%>)" class="ButtonFirst" value="">
+						<input type="button" name="button2" onClick="fNextPage(<%=nCurrentPage-1%>, <%=nPTotal%>)" class="ButtonPrevious" value="">
+<%				Else	%>						
+						<a href="#" class="ButtonFirstDisabled"></a>
+						<a href="#" class="ButtonPreviousDisabled"></a>
+<%				EndIf	%>
+<%				IF (nCurrentPage != nPTotal) %>
+						<input type="button" name="button2" onClick="fNextPage(<%=nCurrentPage+1%>, <%=nPTotal%>)" class="ButtonNext" value="">
+						<input type="button" name="button2" onClick="fNextPage(<%=nPTotal%>, <%=nPTotal%>)" class="ButtonLast" value="">
+<%				Else	%>						
+						<a href="#" class="ButtonNextDisabled"></a>
+						<a href="#" class="ButtonLastDisabled"></a>
+<%				EndIf	%>
+				</div>
+			</div>		    	
+<% 		EndIf %>
+</form>  
+      </div>
+   </body>
+</html>

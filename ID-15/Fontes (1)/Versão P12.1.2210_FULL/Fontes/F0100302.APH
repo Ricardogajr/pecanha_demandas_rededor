@@ -1,0 +1,70 @@
+<%
+#Include 'Protheus.ch'
+#INCLUDE "APWEBEX.CH" 
+
+/*
+{Protheus.doc} F0100302.aph
+Exibe o departamento da matricula e os departamentos filhos segundo a visão definida. 
+@Author     Bruno de Oliveira
+@Since      07/10/2016
+@Version    P12.1.07
+@Project    MAN00000462901_EF_003
+*/
+
+Local nI      := 1
+Local cDepto  := ""
+Local cCodigo := ""
+Local cLink	:= "U_F0100304.apw"
+%>
+<div id="divDept" name="divDept">  
+<p><%="Selecione o departamento para abrir os postos de trabalho"%> </p>
+<table width="800">
+	<tr>
+		<th width="20%"><%="Codigo"%></th><!-- Codigo -->
+		<th width="80%"><%="Departamento"%></th><!--Departamento -->
+	</tr>
+<% 	If Len(HttpSession->Department) > 0
+		For nI := 1 To Len(HttpSession->Department)
+			cDepto :=  HttpSession->Department[nI]:cDESCRDEPARTMENT
+			cCodigo := HttpSession->Department[nI]:cDepartment			
+%>
+			<tr>
+				<td class="info-cent"><a href="<%=cLink%>?nIndiceDepto=<%=nI%>" class="links"><%=cCodigo%></a>	</td>
+				<td class="info-esq"><%=cDepto%></td>
+			</tr>
+<% 		Next nI		 
+	Else %> 
+		<tr>
+			<td colspan="2" class="info-cent">N&atilde;o existem registros para exibi&ccedil;&atilde;o</td>
+		</tr>
+<% EndIf %>
+</table>
+<form method="get" >
+<% 		If (nPTotal > 1) %>
+			<div class='container-pagin'>
+				<div class="pagin-esq">
+					Pagina: <!-- Pagina: -->
+					<input id="txtPagina" class="pagin" name="txtPagina" type="text" value="<%=nCurrentPage%>" size="3" maxlength="3"><%=nPTotal%>
+				</div>
+				<div class="pagin-dir">
+<%				If (nCurrentPage > 1) %>
+						<input type="button" name="button2" onClick="fNextDept( 1, <%=nPTotal%>)" class="ButtonFirst" value="">
+						<input type="button" name="button2" onClick="fNextDept(<%=nCurrentPage-1%>, <%=nPTotal%>)" class="ButtonPrevious" value="">
+<%				Else	%>						
+						<a href="#" class="ButtonFirstDisabled"></a>
+						<a href="#" class="ButtonPreviousDisabled"></a>
+<%				EndIf	%>
+<%				IF (nCurrentPage != nPTotal) %>
+						<input type="button" name="button2" onClick="fNextDept(<%=nCurrentPage+1%>, <%=nPTotal%>)" class="ButtonNext" value="">
+						<input type="button" name="button2" onClick="fNextDept(<%=nPTotal%>, <%=nPTotal%>)" class="ButtonLast" value="">
+<%				Else	%>						
+						<a href="#" class="ButtonNextDisabled"></a>
+						<a href="#" class="ButtonLastDisabled"></a>
+<%				EndIf	%>
+				</div>
+			</div>		    	
+<% 		EndIf %>
+</form>  
+
+
+</div>

@@ -1,0 +1,57 @@
+#INCLUDE "TOTVS.ch"
+
+/*/{Protheus.doc} xKPTOSF4
+Rotina realiza a exportação de dados do Cadastro de TES para o Taxfy.
+@type function
+@version 1.0  
+@author Joalisson Laurentino
+@since 27/09/2021
+/*/
+User Function xKPTOSF4(aParam,oGrid,lLogado,oSay,lGeral)
+	Default oGrid	 := Nil
+	Default lLogado  := Type('cEmpAnt') == 'C'
+    Default aParam   := {"01","01010001"}
+	Default oSay     := Nil
+	Default lGeral   := .F.
+	
+	U_xKPTLogMsg("INICIO INTEGRAÇÃO TaxFy - xKPTOSF4.prw")
+			
+	If !lLogado .AND. !lGeral
+		RPCSetType(3)
+		
+		If RPCSetEnv(aparam[1],aparam[2])
+			U_xKPTLogMsg("VIA JOB RPCSetEnv Iniciado Emp: "+aparam[1]+" Fil: "+aparam[2])
+			cEmpAnt := aparam[1] 
+			cFilAnt := aparam[2]	
+			
+			xFilterSF4(oGrid,lLogado,oSay)
+		Else
+			U_xKPTLogMsg("Não foi possivel conectar no ambiente VIA JOB RPCSetEnv - xKPTOSF4.prw")
+		Endif 
+    Else
+        xFilterSF4(oGrid,lLogado,oSay)
+    EndIf
+
+	U_xKPTLogMsg("FIM INTEGRAÇÃO TaxFy - xKPTOSF4.prw")
+
+	If !lLogado
+		RpcClearEnv()
+	EndIf
+Return
+
+Static Function xFilterSF4(oGrid,lLogado,oSay)
+	Local cFilter := " SF4->F4_ZONERGY = .T. .AND. SF4->F4_ZINTOGY = '1' .AND. SF4->F4_ZINTOGY <= '499' .AND. SF4->F4_MSBLQL = '2'"
+	Local aAlias  := {}
+	Local cID	  := "SF401"
+	Local cRotina := "MATA080"
+	Local lRet    := .F.
+
+	Default oSay := Nil
+
+	//SF4->(DBClearFilter())
+
+	aAdd(aAlias,{"SF4",Nil,Nil,Nil})
+
+	lRet := U_xKPTOutbound(oGrid,lLogado,aAlias,cFilter,cID,cRotina,oSay) 
+
+Return lRet

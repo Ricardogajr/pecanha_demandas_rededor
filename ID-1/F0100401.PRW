@@ -348,7 +348,7 @@ Static Function ModelDef()
 	oStruSC7p:AddField("C7_XREPMED","C7_XREPMED" ,"C7_XREPMED" , "C", TamSX3("C7_XREPMED")[01], TamSX3("C7_XREPMED")[02],   , , , .F.,																					  , .F., .F., .F., )
 	oStruSC7p:AddField("C7_XPLANRE","C7_XPLANRE" ,"C7_XPLANRE" , "C", TamSX3("C7_XPLANRE")[01], TamSX3("C7_XPLANRE")[02], FWBuildFeature(STRUCT_FEATURE_VALID, cVldPlan)  , , , .F.,																					  , .F., .F., .F., )
 	oStruSC7p:AddField("C7_XRETINS","C7_XRETINS" ,"C7_XRETINS" , "C", TamSX3("C7_XRETINS")[01], TamSX3("C7_XRETINS")[02],   , , , .F.,																					  , .F., .F., .F., )
-	oStruSC7p:AddField("C7_XRETCON","C7_XRETCON" ,"C7_XRETCON" , "N", TamSX3("C7_XRETCON")[01] , TamSX3("C7_XRETCON" )[02],                                                                           , , ,    ,                      , .F., .F., .F., )
+	oStruSC7p:AddField("C7_XVLRET","C7_XVLRET" ,"C7_XVLRET" , "N", TamSX3("C7_XVLRET")[01] , TamSX3("C7_XVLRET" )[02],                                                                           , , ,    ,                      , .F., .F., .F., )
 	// Adiciona gatilhos ao cabeçalho.
 	//oStruSC:AddTrigger(cField      , cTargetField, bPre        , bSetValue   )
 	oStruSC7p:AddTrigger(aTrigCond[1], aTrigCond[2], aTrigCond[3], aTrigCond[4])
@@ -549,7 +549,7 @@ Static Function ViewDef()
 	oStruSC7p:AddField("C7_XRETINS", "23", "Código de retenção INSS", "Código de retenção INSS", , "C", "@!", , "QM"    , .T., "01", , , , , .F., , ,  )
 
 	oStruSC7p:AddField("C7_XDBAUT", "24", "Deb. Automatico", "Deb. Automatico", , "C", "@!", ,         , .T., "01", , {"2=Não", "1=Sim"},1 , , .F., , ,  )
-	oStruSC7p:AddField("C7_XRETCON", "25", "Ret. Contratual"               , "Ret. Contratual"              , , "N", "@E 99,999,999,999.99", , ""     , .T., "01", , , , , .F., , ,  )
+	oStruSC7p:AddField("C7_XVLRET", "25", "Vr.Retencao"               , "Vr.Retencao"              , , "N", "@E 99,999,999,999.99", , ""     , .T., "01", , , , , .F., , ,  )
 
 
 	oStruSC7:AddField("C7_ITEM"   , "01", "Item"                , "Item",                 , "C", "@!"                  , ,        , .F., "01", , , , , .F., , ,  )

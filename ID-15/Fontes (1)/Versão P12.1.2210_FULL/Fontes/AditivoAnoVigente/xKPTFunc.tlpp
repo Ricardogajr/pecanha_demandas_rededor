@@ -1,0 +1,148 @@
+#INCLUDE "RestFul.ch"
+#INCLUDE "Protheus.ch"
+#INCLUDE "tlpp-core.th"
+#INCLUDE "TOTVS.ch"
+/*/{Protheus.doc} xKPTLogMsg
+Apresenta a Mensagem no Console do Protheus
+@type function
+@author Joalisson Laurentino
+@since 24/09/2021
+/*/
+User Function xKPTLogMsg(cMsgLog,lAtivaLog,cPrefixo)
+	Default cMensagem := ""
+	Default lAtivaLog := Iif(Select("SX6")>0,GetNewPar("KT_LOGMSG",.T.),.T.)	
+	Default cPrefixo  := "[" + DtoC(Date()) + "][" + Time() + "] "	
+	
+	If lAtivaLog
+		FwLogMsg("INFO",,"ONERGY",FunName(),"","01",cPrefixo+cMsgLog,0,(Seconds()),{})
+	Endif
+Return
+
+/*
+	Retorna o valor conforme o tipo do conteudo
+*/
+User Function xKPTConvType(xValue,cTypeCpo)
+	Local xRet  := Nil  
+	Local nA    := 0
+	Local aDocs := {}
+	Do Case
+		Case cTypeCpo	== "C"
+			If Valtype(xValue) == "A"
+				For nA := 1 to Len(xValue)
+					Aadd(aDocs, AllTrim(U_xKPTCutOff(xValue[nA])))
+				Next nA 
+				xRet := aClone(aDocs)
+			Else
+				xRet := AllTrim(U_xKPTCutOff(xValue))
+			EndIf
+		Case cTypeCpo	== "N"
+			xRet := IIF(ValType(xValue) == "C",Val(xValue),xValue)
+		Case cTypeCpo	== "D"
+			If !(ValType(xValue) == "D")
+				If (At("/",Alltrim(xValue)) > 0)
+					xRet := CToD(xValue)
+				Else
+					xRet := STOD(xValue)
+					//-- Trata formato caso seja informado errado.
+					//-- formato q deve ser enviado 20200829 p funcao
+					If Empty(xRet) .And. Len(xValue) == 8
+						cDay   := Subs(xValue,1,2)
+						cMonth := Subs(xValue,3,2)
+						cYear  := Subs(xValue,5,4)     
+						xRet   := cYear + cMonth + cDay
+						xRet   := STOD(xRet)          
+					EndIf 
+				EndIf
+			Else 
+				xRet := FwTimeStamp(5,StoD(DToS(xValue)),"00:00:00")
+			EndIf
+		Case cTypeCpo == "L"
+			If !(ValType(xValue) == "L")
+				If (Alltrim(xValue) $ "S|T|YES|SIM")
+					xRet := .T. 
+				Else 
+					xRet := .F. 
+				EndIf 
+			Else 
+				xRet := xValue
+			EndIf
+		OtherWise
+	EndCase
+
+	If Empty(xRet) .OR. (cTypeCpo == "N" .AND. xRet == 0)
+		xRet := xValue
+	EndIf 
+Return(xRet)
+
+/*/{Protheus.doc} xKPTCutOff
+Remove caracteres especiais
+@param cString,caracter
+@return cRet,caracter 
+@author Joalisson Laurentino
+@since 14/01/2022
+/*/
+User Function xKPTCutOff(cConteudo)
+	cConteudo := EncodeUTF8(FwNoAccent(Alltrim(cConteudo)))
+    cConteudo := StrTran(cConteudo,"#","")
+    //cConteudo := StrTran(cConteudo,"%","")
+    cConteudo := StrTran(cConteudo,"*","")
+    //cConteudo := StrTran(cConteudo,"&","e")
+    cConteudo := StrTran(cConteudo,">","")
+    cConteudo := StrTran(cConteudo,"<","")
+    cConteudo := StrTran(cConteudo,"$","")
+    //cConteudo := StrTran(cConteudo,"=","")
+    //cConteudo := StrTran(cConteudo,"+","")
+    cConteudo := StrTran(cConteudo,"{","")
+    cConteudo := StrTran(cConteudo,"}","")
+    cConteudo := StrTran(cConteudo,"[","")
+    cConteudo := StrTran(cConteudo,"]","")
+    //cConteudo := StrTran(cConteudo,"?","")
+    cConteudo := StrTran(cConteudo,"\","")
+    //cConteudo := StrTran(cConteudo,":","")
+    //cConteudo := StrTran(cConteudo,'"','')
+    cConteudo := StrTran(cConteudo,'°','')
+    cConteudo := StrTran(cConteudo,'ª','')
+    cConteudo := StrTran(cConteudo,'&gt;','')
+    cConteudo := StrTran(cConteudo,'&amp;','')   
+Return AllTrim(cConteudo)
+
+//--------------------------------------------------------------------
+/*/{Protheus.doc} xKPTLeLog
+
+Função de leitura do LOG gerado com limitacao de string
+
+@author UPDATE gerado automaticamente
+@since  05/07/2023
+@obs    Gerado por EXPORDIC - V.7.5.2.2 EFS / Upd. V.5.3.1 EFS
+@version 1.0
+/*/
+//--------------------------------------------------------------------
+User Function xKPTLeLog()
+Local cRet  := ""
+Local cFile := NomeAutoLog()
+Local cAux  := ""
+
+FT_FUSE( cFile )
+FT_FGOTOP()
+
+While !FT_FEOF()
+
+	cAux := FT_FREADLN()
+
+	If Len( cRet ) + Len( cAux ) < 1048000
+		cRet += cAux + CRLF
+	Else
+		cRet += CRLF
+		cRet += Replicate( "=" , 128 ) + CRLF
+		cRet += "Tamanho de exibição maxima do LOG alcançado." + CRLF
+		cRet += "LOG Completo no arquivo " + cFile + CRLF
+		cRet += Replicate( "=" , 128 ) + CRLF
+		Exit
+	EndIf
+
+	FT_FSKIP()
+End
+
+FT_FUSE()
+
+Return cRet

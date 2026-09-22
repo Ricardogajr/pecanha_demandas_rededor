@@ -1,0 +1,60 @@
+<%
+#Include 'Protheus.ch'
+#INCLUDE "APWEBEX.CH"
+
+/*
+{Protheus.doc} F0100307.aph
+Exibe solicitações realizadas pelo usuário
+@Author     Bruno de Oliveira
+@Since      07/10/2016
+@Version    P12.1.07
+@Project    MAN00000462901_EF_003
+*/
+
+Local nX        := 0
+Local aLegenda  := {	"br_amarelo_ocean.png",;
+						"br_verde_ocean.png",;
+				 		"br_vermelho_ocean.png",;
+						"br_azul_ocean.png",;
+						"br_pink_ocean.png"}
+%>
+<div id="divMinhasSolic" name="divMinhasSolic">	
+	
+	<table  width="800">
+		<tr>
+			<th>&nbsp;</th>
+			<th>Codigo</th>
+			<th>Data</th>
+			<th>Status</th>
+			<th>Sub-Status</th>
+		</tr>
+		<% If oListSol != NIL %>
+			<% If !(EMPTY(oListSol:oWSAMNHVAG:oWSMNHVGSOLIC[1]:cCdSolic))%>
+			<% For nX := 1 to Len(oListSol:oWSAMNHVAG:oWSMNHVGSOLIC)%>
+			<tr>
+				<td><img src="imagens-rh/<%=aLegenda[VAL(oListSol:oWSAMNHVAG:oWSMNHVGSOLIC[nX]:cStatus)]%>" title="<%=IIF(VAL(oListSol:oWSAMNHVAG:oWSMNHVGSOLIC[nX]:cStatus)==1,"Em processo de aprova&ccedil;&atilde;o",IIF(VAL(oListSol:oWSAMNHVAG:oWSMNHVGSOLIC[nX]:cStatus)==2,"Aprovada",IIF(VAL(oListSol:oWSAMNHVAG:oWSMNHVGSOLIC[nX]:cStatus)==3,"Reprovada",IIF(VAL(oListSol:oWSAMNHVAG:oWSMNHVGSOLIC[nX]:cStatus)==4,"Aguardando Efetiva&ccedil;&atilde;o do RH","Cancelada"))))%>"></td>
+				<% If cTpSol == "002" %>
+					<td><a href="U_F0100310.APW?nGrid=7&nIDept=<%=nX%>&cSolic=<%=oListSol:oWSAMNHVAG:oWSMNHVGSOLIC[nX]:cCdSolic%>&cStatus=<%=oListSol:oWSAMNHVAG:oWSMNHVGSOLIC[nX]:cCdSolic%>&cFilil=<%=oListSol:oWSAMNHVAG:oWSMNHVGSOLIC[nX]:cFilCdSl%>" class="links"><%=oListSol:oWSAMNHVAG:oWSMNHVGSOLIC[nX]:cCdSolic%></a></td>
+				<% Else %>
+					<td><a href="U_F0100321.APW?nGrid=7&nIDept=<%=nX%>&cSolic=<%=oListSol:oWSAMNHVAG:oWSMNHVGSOLIC[nX]:cCdSolic%>&cStatus=<%=oListSol:oWSAMNHVAG:oWSMNHVGSOLIC[nX]:cCdSolic%>&cFilil=<%=oListSol:oWSAMNHVAG:oWSMNHVGSOLIC[nX]:cFilCdSl%>" class="links"><%=oListSol:oWSAMNHVAG:oWSMNHVGSOLIC[nX]:cCdSolic%></a></td>
+				<% EndIf %>
+				<td><%=STOD(oListSol:oWSAMNHVAG:oWSMNHVGSOLIC[nX]:cDataSol)%></td>
+				<td><%=IIF(VAL(oListSol:oWSAMNHVAG:oWSMNHVGSOLIC[nX]:cStatus)==1,"Em processo de aprova&ccedil;&atilde;o",IIF(VAL(oListSol:oWSAMNHVAG:oWSMNHVGSOLIC[nX]:cStatus)==2,"Aprovada",IIF(VAL(oListSol:oWSAMNHVAG:oWSMNHVGSOLIC[nX]:cStatus)==3,"Reprovada",IIF(VAL(oListSol:oWSAMNHVAG:oWSMNHVGSOLIC[nX]:cStatus)==4,"Aguardando Efetiva&ccedil;&atilde;o do RH","Cancelada"))))%></td>
+		 		<% If cTpSol == "002" %>
+		 			<td><%=oListSol:oWSAMNHVAG:oWSMNHVGSOLIC[nX]:cSTATVGS%></td>
+				<% EndIf %>			
+			</tr>
+			<% Next %>
+			<% Else %> 
+               <tr bgcolor="#F2F2F2" class="Texto">
+                  <td align="center" colspan="6">Nao existem registros para exibicao</td>
+                  <!--Nao existem registros para exibicao-->
+               </tr>
+          <% EndIf %>
+		<% EndIf %>  
+		<tr>
+			<td class="info-cent" colspan="6">
+			</td>
+		</tr>
+	</table>
+</div>

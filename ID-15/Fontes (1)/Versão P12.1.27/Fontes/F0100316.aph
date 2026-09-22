@@ -1,0 +1,92 @@
+<%
+#Include 'Protheus.ch'
+#INCLUDE "APWEBEX.CH" 
+
+/*
+{Protheus.doc} F0100316.aph
+Exibe informações dos postos
+@Author     Bruno de Oliveira
+@Since      07/10/2016
+@Version    P12.1.07
+@Project    MAN00000462901_EF_003
+*/
+
+Local nIndiceDepto := val(HttpGet->nIndiceDepto)
+Local msg          := HttpGet->msg
+Local nI := 0
+%>     
+<script language="JavaScript" type="text/JavaScript">
+<!--
+function fNextPage(nCurrentPage,nPTotal,nIndiceDepto){
+	cURL = 'U_F0100316.APW?nPTotal=' + nPTotal + '&nCurrentPage=' + nCurrentPage + '&nIndiceDepto=' + nIndiceDepto + '';
+	cDestination = 'divPostos';    
+	new Ajax.Updater(	cDestination, cURL);
+	return false;
+}
+
+//-->
+</script>                 
+<table width="800">
+	<tr class="texto">
+		<th><%="Cod. Posto"%></th>
+		<th><%="Tipo do Posto"%></th>
+		<th><%="Quant."%></th>
+		<th><%="Ocupados"%></th>
+		<th><%="Funcao"%></th>
+		<th><%="Cargo"%></th>
+	</tr>
+	<% If Len(HttpSession->Postos) > 0 %>	
+	<%	For nI := 1 To Len(HttpSession->Postos)		%>
+		<tr class="texto">
+			<td>
+				<a href="U_F0100319.APW?nOperacao=1&nIndDept=<%=HttpGet->nIndiceDepto%>&nIndicePosto=<%=nI%>&cNPost=2&cOpc=<%=cOpc%>&cCodDepto=<%=cCodDepto%>&cDescrDepto=<%=cDescrDepto%>&cPostFilial=<%=HttpSession->Postos[nI]:cPostFilial%>" class="links"><%=HttpSession->Postos[nI]:cPOSTO%></a>
+			</td>
+			<td>
+				<%=HttpSession->Postos[nI]:cDescrTipo%>
+			</td>
+			<td>
+				<%=HttpSession->Postos[nI]:nQtd%>
+			</td>
+			<td>
+				<%=HttpSession->Postos[nI]:nOcupado%>
+			</td>
+			<td>
+				<%=HttpSession->Postos[nI]:cDescrFuncao%>
+			</td>
+			<td>
+				<%=HttpSession->Postos[nI]:cDescrCargo%>
+			</td>
+		</tr>
+		
+	<%	Next nI	%>
+	<% Else %>
+		<span>Não foi encontrado postos para o departamento.</span>
+	<% EndIf %>
+	<br>
+<form method="get" >
+<% 		If (nPTotal > 1) %>
+			<div class='container-pagin'>
+				<div class="pagin-esq">
+					Pagina: <!-- Pagina: -->
+					<input id="txtPagina" class="pagin" name="txtPagina" type="text" value="<%=nCurrentPage%>" size="3" maxlength="3"><%=nPTotal%>
+				</div>
+				<div class="pagin-dir">
+<%				If (nCurrentPage > 1) %>
+						<input type="button" name="button2" onClick="fNextPage( 1, <%=nPTotal%>,<%=HttpGet->nIndiceDepto%>)" class="ButtonFirst" value="">
+						<input type="button" name="button2" onClick="fNextPage(<%=nCurrentPage-1%>, <%=nPTotal%>,<%=HttpGet->nIndiceDepto%>)" class="ButtonPrevious" value="">
+<%				Else	%>						
+						<a href="#" class="ButtonFirstDisabled"></a>
+						<a href="#" class="ButtonPreviousDisabled"></a>
+<%				EndIf	%>
+<%				IF (nCurrentPage != nPTotal) %>
+						<input type="button" name="button2" onClick="fNextPage(<%=nCurrentPage+1%>, <%=nPTotal%>,<%=HttpGet->nIndiceDepto%>)" class="ButtonNext" value="">
+						<input type="button" name="button2" onClick="fNextPage(<%=nPTotal%>, <%=nPTotal%>,<%=HttpGet->nIndiceDepto%>)" class="ButtonLast" value="">
+<%				Else	%>						
+						<a href="#" class="ButtonNextDisabled"></a>
+						<a href="#" class="ButtonLastDisabled"></a>
+<%				EndIf	%>
+				</div>
+			</div>		    	
+<% 		EndIf %>
+</form>  
+</table>

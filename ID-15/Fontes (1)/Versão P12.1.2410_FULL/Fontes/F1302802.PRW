@@ -1,0 +1,552 @@
+#INCLUDE "PROTHEUS.CH"
+#INCLUDE "REPORT.CH"
+#INCLUDE "TBICONN.CH"
+#INCLUDE "FILEIO.CH"
+
+User function F1302802()
+
+local OREPORT := NIL
+
+PERGUNTE("FSW1302800", .T. )
+OREPORT := RPTDEF()
+OREPORT:PRINTDIALOG()
+
+return 
+
+static function RPTDEF()
+
+local OREPORT := NIL
+local OSECTION := NIL
+
+OREPORT := TREPORT():NEW("FSW1302802","Movimentação de Pessoal","FSW1302802",{|OREPORT|REPORTPRINT(OREPORT)},"Movimentação de Pessoal")
+OREPORT:SETPORTRAIT()
+OREPORT:SETTOTALINLINE( .F. )
+
+PERGUNTE("FSW1302800", .F. )
+
+OSECTION := TRSECTION():NEW(OREPORT,"Relatório de Solicitações",{"Relatório de Solicitações"},, .F. , .T. )
+TRCELL():NEW(OSECTION,"PA5_XSEAPV","RH3",NOACENTO("Departamento Efetivaçao"),"@!",TAMSX3("PA5_XSEAPV")[1], .T. )
+TRCELL():NEW(OSECTION,"PA5_XAPROV","RH3",NOACENTO("Analista Responsável"),"@!",TAMSX3("PA5_XAPROV")[1], .T. )
+TRCELL():NEW(OSECTION,"TMP_MAT","RH3",NOACENTO("Matrícula Aprovador"),"@!",30, .T. )
+TRCELL():NEW(OSECTION,"TMP_NOME","RH3",NOACENTO("Nome Aprovador"),"@!",30, .T. )
+TRCELL():NEW(OSECTION,"TMP_CPF","RH3",NOACENTO("CPF Aprovador"),"@!",30, .T. )
+TRCELL():NEW(OSECTION,"TMP_CARGO","RH3",NOACENTO("Cargo Aprovador"),"@!",30, .T. )
+TRCELL():NEW(OSECTION,"TMP_DEPTO","RH3",NOACENTO("Departamento Aprovador"),"@!",30, .T. )
+TRCELL():NEW(OSECTION,"TMP_CC","RH3",NOACENTO("Centro de Custo Aprovador"),"@!",30, .T. )
+TRCELL():NEW(OSECTION,"TMP_FUNCAO","RH3",NOACENTO("Funçao Aprovador"),"@!",30, .T. )
+TRCELL():NEW(OSECTION,"RH3_MAT","RH3",NOACENTO("Matrícula Solicitado"),"@!",TAMSX3("RH3_MAT")[1], .T. )
+TRCELL():NEW(OSECTION,"RA_NOME","RH3",NOACENTO("Nome Solicitado"),"@!",TAMSX3("RA_NOME")[1], .T. )
+TRCELL():NEW(OSECTION,"RA_CIC","RH3",NOACENTO("CPF Solicitado"),"@!",TAMSX3("RA_CIC")[1], .T. )
+TRCELL():NEW(OSECTION,"RA_MATSOLC","RH3",NOACENTO("Matrícula Solicitante"),"@!",TAMSX3("RA_MAT")[1], .T. )
+TRCELL():NEW(OSECTION,"RA_NOMESOL","RH3",NOACENTO("Nome Solicitante"),"@!",TAMSX3("RA_NOME")[1], .T. )
+TRCELL():NEW(OSECTION,"RA_CICSOLC","RH3",NOACENTO("CPF Solicitante"),"@!",TAMSX3("RA_CIC")[1], .T. )
+TRCELL():NEW(OSECTION,"RD0_LOGIN","RH3",NOACENTO("Login Solicitante"),"@!",TAMSX3("RD0_LOGIN")[1], .T. )
+TRCELL():NEW(OSECTION,"TMP_H_M_AT","RH3",NOACENTO("Carga Horária Atual"),"@!",30, .T. )
+TRCELL():NEW(OSECTION,"RA_HRSMES","RH3",NOACENTO("Carga Horário Proposta"),"@!",30, .T. )
+TRCELL():NEW(OSECTION,"TMP_D_FUNC","RH3",NOACENTO("Cargo Atual"),"@!",30, .T. )
+TRCELL():NEW(OSECTION,"RA_CODFUNC","RH3",NOACENTO("Cargo proposto"),"@!",30, .T. )
+TRCELL():NEW(OSECTION,"TMP_DEPTOA","RH3",NOACENTO("Departamento Atual"),"@!",30, .T. )
+TRCELL():NEW(OSECTION,"RA_DEPTO","RH3",NOACENTO("Departamento Proposto"),"@!",30, .T. )
+TRCELL():NEW(OSECTION,"TMP_CCATU","RH3",NOACENTO("Centro de Custo Atual"),"@!",30, .T. )
+TRCELL():NEW(OSECTION,"RA_CC","RH3",NOACENTO("Centro de Custo Proposto"),"@!",30, .T. )
+TRCELL():NEW(OSECTION,"TMP_H_D_AT","RH3",NOACENTO("Horário Atual"),"@!",30, .T. )
+TRCELL():NEW(OSECTION,"RA_HRSDIA","RH3",NOACENTO("Horário Proposto"),"@!",30, .T. )
+TRCELL():NEW(OSECTION,"TMP_SALATU","RH3",NOACENTO("Salário Atual"),"@!",30, .T. )
+TRCELL():NEW(OSECTION,"RA_SALARIO","RH3",NOACENTO("Salário Proposto"),"@!",30, .T. )
+TRCELL():NEW(OSECTION,"TMP_FILIAL","RH3",NOACENTO("Filial Atual"),"@!",30, .T. )
+TRCELL():NEW(OSECTION,"RA_FILIAL","RH3",NOACENTO("Filial Proposta"),"@!",30, .T. )
+
+TRCELL():NEW(OSECTION,"TMP_TURNAT","RH3",NOACENTO("Turno Atual"),"@!",30, .T. )
+TRCELL():NEW(OSECTION,"RA_TNOTRAB","RH3",NOACENTO("Turno Proposto"),"@!",30, .T. )
+
+TRCELL():NEW(OSECTION,"RH3_CODIGO","RH3",NOACENTO("Chamado"),"@!",TAMSX3("RH3_CODIGO")[1], .T. )
+TRCELL():NEW(OSECTION,"RH3_DTSOLI","RH3",NOACENTO("Data de Abertura"),"@!",TAMSX3("RH3_DTSOLI")[1], .T. )
+TRCELL():NEW(OSECTION,"RH3_XDTAPV","RH3",NOACENTO("Data de Aprovaçao"),"@!",TAMSX3("RH3_XDTAPV")[1], .T. )
+TRCELL():NEW(OSECTION,"RH3_DTATEN","RH3",NOACENTO("Data de Fechamento"),"@!",TAMSX3("RH3_DTATEN")[1], .T. )
+TRCELL():NEW(OSECTION,"TMP_DESCRI","RH3",NOACENTO("Descriçao"),"@!",TAMSX3("Q3_DESCSUM")[1], .T. )
+TRCELL():NEW(OSECTION,"TMP_FECHAD","RH3",NOACENTO("Fechado"),"@!",30, .T. )
+TRCELL():NEW(OSECTION,"PA5_XDATA","RH3",NOACENTO("Data"),"@!",TAMSX3("PA5_XDATA")[1], .T. )
+TRCELL():NEW(OSECTION,"PA5_XHORA","RH3",NOACENTO("Hora"),"@!",TAMSX3("PA5_XHORA")[1], .T. )
+TRCELL():NEW(OSECTION,"TMP_OBS","RH3",NOACENTO("Observaçao da Solicitaçao"),"@!",30, .T. )
+TRCELL():NEW(OSECTION,"RH3_STATUS","RH3",NOACENTO("Status"),"@!",TAMSX3("RH3_STATUS")[1], .T. )
+TRCELL():NEW(OSECTION,"RH3_FILAPR","RH3",NOACENTO("Unidade Aprovaçao"),"@!",TAMSX3("RH3_FILIAL")[1], .T. )
+TRCELL():NEW(OSECTION,"RH3_FILINI","RH3",NOACENTO("Unidade Solicitante"),"@!",TAMSX3("RH3_FILINI")[1], .T. )
+TRCELL():NEW(OSECTION,"PA5_XUNAPR","RH3",NOACENTO("Unidade Efetivaçao"),"@!",TAMSX3("PA5_XUNAPR")[1], .T. )
+OREPORT:SETTOTALINLINE( .F. )
+
+OSECTION:SETPAGEBREAK( .T. )
+OSECTION:SETTOTALTEXT(" ")
+
+return OREPORT
+
+static function REPORTPRINT(OREPORT)
+
+local OSECTION := OREPORT:SECTION(1)
+local ADADOS := {}
+local NCNT := 0
+local CQRYRH4 := ""
+local CALIASRH := ""
+local CCODCARGO := ""
+local CNOMECARGO := ""
+
+if (OREPORT:NDEVICE==1) .or. (OREPORT:NDEVICE==6)
+    MSGINFO("Não é possível imprimir o relatório em PDF ",)
+    OREPORT:CANCELPRINT()
+    return NIL
+endif
+
+ADADOS := U_F1302800("006")
+
+if !(EMPTY(ADADOS))
+    OREPORT:SETMETER(len(ADADOS))
+    OREPORT:INCMETER()
+    for NCNT := 1 to len(ADADOS)
+        if OREPORT:CANCEL()
+            exit 
+        endif
+        OSECTION:INIT()
+        OREPORT:INCMETER()
+        OSECTION:CELL("PA5_XSEAPV"):SETVALUE(ADADOS[NCNT][1])
+        OSECTION:CELL("PA5_XAPROV"):SETVALUE(ADADOS[NCNT][2])
+        OSECTION:CELL("TMP_MAT"):SETVALUE(ADADOS[NCNT][3])
+        OSECTION:CELL("TMP_NOME"):SETVALUE(ADADOS[NCNT][4])
+        OSECTION:CELL("TMP_CPF"):SETVALUE(ADADOS[NCNT][5])
+        OSECTION:CELL("TMP_CARGO"):SETVALUE( alltrim(ADADOS[NCNT][6])+" | "+iif(.not. (EMPTY(ADADOS[NCNT][6])),POSICIONE("SQ3",1,XFILIAL("SQ3")+ substr(ADADOS[NCNT][6],1,TAMSX3("RA_CARGO")[1]),"Q3_DESCSUM"),""))
+        OSECTION:CELL("TMP_DEPTO"):SETVALUE( alltrim(ADADOS[NCNT][7])+" | "+iif(.not. (EMPTY(ADADOS[NCNT][7])),POSICIONE("SQB",1,XFILIAL("SQB")+ADADOS[NCNT][7],"QB_DESCRIC"),""))
+        OSECTION:CELL("TMP_CC"):SETVALUE( alltrim(ADADOS[NCNT][8])+" | "+iif(.not. (EMPTY(ADADOS[NCNT][8])),POSICIONE("CTT",1,XFILIAL("CTT")+ADADOS[NCNT][8],"CTT_DESC01"),""))
+        OSECTION:CELL("TMP_FUNCAO"):SETVALUE( alltrim(ADADOS[NCNT][9])+" | "+iif(.not. (EMPTY(ADADOS[NCNT][9])),POSICIONE("SRJ",1,XFILIAL("SRJ")+ADADOS[NCNT][9],"RJ_DESC"),""))
+        OSECTION:CELL("RH3_MAT"):SETVALUE(ADADOS[NCNT][12])
+        OSECTION:CELL("RA_NOME"):SETVALUE(ADADOS[NCNT][22])
+        OSECTION:CELL("RA_CIC"):SETVALUE(ADADOS[NCNT][23])
+        OSECTION:CELL("RA_MATSOLC"):SETVALUE(ADADOS[NCNT][27])
+        OSECTION:CELL("RA_NOMESOL"):SETVALUE(ADADOS[NCNT][28])
+        OSECTION:CELL("RA_CICSOLC"):SETVALUE(ADADOS[NCNT][29])
+        OSECTION:CELL("RD0_LOGIN"):SETVALUE(ADADOS[NCNT][10])
+        
+		if  len(ADADOS[NCNT])>=37
+
+
+            CALIASRH := GETNEXTALIAS()
+            CCODCARGO := ""
+            CNOMECARGO := ""
+
+            CQRYRH4 := "SELECT RH4.RH4_CAMPO, RH4.RH4_VALNOV "
+            CQRYRH4 += "FROM	"+RETSQLNAME("RH4")+" RH4 "
+            CQRYRH4 += "WHERE RH4.D_E_L_E_T_ = ' ' "
+            CQRYRH4 += "AND RH4.RH4_CODIGO = '"+ADADOS[NCNT][11]+"' "
+            CQRYRH4 += "AND RH4.RH4_FILIAL = '"+ADADOS[NCNT][37][19]+"' "
+            CQRYRH4 += "AND (RH4.RH4_CAMPO = 'TMP_FUNCAO' "
+            CQRYRH4 += " OR  RH4.RH4_CAMPO = 'TMP_D_FUNC') "
+            CQRYRH4 += "GROUP BY RH4.RH4_CAMPO, RH4.RH4_VALNOV "
+
+            CQRYRH4 := CHANGEQUERY(CQRYRH4)
+            DBUSEAREA( .T. ,"TOPCONN",TCGENQRY(,,CQRYRH4),CALIASRH, .F., .T.)
+	
+            dbselectarea(CALIASRH)
+            while !((CALIASRH)->(EOF())) 
+                if (CALIASRH)->RH4_CAMPO=="TMP_FUNCAO"
+                    CCODCARGO :=  alltrim((CALIASRH)->RH4_VALNOV)
+                elseif (CALIASRH)->RH4_CAMPO=="TMP_D_FUNC"
+                    CNOMECARGO :=  alltrim((CALIASRH)->RH4_VALNOV)
+                endif
+                (CALIASRH)->(DBSKIP())
+			end
+
+            (CALIASRH)->(DBCLOSEAREA())
+
+
+            OSECTION:CELL("TMP_H_M_AT"):SETVALUE(ADADOS[NCNT][37][4])
+            OSECTION:CELL("RA_HRSMES"):SETVALUE(ADADOS[NCNT][37][7])
+
+            OSECTION:CELL("TMP_D_FUNC"):SETVALUE(CCODCARGO+" | "+CNOMECARGO)
+            OSECTION:CELL("RA_CODFUNC"):SETVALUE( alltrim(ADADOS[NCNT][37][18])+" | "+iif(.not. (EMPTY(ADADOS[NCNT][37][18])),POSICIONE("SRJ",1,XFILIAL("SRJ")+ADADOS[NCNT][37][18],"RJ_DESC"),""))
+            OSECTION:CELL("TMP_DEPTOA"):SETVALUE( alltrim(ADADOS[NCNT][37][12])+" | "+iif(.not. (EMPTY(ADADOS[NCNT][37][12])),POSICIONE("SQB",1,XFILIAL("SQB")+ADADOS[NCNT][37][12],"QB_DESCRIC"),""))
+            OSECTION:CELL("RA_DEPTO"):SETVALUE( alltrim(ADADOS[NCNT][37][15])+" | "+iif(.not. (EMPTY(ADADOS[NCNT][37][15])),POSICIONE("SQB",1,XFILIAL("SQB")+ADADOS[NCNT][37][15],"QB_DESCRIC"),""))
+            OSECTION:CELL("TMP_CCATU"):SETVALUE( alltrim(ADADOS[NCNT][37][10])+" | "+iif(.not. (EMPTY(ADADOS[NCNT][37][10])),POSICIONE("CTT",1,XFILIAL("CTT")+ADADOS[NCNT][37][10],"CTT_DESC01"),""))
+            OSECTION:CELL("RA_CC"):SETVALUE( alltrim(ADADOS[NCNT][37][13])+" | "+iif(.not. (EMPTY(ADADOS[NCNT][37][13])),POSICIONE("CTT",1,XFILIAL("CTT")+ADADOS[NCNT][37][13],"CTT_DESC01"),""))
+            OSECTION:CELL("TMP_H_D_AT"):SETVALUE(ADADOS[NCNT][37][6])
+            OSECTION:CELL("RA_HRSDIA"):SETVALUE(ADADOS[NCNT][37][9])
+            OSECTION:CELL("TMP_SALATU"):SETVALUE(ADADOS[NCNT][37][2])
+            OSECTION:CELL("RA_SALARIO"):SETVALUE(ADADOS[NCNT][37][3])
+            OSECTION:CELL("TMP_FILIAL"):SETVALUE( alltrim(ADADOS[NCNT][37][19])+" | "+iif(.not. (EMPTY(ADADOS[NCNT][37][19])),FWFILIALNAME(,ADADOS[NCNT][37][19]),""))
+            OSECTION:CELL("RA_FILIAL"):SETVALUE( alltrim(ADADOS[NCNT][37][20])+" | "+iif(.not. (EMPTY(ADADOS[NCNT][37][20])),FWFILIALNAME(,ADADOS[NCNT][37][20]),""))
+            OSECTION:CELL("TMP_OBS"):SETVALUE(ADADOS[NCNT][37][17])
+
+
+            OSECTION:CELL("TMP_TURNAT"):SETVALUE( alltrim(ADADOS[NCNT][37][21])+" | "+iif(.not. (EMPTY(ADADOS[NCNT][37][21])),POSICIONE("SR6",1,XFILIAL("SR6")+ADADOS[NCNT][37][21],"R6_DESC"),""))
+            OSECTION:CELL("RA_TNOTRAB"):SETVALUE( alltrim(ADADOS[NCNT][37][22])+" | "+iif(.not. (EMPTY(ADADOS[NCNT][37][22])),POSICIONE("SR6",1,XFILIAL("SR6")+ADADOS[NCNT][37][22],"R6_DESC"),""))
+        endif
+
+        OSECTION:CELL("RH3_CODIGO"):SETVALUE(ADADOS[NCNT][11])
+        OSECTION:CELL("RH3_DTSOLI"):SETVALUE(DTOC(STOD(ADADOS[NCNT][14])))
+        OSECTION:CELL("RH3_XDTAPV"):SETVALUE(DTOC(STOD(ADADOS[NCNT][18])))
+        OSECTION:CELL("RH3_DTATEN"):SETVALUE(DTOC(STOD(ADADOS[NCNT][15])))
+        OSECTION:CELL("TMP_DESCRI"):SETVALUE( alltrim(ADADOS[NCNT][30])+" | "+ alltrim(ADADOS[NCNT][31]))
+        OSECTION:CELL("TMP_FECHAD"):SETVALUE(ADADOS[NCNT][32])
+        OSECTION:CELL("PA5_XDATA"):SETVALUE(ADADOS[NCNT][20])
+        OSECTION:CELL("PA5_XHORA"):SETVALUE(ADADOS[NCNT][19])
+        OSECTION:CELL("RH3_STATUS"):SETVALUE(ADADOS[NCNT][13])
+        OSECTION:CELL("RH3_FILAPR"):SETVALUE(ADADOS[NCNT][17]+" | "+iif(.not. (EMPTY(ADADOS[NCNT][17])),FWFILIALNAME(,ADADOS[NCNT][17]),""))
+        OSECTION:CELL("RH3_FILINI"):SETVALUE(ADADOS[NCNT][16]+" | "+iif(.not. (EMPTY(ADADOS[NCNT][16])),FWFILIALNAME(,ADADOS[NCNT][16]),""))
+        OSECTION:CELL("PA5_XUNAPR"):SETVALUE(ADADOS[NCNT][21]+" | "+iif(.not. (EMPTY(ADADOS[NCNT][21])),FWFILIALNAME(,ADADOS[NCNT][21]),""))
+
+        OSECTION:PRINTLINE()
+    next
+
+    OSECTION:FINISH()
+endif
+
+return 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

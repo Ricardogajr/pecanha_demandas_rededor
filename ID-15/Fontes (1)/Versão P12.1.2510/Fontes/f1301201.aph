@@ -1,0 +1,66 @@
+<%
+   #INCLUDE "PROTHEUS.CH"
+   #INCLUDE "APWEBEX.CH" 
+   
+   /*
+   {Protheus.doc} F0100312.aph
+   Página principal da solicitação de aumento de quadro\orçamento
+   @Author     Bruno de Oliveira
+   @Since      07/10/2016
+   @Version    P12.1.07
+   @Project    MAN00000462901_EF_003
+   */
+%>
+<?xml version="1.0" encoding="iso-8859-1"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+      <script src="scripts/prototype.js" language="JavaScript" type="text/javascript"></script>
+      <script src="scripts/scriptaculous.js" language="JavaScript" type="text/javascript"></script>
+      <link href="styles/consulta.css" rel="stylesheet" type="text/css">
+      <link href="styles/estilo.css" rel="stylesheet" type="text/css">
+      <title><%="Aumento de Quadro\Orçamento"%></title>
+      <script language="JavaScript" type="text/JavaScript">
+         function GoToPage(ev, nPageType) {
+                  
+         var oParams = {};
+         if (nPageType == 1) {
+         	cURL = 'U_F1302101.APW';
+         	cDestination = 'divDepartamentos';
+         }
+         oParams.cNvDesen = '1';
+         		
+         new Ajax.Updater(	cDestination, 
+         					cURL,
+         						{
+         							method: 'get',     
+         							evalScripts: true,
+         							parameters: oParams
+         						}
+         					);
+         	return false;
+         }
+         function fNextDept(nCurrentPage,nPTotal){
+         	cURL = 'U_F0100313.APW?nPTotal=' + nPTotal + '&nCurrentPage=' + nCurrentPage + '';
+         	cDestination = 'divDept';    
+         	new Ajax.Updater(	cDestination, cURL);
+         	return false;
+         }
+         <%	If(valtype(cMsg) != "U" .OR. cMsg != NIL) %>
+         		alert('<%=cMsg%>');
+         <%	EndIf %>
+         
+      </script>
+   </head>
+   <body>
+      <div id="divDepartamentos" name="divDepartamentos">
+         <div style="text-align: center; vertical-align: middle; width: 600px;">
+            <img src="imagens-rh/ajax-loader.gif"><br>
+            <span class="TituloMenor">Aguarde</span>
+         </div>
+         <script language="Javascript">
+            GoToPage(null, 1);
+         </script>
+      </div>
+   </body>
+</html>

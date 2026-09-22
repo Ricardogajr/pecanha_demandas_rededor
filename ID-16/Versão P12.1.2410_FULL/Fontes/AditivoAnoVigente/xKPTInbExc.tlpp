@@ -1,0 +1,433 @@
+#INCLUDE "TOTVS.ch"
+
+/*/{Protheus.doc} xKPTInbExc
+Processa a requisição de todos ExecAuto.
+@type function
+@author Joalisson Laurentino
+@since 30/10/2021
+/*/
+User Function xKPTInbExc(aParams,lExecPos,cFiltroId) 			
+    //Local cTitulo	 := "Integração TaxFy x Protheus"
+    //Local cDescricao := "Realiza o processamento dos IDs de integração para o Protheus."
+    Local lEnd		 := .F.
+	//Local oGrid	 	 := Nil
+    
+	Private lLogado   := Type('cEmpAnt') == 'C'
+    
+    Default aParams   := {cEmpAnt,cFilAnt}
+    Default lExecPos  := .F.
+	Default cFiltroId := ""
+
+	WFConout("INICIO INTEGRAÇÃO TAXFY - xKPTInbExc.tlpp")
+			 
+	If !lLogado
+		RPCSetType(3)
+		//Verificar a quantidade de parâmetros informados, se for maior que 4 é um indicativo de que foi informada a empresa, filial e o filtro ID no parâmetro via agendamento .
+        If (Len(aParams) > 4 )
+
+            varinfo("aparame",aParams)
+            cFiltroId := aParams[3] 
+        EndIf
+		If RPCSetEnv(aParams[1],aParams[2])
+			WFConout("VIA JOB RPCSetEnv Iniciado Emp: "+aParams[1]+" Fil: "+aParams[2])
+			cEmpAnt := aParams[1] 
+			cFilAnt := aParams[2]	
+			
+			U_xKPTExcAll(oGrid,lEnd,lLogado,.F.,cFiltroId)
+		Else
+			WFConout("Não foi possivel conectar no ambiente VIA JOB RPCSetEnv - xKPTInbExc.tlpp")
+		Endif 
+    Else
+		FWMsgRun(,{|oSay| U_xKPTExcAll(oSay,lEnd,lLogado,lExecPos,cFiltroId) },"ID "+cFiltroId,'Processando ExecAuto...')
+        //oGrid := FWGridProcess():New("xKPTInbExc",cTitulo,cDescricao,{|lEnd| U_xKPTExcAll(oGrid,lEnd,lLogado,lExecPos,cFiltroId)},/*cPergunta*/,/*cGrid*/,/*lSaveLog*/)
+
+		//oGrid:SetMeters(1)                     
+		//oGrid:Activate()
+		//oGrid:IsFinished()
+		//oGrid:DeActivate()
+		//FwFreeObj(oGrid)
+    EndIf
+
+	WFConout("FIM INTEGRAÇÃO TAXFY - xKPTInbExc.tlpp")
+
+	If !lLogado
+		RpcClearEnv()
+	EndIf
+Return
+
+User Function xKPTExcAll(oSay,lEnd,lLogado,lExecPos,cFiltroId,cIDOnergy,cPostParams)
+    Private aArea      := FwGetArea()
+    Private cError 	   := ""
+	Private bError 	   := ErrorBlock({|oError| cError := oError:Description + oError:ErrorStack})
+    Private nI         := 0
+    Private nRegs      := 0
+    Private cObjJson   := Nil
+    Private aCallBack  := {}
+    Private aAllExec   := {}
+    Private aRet       := {"",""} //Posição 1 indica o sucesso da requisição, Posição 2 traz o retorno da requisição em objeto
+
+    Private lDuplic      := .F.
+    Private lRet       := .F.
+    Private nOpc       := 3   
+    Private cCallbk    := ""
+    Private cFilOri    := ""
+    Private cId        := ""
+    Private cRotina    := ""
+    Private cOnergy    := ""
+    Private cLogMsg    := ""
+    Private cTabItem   := ""
+    Private cTabHead   := ""
+    Private cZKTFilter := ""
+    Private cAlias     := SuperGetMv("KPT_ALIAS",,"ZKT")
+
+    Default cPostParams := ""
+
+    DbSelectArea("ZKT")
+    If (lExecPos) .AND. Empty(cFiltroId)
+        If Select("ZKT") > 0 .And. ZKT->(Recno()) <> 0
+            If ZKT->ZKT_STATUS <> '1' 
+                If !MsgYesNo("Registro já processado. Deseja reprocessar?","ATENÇÃO! Evite duplicidade.")
+                    Return(.F.)
+                EndIf 
+            EndIf 
+
+            nRegs := 1
+        Else 
+            FWAlertInfo("Não há registro para ser processado.","xKPTInbExc.tlpp - KeepTrue")
+        EndIf 
+    ElseIf !Empty(cFiltroId)
+        cZKTFilter := " ZKT->ZKT_STATUS = '1' .AND. ZKT->ZKT_ID $ '"+cFiltroId+"'"
+        ZKT->(DbSetFilter({|| &(cZKTFilter)},cZKTFilter))
+        ZKT->(DbGoTop())
+        
+        DbSelectArea("ZKT")
+        Count To nRegs
+        ZKT->(DbGoTop())
+    ElseIf !Empty(cIDOnergy) .AND. Empty(cFiltroId)
+        cZKTFilter := " ZKT->ZKT_STATUS = '1' .AND. ZKT->ZKT_ONERGY = '"+cIDOnergy+"'"
+        ZKT->(DbSetFilter({|| &(cZKTFilter)},cZKTFilter))
+        ZKT->(DbGoTop())
+        DbSelectArea("ZKT")
+        Count To nRegs
+        ZKT->(DbGoTop())
+    Else
+        cZKTFilter := " ZKT->ZKT_STATUS = '1'"
+        ZKT->(DbSetFilter({|| &(cZKTFilter)},cZKTFilter))
+        ZKT->(DbGoTop())
+        
+        DbSelectArea("ZKT")
+        Count To nRegs
+        ZKT->(DbGoTop())
+    EndIf
+
+    While !ZKT->(Eof())
+        nI++ 
+        cLogMsg  := "INICIO: "+ Strtran(time(),':',':') +" | "
+        aAllExec := {}
+        lRet     := .F.
+        nOpc     := 3   
+        
+        cMsg := "Processando ID [ "+Alltrim(ZKT->ZKT_ID)+" ] Rotina [ "+Alltrim(ZKT->ZKT_ROTINA)+" ] - Total: "+cValtoChar(nI)+" / "+cValtoChar(nRegs)
+        
+        If oSay <> Nil
+			oSay:cCaption := cMsg
+			oSay:Refresh()
+		EndIf
+        
+        WFConout(cMsg)
+
+        oRetorno := JsonObject():New()
+        cObjJson := oRetorno:FromJson(DecodeUtf8(ZKT->ZKT_JSON))
+
+        If ValType(cObjJson) == "U"
+            Begin Sequence
+                // MONTA ARRAY COM N EXECAUTOS COM BASE NA REQUISIÇÃO JSON
+                aAllExec := U_JSonToAutoArray(oRetorno,@cLogMsg) 
+            Recover
+                //Caso tenha ocorrido erro a transaçao sera desfeita
+                lRet := .F.
+            End Sequence
+            ErrorBlock(bError)
+            
+            // LOOP DE EXECAUTOS           
+            If Len(aAllExec) > 0
+                lRet := U_xKPTInbAll(aAllExec,@cLogMsg,@lDuplic)
+            EndIf
+
+            oData := JsonObject():New()    
+            oData["status"]   := lRet
+            oData["tenantId"] := cFilOri
+            oData["msg"]  := cLogMsg+cError
+            oData["data_env"] := FwTimeStamp(5,Date(),"00:00:00") 
+
+            // FAZ O ENVIO DO CALLBACK VIA API Post | 1=POST,2=GET,3=PUT
+            cPostParams := oData:ToJson()
+            
+            aCallBack := U_xKPTFWRest("POST",cCallbk/*cUrl*/,/*cSetPath*/,cPostParams,/*aHeader*/,.T./*lCallBack*/,cOnergy)
+
+            If "EXISTNF" $ AllTrim(cLogMsg)
+                lDuplic := .T.
+            EndIf
+            
+            // ATUALIZA STATUS DE EXECUÇÃO DA TABELA DE REQUISIÇÕES   
+            If ZKT->(RecLock('ZKT',.F.))
+                ZKT->ZKT_STATUS := IIF(lRet,'2',IIF(lDuplic,'4','3')) //1-Pendente | 2-Processo realizado com sucesso! | 3-Erro de Validação
+                ZKT->ZKT_RETURN := cPostParams
+                ZKT->ZKT_DTPROC := Date()
+                ZKT->ZKT_HRPROC := Substr(Time(),1,5)
+                ZKT->(MsUnlock())
+            EndIf
+        Else
+            WFConout("Falha ao popular JsonObject. Erro: " + cObjJson)
+        EndIf
+
+        FreeObj(oRetorno)
+    
+        If (lExecPos)
+            Exit 
+        EndIf 
+
+        ZKT->(DBSkip()) 
+    EndDo
+    ZKT->(DBClearFilter())
+
+    aRet[1] := lRet
+    aRet[2] := cPostParams
+    
+    FwRestArea(aArea)
+Return aRet
+
+User Function JSonToAutoArray(oRetorno,cLogMsg)
+    Local aAllExec := {}
+    Local aDados   := {}
+    Local oMultRet := Nil 
+    Local oData    := Nil 
+    Local nI 	   := 0
+
+	If aScan(oRetorno:GetNames(),"execauto") > 0
+		oMultRet := oRetorno['execauto']
+
+		For nI := 1 To Len(oMultRet)
+            oData   := oMultRet[nI]['data']
+            cRotina := oMultRet[nI]["rotina"] 
+            nOpc    := oMultRet[nI]["nOpc"]
+            cCallbk := oMultRet[nI]["callback"]
+            cFilOri := oMultRet[nI]["tenantId"]
+            cId     := oMultRet[nI]["id"]
+            cOnergy := oMultRet[nI]["id-onergy"]     
+
+            If ValType(oMultRet[nI]['data']) == "J"
+                cTabHead := oData["header"]["alias"]
+                aCpoHead := oData["header"]["fields"]:GetNames()
+
+                aDados := xTransJson(oData,cTabHead,aCpoHead,@cLogMsg)
+            Else 
+                cLogMsg += "Erro na estrutura do Json, reprocesse no Onergy. Tag '[data]' esta vazio. "
+            EndIf 
+
+            aAdd(aAllExec,{aDados,cRotina,nOpc,cCallbk,cFilOri,cId,cOnergy,cTabHead,cTabItem})
+		Next 
+	Else 
+        oData    := oRetorno['data']        
+        cRotina  := oRetorno["rotina"] 
+        nOpc     := oRetorno["nOpc"]
+        cCallbk  := oRetorno["callback"]
+        cFilOri  := oRetorno["tenantId"]
+        cId      := oRetorno["id"]
+        cOnergy  := oRetorno["id-onergy"]  
+        
+        If ValType(oRetorno['data']) == "J"
+            cTabHead := oData["header"]["alias"]
+            aCpoHead := oData["header"]["fields"]:GetNames()
+
+            aDados := xTransJson(oData,cTabHead,aCpoHead,@cLogMsg)
+        Else 
+            cLogMsg += "Erro na estrutura do Json, reprocesse no Onergy. Tag '[data]' esta vazio. "
+        EndIf   
+
+        aAdd(aAllExec,{aDados,cRotina,nOpc,cCallbk,cFilOri,cId,cOnergy,cTabHead,cTabItem})
+	EndIf 
+    
+Return(aAllExec)
+
+Static Function xTransJson(oData,cTabHead,aCpoHead,cLogMsg)
+	Local nY       := 0
+	Local aAcols   := {}
+	Local aSubAcols:= {}
+    Local nX       := 0
+	Local aCabec   := {}
+	Local aItens   := {}
+	Local aCab     := {}
+	Local aItem    := {}
+
+	aCabec := LoadFields(aCpoHead,@cLogMsg)
+
+	For nY := 1 To Len(aCabec)
+		cCampo 	 := aCabec[nY][1]
+		xValue	 := oData["header"]["fields"][aCabec[nY][1]]
+		cTypeCpo := aCabec[nY][2]
+
+		uConteudo := U_xKPTConvType(xValue,cTypeCpo)
+
+		AADD(aCab,{cCampo,uConteudo,Nil})
+	Next nY
+
+	nData := Len(oData:GetNames())
+	
+	If nData > 1
+		cTabItem  := oData["itens"][1]["alias"]
+		aCpoItens := oData["itens"][1]["fields"]:GetNames()
+		aItens := LoadFields(aCpoItens,@cLogMsg)
+
+		For nY := 1 To Len(oData["itens"])
+			aItem := {}
+			For nX := 1 To Len(aItens)					
+				cCampo 	 := aItens[nX][1]
+				xValue	 := oData["itens"][nY]["fields"][aItens[nX][1]]
+				cTypeCpo := aItens[nX][2]
+
+				uConteudo := U_xKPTConvType(xValue,cTypeCpo)
+
+				AADD(aItem,{cCampo,uConteudo,Nil})
+			Next nX
+			AADD(aAcols,aItem)
+		Next nY
+	EndIf
+
+	If nData > 2
+		cTabItem  := oData["subitens"][1]["alias"]
+		aCpoItens := oData["subitens"][1]["fields"]:GetNames()
+		aItens := LoadFields(aCpoItens,@cLogMsg)
+
+		For nY := 1 To Len(oData["subitens"])
+			aItem := {}
+			For nX := 1 To Len(aItens)					
+				cCampo 	 := aItens[nX][1]
+				xValue	 := oData["subitens"][nA]["fields"][aItens[nX][1]]
+				cTypeCpo := aItens[nX][2]
+
+				uConteudo := U_xKPTConvType(xValue,cTypeCpo)
+
+				AADD(aItem,{cCampo,uConteudo,Nil})
+			Next nX
+			AADD(aSubAcols,aItem)
+		Next nA
+	EndIf
+Return({aCab,aAcols,aSubAcols})
+
+Static Function LoadFields(aCampos,cLogMsg)
+	Local aCpoOk  := {}         
+	Local ni      := 0
+
+	For ni := 1 To Len(aCampos)
+        //verificar se o campo existe no dicionário de dados
+        aAuxCmp := FWSX3Util():GetFieldStruct(Upper(aCampos[ni]))
+
+        If Len(aAuxCmp) > 0
+                                       //[1]Nome    [2]Tipo   [3]Tamanho  [4]Decimais
+            AAdd(aCpoOk,{Alltrim(Upper(aAuxCmp[1])),aAuxCmp[2],aAuxCmp[3],aAuxCmp[4]}) 
+        Else
+            cNotCpo := "Campo [ "+aCampos[ni]+" ] não foi encontrado! Pesquise ou crie no dicionário SX3 | "
+            
+            WFConout(cNotCpo)
+            cLogMsg += cNotCpo
+            
+            lRet := .F.
+            Loop
+        EndIf
+	Next ni
+Return(aCpoOk)
+
+User Function ExecZKT(nRecnoZKT,cLogMsg)
+    Local aArea     := FwGetArea()
+    Local cError 	:= ""
+	Local bError 	:= ErrorBlock({|oError| cError := oError:Description + oError:ErrorStack})
+    Local cObjJson  := Nil
+    Local aCallBack := {}
+    Local aAllExec 	:= {}
+	Local lContinue := .T.
+    Local lRet      := .T.
+
+    Private lDuplic  := .F.
+    Private cCallbk  := ""
+    Private cOnergy  := ""
+    Private cFilOri  := ""
+    Private cId      := ""
+    Private cRotina  := ""
+    Private cTabItem := ""   
+
+	Default nRecnoZKT:= ZKT->(Recno())
+	Default cLogMsg	 := ""
+
+    If  ( nRecnoZKT <> 0 )
+        If ( ZKT->ZKT_STATUS <> '1'  )
+            // If !MsgYesNo("Registro já executado, deseja reprocessar?","Execauto Protheus")
+                lContinue := .F. 
+            // EndIf 
+        EndIf 
+    Else 
+        FWAlertInfo("Não há registro para ser processado.","xKPTInbExc.tlpp")
+        lContinue := .F.
+    EndIf 
+    
+    If ( lContinue ) 
+        cLogMsg  := ""
+        aAllExec := {}
+        lRet     := .F.
+        nOpc     := 3   
+
+        WFConout("Processando ID [ "+Alltrim(ZKT->ZKT_ID)+" ] Rotina [ "+Alltrim(ZKT->ZKT_ROTINA)+" ] - Rotina:" + ProcName() )
+        
+        oRetorno := JsonObject():New()
+        cObjJson := oRetorno:FromJson(DecodeUtf8(ZKT->ZKT_JSON))
+
+        If ValType(cObjJson) == "U"
+            Begin Sequence
+                // MONTA ARRAY COM N EXECAUTOS COM BASE NA REQUISIÇÃO JSON
+                aAllExec := U_JSonToAutoArray(oRetorno,@cLogMsg) 
+            Recover
+                //Caso tenha ocorrido erro a transaçao sera desfeita
+                lRet 		:= .F.
+                lContinue 	:= .F.
+            End Sequence
+            ErrorBlock(bError)
+            
+            // LOOP DE EXECAUTOS           
+            If Len(aAllExec) > 0 .AND. Empty(cLogMsg)
+                lRet := U_xKPTInbAll(aAllExec,@cLogMsg,@lDuplic) 
+            EndIf
+            
+            oData := JsonObject():New()    
+            oData["status"]   := lRet
+            oData["tenantId"] := cFilOri
+            oData["msg"]  	  := cLogMsg+cError
+            oData["data_env"] := FwTimeStamp(5,Date(),"00:00:00") 
+
+            // FAZ O ENVIO DO CALLBACK VIA API Post | 1=POST,2=GET,3=PUT
+            cPostParams := oData:ToJson()
+            aCallBack	:= U_xKPTFWRest("POST",cCallbk/*cUrl*/,/*cSetPath*/,cPostParams,/*aHeader*/,.T./*lCallBack*/,cOnergy)
+
+            If "EXISTNF" $ AllTrim(cLogMsg)
+                lDuplic := .T.
+            EndIf
+
+            // ATUALIZA STATUS DE EXECUÇÃO DA TABELA DE REQUISIÇÕES   
+            If ZKT->(RecLock('ZKT',.F.))
+                ZKT->ZKT_STATUS := IIF(lRet,'2',IIF(lDuplic,'4','3')) //1-Pendente | 2-Processo realizado com sucesso! | 3-Erro de Validação  | 4-Registro Duplicado
+                ZKT->ZKT_RETURN := cPostParams
+                ZKT->ZKT_DTPROC := Date()
+                ZKT->ZKT_HRPROC := Substr(Time(),1,5)
+                ZKT->(MsUnlock())
+            EndIf
+        Else
+            WFConout("Falha ao popular JsonObject. Erro: " + cObjJson)
+        EndIf
+        FreeObj(oRetorno)
+    EndIf 
+    FwRestArea(aArea)
+Return(lRet)
+
+User Function xExecInb(cObjJson)
+
+    
+Return 

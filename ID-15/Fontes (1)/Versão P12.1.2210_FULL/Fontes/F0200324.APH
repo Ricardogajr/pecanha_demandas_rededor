@@ -1,0 +1,253 @@
+<%
+   #INCLUDE "PROTHEUS.CH"
+   #INCLUDE "APWEBEX.CH" 
+  
+   /*
+   {Protheus.doc} F0100301.aph
+   Página principal da solicitação de vaga
+   @Author     Bruno de Oliveira
+   @Since      07/10/2016
+   @Version    P12.1.07
+   @Project    MAN00000462901_EF_003
+   */
+   %>
+<?xml version="1.0" encoding="iso-8859-1"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+      <script src="pplanguage.js" type="text/javascript"></script>
+      <script src="criaobj.js" type="text/javascript"></script>
+      <script src="scripts/prototype.js" language="JavaScript" type="text/javascript"></script>
+      <script src="scripts/scriptaculous.js" language="JavaScript" type="text/javascript"></script>
+      <script src="scripts/ajax.js" language="JavaScript" type="text/javascript"></script>
+      <link href="styles/consulta.css" rel="stylesheet" type="text/css">
+      <link href="styles/estilo.css" rel="stylesheet" type="text/css">
+      <title>Acompanhamento</title>
+      <script language="JavaScript" >
+         function GoToPage(nPageType) {
+         
+         	if (nPageType == 1) {
+         		cURL = 'U_F0200325.APW';
+         		cDestination = 'divSolicitacoes';
+         	}
+         
+         	new Ajax.Updater(	cDestination, cURL);
+         	return false;
+         }
+         
+         
+         function formatar(mascara, documento){
+                  	var i = documento.value.length;
+                  	var saida = mascara.substring(0,1);
+                  	var texto = mascara.substring(i);
+                      if (texto.substring(0,1) != saida){
+                  		documento.value += texto.substring(0,1);
+                   		}
+                  }
+                  
+                  /* Máscaras ER */
+                  function mascara(o,f){
+                     	v_obj=o
+                    	 	v_fun=f
+                     	setTimeout("execmascara()",1)
+                  }
+                  function execmascara(){
+                     	v_obj.value=v_fun(v_obj.value)
+                  }
+                  
+                  function mnumero(v){
+                     	v=v.replace(/\D/g,"");                    //Remove tudo o que não é dígito
+                     	return v;
+                  }
+                  function mvalor(v){
+                     	v=v.replace(/\D/g,"");//Remove tudo o que não é dígito
+                     	v=v.replace(/(\d)(\d{8})$/,"$1.$2");//coloca o ponto dos milhões
+                     	v=v.replace(/(\d)(\d{5})$/,"$1.$2");//coloca o ponto dos milhares
+                  
+                     	v=v.replace(/(\d)(\d{2})$/,"$1,$2");//coloca a virgula antes dos 2 últimos dígitos
+                     	return v;
+                  }
+         function validaIni(stringData, textoErro)
+                  {
+                     /******** VALIDA DATA NO FORMATO DD/MM/AAAA *******/
+            var regExpCaracter = /[^\d]/;     //Expressão regular para procurar caracter não-numérico.
+            var regExpEspaco = /^\s+|\s+$/g;  //Expressão regular para retirar espaços em branco.
+            //cDtInicio cDtFim
+            if(stringData.length != 10)
+            {
+				document.getElementById('cDtInicio').focus();
+                //alert('Data fora do padrão DD/MM/AAAA');
+				document.getElementById('cDtInicio').style.borderColor = "red";
+				textoErro.innerHTML = 'Data fora do padrão DD/MM/AAAA';
+                return false;
+            }else{
+				document.getElementById('cDtInicio').style.borderColor = "#e6e6e6";
+			}
+            
+            splitData = stringData.split('/');
+            
+            if(splitData.length != 3)
+            {
+                //alert('Data fora do padrão DD/MM/AAAA');
+         		document.getElementById('cDtInicio').focus();
+				document.getElementById('cDtInicio').style.borderColor = "red";
+				textoErro.innerHTML = 'Data fora do padrão DD/MM/AAAA';
+                return false;
+            }else{
+				document.getElementById('cDtInicio').style.borderColor = "#e6e6e6";
+			}
+            
+            /* Retira os espaços em branco do início e fim de cada string. */
+            splitData[0] = splitData[0].replace(regExpEspaco, '');
+            splitData[1] = splitData[1].replace(regExpEspaco, '');
+            splitData[2] = splitData[2].replace(regExpEspaco, '');
+            
+            if ((splitData[0].length != 2) || (splitData[1].length != 2) || (splitData[2].length != 4))
+            {
+                //alert('Data fora do padrão DD/MM/AAAA');
+         		document.getElementById('cDtInicio').focus();
+				 document.getElementById('cDtInicio').style.borderColor = "red";
+				textoErro.innerHTML = 'Data fora do padrão DD/MM/AAAA';
+                return false;
+            }else{
+				document.getElementById('cDtInicio').style.borderColor = "#e6e6e6";
+				textoErro.innerHTML = "";
+			}
+            
+            /* Procura por caracter não-numérico. EX.: o "x" em "28/09/2x11" */
+            if (regExpCaracter.test(splitData[0]) || regExpCaracter.test(splitData[1]) || regExpCaracter.test(splitData[2]))
+            {
+                //alert('Caracter inválido encontrado!');
+         		document.getElementById('cDtInicio').focus();
+				document.getElementById('cDtInicio').style.borderColor = "red";
+				textoErro.innerHTML = 'Caracter inválido encontrado!';
+              	return false;
+            }else{
+				document.getElementById('cDtInicio').style.borderColor = "#e6e6e6";
+				textoErro.innerHTML = "";
+			}
+            
+            dia = parseInt(splitData[0],10);
+            mes = parseInt(splitData[1],10)-1; //O JavaScript representa o mês de 0 a 11 (0->janeiro, 1->fevereiro... 11->dezembro)
+            ano = parseInt(splitData[2],10);
+            
+            var novaData = new Date(ano, mes, dia);
+            
+            if ((novaData.getDate() != dia) || (novaData.getMonth() != mes) || (novaData.getFullYear() != ano))
+            {
+                //alert('Data Inválida!');
+         		document.getElementById('cDtInicio').focus();
+				document.getElementById('cDtInicio').style.borderColor = "red";
+				textoErro.innerHTML = 'Data Inválida!';
+					
+                return false;
+            }else{
+				textoErro.innerHTML = "";
+				document.getElementById('cDtInicio').style.borderColor = "#e6e6e6";
+			}
+         
+         
+         	return true;
+                  }
+                  
+         
+         		function validaFim(stringData, textoErro)
+                  {
+         			var regExpCaracter = /[^\d]/;     //Expressão regular para procurar caracter não-numérico.
+                     var regExpEspaco = /^\s+|\s+$/g;  //Expressão regular para retirar espaços em branco.
+         			var dDataIni = document.getElementById("dAbertura").value;
+                   
+         			splitData = stringData.split('/');
+         			splitDtIn = dDataIni.split('/');
+                     
+                     /* Retira os espaços em branco do início e fim de cada string. */
+                     splitData[0] = splitData[0].replace(regExpEspaco, '');
+                     splitData[1] = splitData[1].replace(regExpEspaco, '');
+                     splitData[2] = splitData[2].replace(regExpEspaco, '');
+         
+         			splitDtIn[0] = splitDtIn[0].replace(regExpEspaco, '');
+                     splitDtIn[1] = splitDtIn[1].replace(regExpEspaco, '');
+                     splitDtIn[2] = splitDtIn[2].replace(regExpEspaco, '');
+                     
+                     dia = parseInt(splitData[0],10);
+                     mes = parseInt(splitData[1],10)-1; //O JavaScript representa o mês de 0 a 11 (0->janeiro, 1->fevereiro... 11->dezembro)
+                     ano = parseInt(splitData[2],10);
+         
+                     diaIn = parseInt(splitDtIn[0],10);
+                     mesIn = parseInt(splitDtIn[1],10)-1; //O JavaScript representa o mês de 0 a 11 (0->janeiro, 1->fevereiro... 11->dezembro)
+                     anoIn = parseInt(splitDtIn[2],10);			
+         
+                     var dGetDtFim = new Date(ano, mes, dia);
+         			var dGetDtIni = new Date(anoIn, mesIn, diaIn);
+         
+                 	 if(dGetDtFim < dGetDtIni){
+                  		//alert("Data Final Invalida!");
+                 	 	document.getElementById('dFech').focus();
+         				document.getElementById('dFech').style.borderColor = "red";
+         				textoErro.innerHTML = "Data Final Invalida!";
+                 	 	return false;
+                 	 }
+         			textoErro.innerHTML = "";
+         			document.getElementById('dFech').style.borderColor = "#e6e6e6";
+                  	return true;
+                  }
+         function fbusca(){
+         
+         var dDataIni  = ""
+		 var dDataFim  = ""
+		 var matricula = ""
+		 var status    = ""
+		 var servico   = ""
+		 var cCodigo   = ""
+		 
+		 if (document.getElementById("dAbertura") != null ){
+		 	dDataIni = document.getElementById("dAbertura").value;
+		 }
+		 if (document.getElementById("dFech") != null ){
+		 	dDataFim = document.getElementById("dFech").value;
+		 }
+		 if (document.getElementById("cMat") != null ){
+		 	matricula = document.getElementById("cMat").value;
+		 }
+		 if (document.getElementById("cStatus") != null ){
+		 	status = document.getElementById("cStatus").value;
+		 }
+		 if (document.getElementById("cServico") != null ){
+		 	servico = document.getElementById("cServico").value;
+		 }
+		 if (document.getElementById("cCodigo") != null ){
+		 	cCodigo = document.getElementById("cCodigo").value;
+		 }
+         var r = confirm("A pesquisa poderá levar alguns minutos, efetuar a pesquisa?");
+			if(r == true){
+				
+         		document.forms[0].action = "U_F0200325.APW?dAbertura=" + dDataIni + "&dFech=" + dDataFim + "&cMat=" + matricula + "&cStatus=" + status + "&cServico=" + servico + "&cCodigo=" + cCodigo + "";
+         		document.forms[0].submit();
+         	}
+         
+         }
+         function fNextPage(nCurrentPage,nPTotal){
+			cURL = 'U_F0200325.APW?nPTotal=' + nPTotal + '&nCurrentPage=' + nCurrentPage  + '';
+			cDestination = 'divSolicitacoes';    
+			new Ajax.Updater(	cDestination, cURL);
+			return false;
+		}
+		 <%	If(valtype(cMsg) != "U" .OR. cMsg != NIL) %>
+         		alert('<%=cMsg%>');
+         <%	EndIf %>
+		
+      </script>
+   </head>
+   <body>
+      <div id="divSolicitacoes" name="divSolicitacoes">
+         <div style="text-align: center; vertical-align: middle; width: 600px;">
+            <img src="imagens-rh/ajax-loader.gif"><br>
+            <span class="TituloMenor">Aguarde</span>
+         </div>
+         <script language="Javascript">
+            GoToPage(1);
+            
+         </script>
+      </div>
+   </body>
+</html>

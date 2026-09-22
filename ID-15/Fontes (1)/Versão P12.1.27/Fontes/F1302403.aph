@@ -1,0 +1,139 @@
+<%
+   #INCLUDE "PROTHEUS.CH"
+   #INCLUDE "APWEBEX.CH" 
+   
+/*/{Protheus.doc} F1302403
+Estrutura organizacional portal
+@type function
+@author henrique.toyada
+@since 29/12/2017
+@version 1.0
+@return ${return}, ${return_description}
+@Project    MAN0000007423048_EF_024
+/*/
+   Local nCnt				:= 0
+   Local nCntL				:= 0
+   %>
+<?xml version="1.0" encoding="iso-8859-1"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+      <script src="pplanguage.js" type="text/javascript"></script>
+      <script src="criaobj.js" type="text/javascript"></script>
+      <script src="scripts/prototype.js" language="JavaScript" type="text/javascript"></script>
+      <script src="scripts/scriptaculous.js" language="JavaScript" type="text/javascript"></script>
+      <script src="scripts/ajax.js" language="JavaScript" type="text/javascript"></script>
+      <link href="styles/consulta.css" rel="stylesheet" type="text/css">
+      <link href="styles/estilo.css" rel="stylesheet" type="text/css">
+      <title></title>
+      <script language="JavaScript" >
+         
+         function FiltroSelec(nOpc) {
+         	
+         	var pos = document.getElementById("ddlFiltroSolicitacao");
+         	
+         	var campo = pos.options[pos.selectedIndex].value;
+         	
+         	var valor = document.getElementById("txtFiltroSolicitacao").value;
+			if (nOpc == 2){
+				document.forms[0].action = "U_F1302403.APW?cFilPosto=<%=cFilPosto%>&cLista=<%=Len(HttpSession->aStructureAux)%>&cCodPosto=<%=cCodPosto%>";
+				document.forms[0].submit();	
+			return
+			}			
+			document.forms[0].action = "U_F1302403.APW?cCampo=" + campo + "&cDado=" + valor +"&cFilPosto=<%=cFilPosto%>&cLista=<%=Len(HttpSession->aStructureAux)%>&cCodPosto=<%=cCodPosto%>";
+         	document.forms[0].submit();
+         	
+         }
+         
+      </script>
+   </head>
+   <body>
+      <div id="divPostos" name="divPostos">
+      <h2>Estrutura Organizacional</h2>
+      <h4></h4>
+      <fieldset>
+         <form method="post">
+            <select name="ddlFiltroSolicitacao" id="ddlFiltroSolicitacao">
+               <option value="RCX_FILFUN" >FILIAL             </option>
+               <option value="RCX_MATFUN" >MATRICULA          </option>
+               <option value="RA_NOME"    >NOME PARTICIPANTE  </option>
+            </select>
+            <input name="txtFiltroSolicitacao" id="txtFiltroSolicitacao" type="text" size="36" maxlength="50" class="texto" value="">
+            <input name="btnFiltraSolicitacao" id="btnFiltraSolicitacao" type="button" value="Filtrar" onClick="javascript:FiltroSelec();">
+            <input name="btnLimpaSolicitacao" id="btnLimpaSolicitacao" type="button" value="Limpar Filtro" onClick="javascript:FiltroSelec(2);">
+         </form>
+      </fieldset>
+      <h3>Ocupantes do posto</h3>
+      	<%If !(EMPTY(cLista)) %>
+	      	<h4>Minha Estrutura </h4>
+	         <p></p>
+	         
+	         <%If !(EMPTY(HttpSession->aStructureAux)) %>
+		         <% For nCntL := 1 to Len(HttpSession->aStructureAux)%>
+		         <ul style="list-style-type: none;">
+		            <% If nCntL == 1 %>
+			            <li name="superior"value="">
+			               <a href="U_F1302401.APW" class="links" onclick="">
+			               <%=nCntL%> . <%=HttpSession->aStructureAux[nCntL][2]%>
+			               </a>
+			            </li>
+		            <% Else %>
+			            <li name="superior" id="superior" value="">
+			               <a href="U_F1302402.APW?cFilPosto=<%=HttpSession->aStructureAux[nCntL][1]%>&cCodPosto=<%=HttpSession->aStructureAux[nCntL][2]%>&cLista=<%=Len(HttpSession->aStructureAux)%>&nLista<%=Len(HttpSession->aStructureAux)%>" class="links" onclick="">
+			               <%=nCntL%> . <%=HttpSession->aStructureAux[nCntL][2]%> - <%=HttpSession->aStructureAux[nCntL][3]%>
+			               </a>
+			            </li>
+		            <% EndIf %>
+		         <% Next nCntL %>
+		         <% For nCntL := 1 to Len(HttpSession->aStructureAux) %>
+		         	</ul>
+		         <% Next nCntL %>
+	         <% Else %>
+	        	 <p align="center" colspan="1">Nao existem registros para exibicao</p>
+	         <% EndIf %>		
+	         <p></p>
+         <% EndIf %>
+         <br>
+         <h3> Ponto Selecionado: <%= cCodPosto%> </h3>
+         <form method="post">
+            <table width="100%">
+                  <tr>
+                     <th>Filial         </th>
+                     <th>Descrição      </th>
+                     <th>Matricula      </th>
+                     <th>Nome           </th>
+                     <th>Admissão       </th>
+                     <th>Departamento   </th>
+                     <th>Descrição      </th>
+                     <th>Status         </th>
+                     <th>Salário        </th>
+                     <th>Situação da folha</th>
+                  </tr>
+                 <% If oLista != NIL %>
+                  <% For nCnt := 1 to Len(oLista)%>
+                  <tr>
+                     <td><%= oLista[nCnt]:cFilialMat %> </td>
+                     <td><%= oLista[nCnt]:cDescricaoFil %> </td>
+                     <td><%= oLista[nCnt]:cMatriculaFun %></td>
+                     <td><%= oLista[nCnt]:cNomeFun %> </td>
+                     <td><%= oLista[nCnt]:cAdmissaoFun %> </td>
+                     <td><%= oLista[nCnt]:cDepartamentoFun %> </td>
+                     <td><%= oLista[nCnt]:cDescricaoFun %> </td>
+                     <td><%= oLista[nCnt]:cStatusFun %> </td>
+                     <td><%= oLista[nCnt]:cSalarioFun %> </td>
+                     <td><%= oLista[nCnt]:cSituacaoFun %> </td>
+                  </tr>
+                  <% Next %>
+                  <% Else %>
+                  <tr bgcolor="#F2F2F2" class="Texto">
+                     <td align="center" colspan="10">Nao existem registros para exibicao</td>
+               	  </tr>
+                  <% EndIf %> 
+                  <tr>
+		             <td align="center" colspan="10"></td>
+                  </tr>
+            </table>
+         </form>
+
+   </body>
+</html>

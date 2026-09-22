@@ -1,0 +1,57 @@
+#INCLUDE "TOTVS.ch"
+
+/*/{Protheus.doc} xKPTOSD1
+Rotina realiza a exportação de dados do Cadastro de TES para o Taxfy.
+@type function
+@version 1.0  
+@author Joalisson Laurentino
+@since 27/09/2021
+/*/
+User Function xKPTOSD1(aParam,oGrid,lLogado,oSay,lGeral)
+	Default oGrid	 := Nil
+	Default lLogado  := Type('cEmpAnt') == 'C'
+    Default aParam   := {"01","01010001"}
+	Default oSay     := Nil
+	Default lGeral   := .F.
+	
+	U_xKPTLogMsg("INICIO INTEGRAÇÃO TaxFy - xKPTOSD1.prw")
+			
+	If !lLogado .AND. !lGeral
+		RPCSetType(3)
+		 
+		If RPCSetEnv(aparam[1],aparam[2])
+			U_xKPTLogMsg("VIA JOB RPCSetEnv Iniciado Emp: "+aparam[1]+" Fil: "+aparam[2])
+			cEmpAnt := aparam[1] 
+			cFilAnt := aparam[2]	
+			
+			xFilterSD1(oGrid,lLogado,oSay)
+		Else
+			U_xKPTLogMsg("Não foi possivel conectar no ambiente VIA JOB RPCSetEnv - xKPTOSD1.prw")
+		Endif 
+    Else
+        xFilterSD1(oGrid,lLogado,oSay)
+    EndIf
+
+	U_xKPTLogMsg("FIM INTEGRAÇÃO TaxFy - xKPTOSD1.prw")
+
+	If !lLogado
+		RpcClearEnv()
+	EndIf
+Return
+
+Static Function xFilterSD1(oGrid,lLogado,oSay)
+	Local cFilter := " DTOS(SD1->D1_DTDIGIT) >= '"+DTOS(Date())+"'"
+	Local aAlias  := {}
+	Local cID	  := "SD101"
+	Local cRotina := "MATA103"
+	Local lRet    := .F.
+
+	Default oSay := Nil
+
+	SD1->(DBClearFilter())
+
+	aAdd(aAlias,{"SD1",Nil,Nil,Nil})
+
+	lRet := U_xKPTOutbound(oGrid,lLogado,aAlias,cFilter,cID,cRotina,oSay) 
+
+Return lRet

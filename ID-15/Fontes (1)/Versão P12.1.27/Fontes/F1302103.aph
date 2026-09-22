@@ -1,0 +1,187 @@
+<%
+   #Include 'Protheus.ch'
+   #INCLUDE "APWEBEX.CH"
+   
+   /*
+   {Protheus.doc} F0100315.aph
+   Construção da página para exibição dos postos
+   @Author     Bruno de Oliveira
+   @Since      07/10/2016
+   @Version    P12.1.07
+   @Project    MAN00000462901_EF_003
+   */
+   
+   Local msg          := HttpGet->msg
+   Local nI := 0
+   
+   %>
+<?xml version="1.0" encoding="iso-8859-1"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+      <link href="styles/consulta.css" rel="stylesheet" type="text/css">
+      <link href="styles/estilo.css" rel="stylesheet" type="text/css">
+      <script src="scripts/prototype.js" language="JavaScript" type="text/javascript"></script>
+      <script src="scripts/scriptaculous.js" language="JavaScript" type="text/javascript"></script>
+      <script language="JavaScript" type="text/JavaScript">
+		function FiltroSelec(nOpc) {
+			
+			var pos = document.getElementById("ddlFiltroSolicitacao");
+				
+			var campo = pos.options[pos.selectedIndex].value;
+			
+			var valor = document.getElementById("txtFiltroSolicitacao").value;
+			
+			if (nOpc == 1) {
+				document.forms[0].action = "U_F1302103.APW?cCampo=" + campo + "&cValor=" + valor +"&cFilRepor=<%=cFilRepor%>&cNvDesen=<%=cNvDesen%>&cDescRepor=<%=cDescRepor%>&cDepRepor=<%=cDepRepor%>&cDesDpRepor=<%=cDesDpRepor%>&cCcusto=<%=cCcusto%>&cDscCC=<%=cDscCC%>&cCodDepto=<%=cCodDepto%>&cDescrDepto=<%=cDescrDepto%>&cFilDepart=<%=cFilDepart%>&nIndiceDepto=<%=nIndiceDepto%>";
+			} else {
+				document.forms[0].action = "U_F1302103.APW?cCampo=<%=""%>&cValor=<%=""%>&cFilRepor=<%=cFilRepor%>&cNvDesen=<%=cNvDesen%>&cDescRepor=<%=cDescRepor%>&cDepRepor=<%=cDepRepor%>&cDesDpRepor=<%=cDesDpRepor%>&cCcusto=<%=cCcusto%>&cDscCC=<%=cDscCC%>&cCodDepto=<%=cCodDepto%>&cDescrDepto=<%=cDescrDepto%>&cFilDepart=<%=cFilDepart%>&nIndiceDepto=<%=nIndiceDepto%>";
+			}
+			document.forms[0].submit();
+			
+		}
+
+		function fNextPage(nCurrentPage,nPTotal){
+			document.forms[0].action = "U_F1302103.APW?nPTotal="+nPTotal+"&nCurrentPage=" + nCurrentPage + "&cFilRepor=<%=cFilRepor%>&cNvDesen=<%=cNvDesen%>&cDescRepor=<%=cDescRepor%>&cDepRepor=<%=cDepRepor%>&cDesDpRepor=<%=cDesDpRepor%>&cCcusto=<%=cCcusto%>&cDscCC=<%=cDscCC%>&cCodDepto=<%=cCodDepto%>&cDescrDepto=<%=cDescrDepto%>&cFilDepart=<%=cFilDepart%>&nIndiceDepto=<%=nIndiceDepto%>";
+			document.forms[0].submit();			
+
+		}
+
+		function VoltPag() {
+			document.forms[0].action = "U_F1302102.APW?cFilRepor=<%=cFilRepor%>&cNvDesen=<%=cNvDesen%>&cDescRepor=<%=cDescRepor%>&cDepRepor=<%=cDepRepor%>&cDesDpRepor=<%=cDesDpRepor%>&cCcusto=<%=cCcusto%>&cDscCC=<%=cDscCC%>&cCodDepto=<%=cCodDepto%>&cDescrDepto=<%=cDescrDepto%>&cFilDepart=<%=cFilDepart%>&nIndiceDepto=<%=nIndiceDepto%>";
+			document.forms[0].submit();
+		}
+
+      </script>
+   </head>
+   <body>
+      <div id="divPostos" name="divPostos">
+      <h2><%= "Aumento de Quadro – Novo Posto"%></h2>
+      <div id="divCabec" name="divCabec">
+         <% If cNvDesen != "1" %>
+         <fieldset>
+            <div class="container-cabec">
+               <div class="div-titulo"><%="Código"%></div>
+               <div class="div-conteudo"><%=cCodDepto%></div>
+            </div>
+            <div class="container-cabec">
+               <div class="div-titulo"><%="Departamento"%></div>
+               <div class="div-conteudo"><%=cDescrDepto%></div>
+            </div>
+            <div class="container-cabec">
+               <div class="div-titulo"><%="Filial da Solicitação"%></div>
+               <div class="div-conteudo"><%=cFilDepart%></div>
+            </div>
+         </fieldset>
+         <% EndIf %>
+         <br>
+         <fieldset>
+         <div class="container-cabec">
+            <div class="div-titulo"><%="Filial Reporte"%></div>
+            <div class="div-conteudo"><%=cFilRepor%></div>
+         </div>
+         <div class="container-cabec">
+            <div class="div-titulo"><%="Descrição"%></div>
+            <div class="div-conteudo"><%=cDescRepor%></div>
+         </div>
+         <div class="container-cabec">
+            <div class="div-titulo"><%="Departamento Reporte"%></div>
+            <div class="div-conteudo"><%=cDepRepor%></div>
+         </div>
+         <div class="container-cabec">
+            <div class="div-titulo"><%="Descrição"%></div>
+            <div class="div-conteudo"><%=cDesDpRepor%></div>
+         </div>
+      </fieldset>
+         <fieldset>
+            <h3>Posto de Reporte</h3>
+            <fieldset>
+               <form method="post">
+                  <select name="ddlFiltroSolicitacao" id="ddlFiltroSolicitacao">
+                     <option value="RCL_POSTO" >CÓDIGO</option>
+                  </select>
+                  <input name="txtFiltroSolicitacao" id="txtFiltroSolicitacao" type="text" size="36" maxlength="50" class="texto" value="">
+                  <input name="btnFiltraSolicitacao" id="btnFiltraSolicitacao" type="submit" value="Filtrar" onClick="javascript:FiltroSelec(1);">
+                  <input name="btnLimpaSolicitacao" id="btnLimpaSolicitacao" type="button" value="Limpar Filtro" onClick="javascript:FiltroSelec(2);">
+               </form>
+            </fieldset>
+            <table width="800">
+               <tr class="texto">
+                  <th><%="Cod. Posto"%></th>
+                  <th><%="Tipo do Posto"%></th>
+                  <th><%="Quant."%></th>
+                  <th><%="Ocupados"%></th>
+                  <th><%="Funcao"%></th>
+                  <th><%="Cargo"%></th>
+                  <th><%="Responsável"%></th>
+               </tr>
+               <% If Len(HttpSession->Postos) > 0 %>	
+               <%	For nI := 1 To Len(HttpSession->Postos)		%>
+               <tr class="texto">
+                  <td>
+                  	<% If cNvDesen == "1" %>
+                  	 <a href="U_F1301202.APW?cCcusto=<%=cCcusto%>&cDscCC=<%=cDscCC%>&nOperacao=1&nIndDept=<%=HttpGet->nIndDept%>&nIndicePosto=<%=nI%>&cNPost=1&cOpc=<%=cOpc%>&cCodDepto=<%=cCodDepto%>&cDescrDepto=<%=cDescrDepto%>&cPostFilial=<%=HttpSession->Postos[nI]:cPostFilial%>&cPostRepor=<%=HttpSession->Postos[nI]:cPOSTO%>&cDesDpRepor=<%=cDesDpRepor%>&cDepRepor=<%=cDepRepor%>&cDescRepor=<%=cDescRepor%>&cFilRepor=<%=cFilRepor%>" class="links"><%=HttpSession->Postos[nI]:cPOSTO%></a>
+                  	<% Else %>
+                     <a href="U_F0100319.APW?cCcusto=<%=cCcusto%>&cDscCC=<%=cDscCC%>&nOperacao=1&nIndDept=<%=HttpGet->nIndDept%>&nIndicePosto=<%=nI%>&cNPost=1&cOpc=<%=cOpc%>&cCodDepto=<%=cCodDepto%>&cDescrDepto=<%=cDescrDepto%>&cPostFilial=<%=cFilDepart%>&cPostRepor=<%=HttpSession->Postos[nI]:cPOSTO%>&cDesDpRepor=<%=cDesDpRepor%>&cDepRepor=<%=cDepRepor%>&cDescRepor=<%=cDescRepor%>&cFilRepor=<%=cFilRepor%>" class="links"><%=HttpSession->Postos[nI]:cPOSTO%></a>
+                    <% EndIf %>
+                  </td>
+                  <td>
+                     <%=HttpSession->Postos[nI]:cDescrTipo%>
+                  </td>
+                  <td>
+                     <%=HttpSession->Postos[nI]:nQtd%>
+                  </td>
+                  <td>
+                     <%=HttpSession->Postos[nI]:nOcupado%>
+                  </td>
+                  <td>
+                     <%=HttpSession->Postos[nI]:cDescrFuncao%>
+                  </td>
+                  <td>
+                     <%=HttpSession->Postos[nI]:cDescrCargo%>
+                  </td>
+                  <td>
+                     <%=HttpSession->Postos[nI]:cResponsavel%>
+                  </td>
+               </tr>
+               <%	Next nI	%>
+               <% Else %>
+               <tr>
+                  <td colspan="7" class="info-cent"><%="Nao existem registros para exibição"%></td>
+               </tr>
+               <% EndIf %>
+            </table>
+            <br>
+            <form method="get" >
+               <% 		If (nPTotal > 1) %>
+               <div class='container-pagin'>
+                  <div class="pagin-esq">
+                     Pagina: <!-- Pagina: -->
+                     <input id="txtPagina" class="pagin" name="txtPagina" type="text" value="<%=nCurrentPage%>" size="3" maxlength="3"><%=nPTotal%>
+                  </div>
+                  <div class="pagin-dir">
+                     <%				If (nCurrentPage > 1) %>
+                     <input type="button" name="button2" onClick="fNextPage( 1, <%=nPTotal%>)" class="ButtonFirst" value="">
+                     <input type="button" name="button2" onClick="fNextPage(<%=nCurrentPage-1%>, <%=nPTotal%>)" class="ButtonPrevious" value="">
+                     <%				Else	%>						
+                     <a href="#" class="ButtonFirstDisabled"></a>
+                     <a href="#" class="ButtonPreviousDisabled"></a>
+                     <%				EndIf	%>
+                     <%				IF (nCurrentPage != nPTotal) %>
+                     <input type="button" name="button2" onClick="fNextPage(<%=nCurrentPage+1%>, <%=nPTotal%>)" class="ButtonNext" value="">
+                     <input type="button" name="button2" onClick="fNextPage(<%=nPTotal%>, <%=nPTotal%>)" class="ButtonLast" value="">
+                     <%				Else	%>						
+                     <a href="#" class="ButtonNextDisabled"></a>
+                     <a href="#" class="ButtonLastDisabled"></a>
+                     <%				EndIf	%>
+                  </div>
+               </div>
+               <% 		EndIf %>
+            </form>
+            <fieldset>
+               <input name="Button3" type="button" class="botoes" value="<%="Voltar"%>" onClick="javascript:VoltPag();" />
+            </fieldset>
+      </div>
+      </fieldset>
+   </body>
+</html>

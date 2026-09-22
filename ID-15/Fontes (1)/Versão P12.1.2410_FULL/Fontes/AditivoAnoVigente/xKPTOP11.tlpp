@@ -1,0 +1,57 @@
+#INCLUDE "TOTVS.ch"
+
+/*/{Protheus.doc} xKPTOP11
+Rotina realiza o Cadastro de Setores para o Taxfy.
+@type function
+@version 1.0  
+@author Joalisson Laurentino
+@since 01/06/2024
+/*/
+User Function xKPTOP11(aParam,oGrid,lLogado,oSay,lGeral)
+	Default oGrid	 := Nil
+	Default lLogado  := Type('cEmpAnt') == 'C'
+    Default aParam   := {"01","01010001"}
+	Default oSay     := Nil
+	Default lGeral   := .F.
+
+	U_xKPTLogMsg("INICIO INTEGRAÇÃO TaxFy - xKPTOP11.prw")
+			
+	If !lLogado .AND. !lGeral 
+		RPCSetType(3)
+		
+		If RPCSetEnv(aParam[1],aParam[2])
+			U_xKPTLogMsg("VIA JOB RPCSetEnv Iniciado Emp: "+aParam[1]+" Fil: "+aParam[2])
+			cEmpAnt := aParam[1] 
+			cFilAnt := aParam[2]	
+			
+			xFilterP11(oGrid,lLogado,oSay)
+		Else
+			U_xKPTLogMsg("Não foi possivel conectar no ambiente VIA JOB RPCSetEnv - xKPTOP11.prw")
+		Endif 
+    Else
+        xFilterP11(oGrid,lLogado,oSay)
+    EndIf
+
+	U_xKPTLogMsg("FIM INTEGRAÇÃO TaxFy - xKPTOP11.prw")
+
+	If !lLogado
+		RpcClearEnv()
+	EndIf
+Return
+
+Static Function xFilterP11(oGrid,lLogado,oSay)
+	Local cFilter := " P11->P11_ZONERG = .T. .AND. P11->P11_ZINTOG = '1' .AND. P11->P11_MSBLQL = '2'"
+	Local aAlias  := {}
+	Local cID	  := "P1101"
+	Local cRotina := "F0700101"
+	Local lRet    := .F.
+
+	Default oSay := Nil
+
+	P11->(DBClearFilter())
+
+	aAdd(aAlias,{"P11",Nil,Nil,Nil})
+
+	lRet := U_xKPTOutbound(oGrid,lLogado,aAlias,cFilter,cID,cRotina,oSay) 
+
+Return lRet

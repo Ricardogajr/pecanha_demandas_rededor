@@ -1,0 +1,57 @@
+#INCLUDE "TOTVS.ch"
+
+/*/{Protheus.doc} xKPTOP02
+Rotina realiza o Cadastro de Tipo de Requisição para o Taxfy.
+@type function
+@version 1.0  
+@author Joalisson Laurentino
+@since 01/06/2024
+/*/
+User Function xKPTOP02(aParam,oGrid,lLogado,oSay,lGeral)
+	Default oGrid	 := Nil
+	Default lLogado  := Type('cEmpAnt') == 'C'
+    Default aParam   := {"01","01010001"}
+	Default oSay     := Nil
+	Default lGeral   := .F.
+	
+	U_xKPTLogMsg("INICIO INTEGRAÇÃO TaxFy - xKPTOP02.prw")
+			
+	If !lLogado .AND. !lGeral
+		RPCSetType(3)
+		
+		If RPCSetEnv(aParam[1],aParam[2])
+			U_xKPTLogMsg("VIA JOB RPCSetEnv Iniciado Emp: "+aParam[1]+" Fil: "+aParam[2])
+			cEmpAnt := aParam[1] 
+			cFilAnt := aParam[2]	
+			
+			xFilterP02(oGrid,lLogado,oSay)
+		Else
+			U_xKPTLogMsg("Não foi possivel conectar no ambiente VIA JOB RPCSetEnv - xKPTOP02.prw")
+		Endif 
+    Else
+        xFilterP02(oGrid,lLogado,oSay)
+    EndIf
+
+	U_xKPTLogMsg("FIM INTEGRAÇÃO TaxFy - xKPTOP02.prw")
+
+	If !lLogado
+		RpcClearEnv()
+	EndIf
+Return
+
+Static Function xFilterP02(oGrid,lLogado,oSay) 
+	Local cFilter := " P02->P02_ZONERG = .T. .AND. P02->P02_ZINTOG = '1' .AND. P02->P02_MSBLQL = '2'"
+	Local aAlias  := {}
+	Local cID	  := "P0201"
+	Local cRotina := "F0100408"
+	Local lRet    := .F.
+
+	Default oSay := Nil
+
+	P02->(DBClearFilter())
+
+	aAdd(aAlias,{"P02",Nil,Nil,Nil})
+
+	lRet := U_xKPTOutbound(oGrid,lLogado,aAlias,cFilter,cID,cRotina,oSay) 
+
+Return lRet

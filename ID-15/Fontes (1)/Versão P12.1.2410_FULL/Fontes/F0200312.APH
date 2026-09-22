@@ -1,0 +1,41 @@
+<%
+
+/*
+{Protheus.doc} F0200312()
+Tela de erro
+@Author     Henrique Madureira
+@Since      
+@Version    P12.7
+@Project    MAN00000463301_EF_003
+@Return	 
+*/
+
+%>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <title></title>
+      <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+      <link href="styles/consulta.css" rel="stylesheet" type="text/css">
+      <link href="styles/estilo.css" rel="stylesheet" type="text/css">
+      <script src="scripts/ajax.js" language="JavaScript" type="text/javascript"></script>
+      <script src="scripts/prototype.js" language="JavaScript" type="text/javascript"></script>
+      <script src="scripts/scriptaculous.js" language="JavaScript" type="text/javascript"></script>
+      <script language="Javascript"></script>
+   <body>
+      <p>
+      <h2>Aten&ccedil;&atilde;o! Erro Interno</h2>
+      <p>  Ocorreu erro na p&aacute;gina acessada.  <br>  Este erro pode ser:  <br>  
+      <ol>
+         <li>Cadastro de funcion&aacute;rio incorreto</li>
+         <li>Cadastro de participante incorreto</li>
+         <li>Cadastro de vis&atilde;o incorreto</li>
+         <li>Cadastro de departamento incorreto</li>
+         <li>Cadastro de posto incorreto</li>
+         <li>Efetue a verifica&ccedil;&atilde;o das amarra&ccedil;&otilde;es</li>
+         <li>Efetue a verifica&ccedil;&atilde;o dos webservices se est&atilde;o na base</li>
+         </p>
+      </ol>
+      </p>
+   </body>
+</html>

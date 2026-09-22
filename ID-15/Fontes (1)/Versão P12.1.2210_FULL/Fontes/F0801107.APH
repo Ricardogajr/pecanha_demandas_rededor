@@ -1,0 +1,222 @@
+<%
+   /*
+   {Protheus.doc} F0801107()
+   listagem dos funcionários subordinados e seus subordinados(se tiver)
+   @Author     Henrique Madureira
+   @Since      
+   @Version    P12.7
+   @Project    MAN0000007423042_EF_011
+   @Return	 
+   */	
+   	Local nCnt     := 1
+   	Local cSpace   := "&nbsp;&nbsp;&nbsp;"
+   Private aLegenda := {	"br_amarelo_ocean.png" ,;
+   				"br_verde_ocean.png"   ,;
+   				"br_vermelho_ocean.png",;
+   				"br_azul_ocean.png"}
+   %>
+<html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <title></title>
+      <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+      <link href="styles/consulta.css" rel="stylesheet" type="text/css">
+      <link href="styles/estilo.css" rel="stylesheet" type="text/css">
+      <script src="scripts/ajax.js" language="JavaScript" type="text/javascript"></script>
+      <script src="scripts/prototype.js" language="JavaScript" type="text/javascript"></script>
+      <script src="scripts/scriptaculous.js" language="JavaScript" type="text/javascript"></script>
+	<script>
+ 	function fNextPage(nCurrentPage,nPTotal){
+		cURL = 'U_F0801107.APW?nPTotal=' + nPTotal + '&nCurrentPage=' + nCurrentPage  + '';
+		cURL = "U_F0801107.APW?nPTotal="+nPTotal+"&nCurrentPage=" + nCurrentPage  + "&EmployeeFilial=<%=filsubfun%>&codsubfun=<%=codsubfun%>&depsubfun=<%=depsubfun%>&nmsuper=<%=nmsuper%>";
+		cDestination = 'divFuncionarios';    
+		new Ajax.Updater(	cDestination, cURL);
+		return false;
+	}
+
+	function AplicFiltro(cOpc) {
+		var pos = document.getElementById("ddlFiltroSolicitacao");
+		
+		var campo = pos.options[pos.selectedIndex].value;
+		var valor = document.getElementById("txtFiltroSolicitacao").value;
+		
+		if (cOpc != 0){
+			valor = "";
+		}
+		
+		var nPTotal = 1;
+		var nCurrentPage = 1;
+		
+		var cURL = "U_F0801107.APW?FilterField=" + campo + "&FilterValue=" + valor + "&nPTotal="+nPTotal+"&nCurrentPage=" + nCurrentPage  + "&EmployeeFilial=<%=filsubfun%>&codsubfun=<%=codsubfun%>&depsubfun=<%=depsubfun%>&nmsuper=<%=nmsuper%>";
+		var cDestination = 'divFuncionarios';
+
+		document.getElementById('btnFiltraSolicitacao').desabled = true;
+
+		new Ajax.Updater(cDestination	, cURL);
+
+		document.getElementById('btnFiltraSolicitacao').desabled = false;
+	}
+	</script>
+   <body>
+      <div id="divFuncionarios" name="divFuncionarios">
+         <h2>Solicitação de Férias</h2>
+         <p>&nbsp;</p>
+         <h3>Minha Equipe </h3>
+         <p></p>
+         <%If Len(aAuxPag) > 1 %>
+         <% For nCnt := 1 to Len(aAuxPag)%>
+         <ul style="list-style-type: none;">
+            <% If (aAuxPag[nCnt]:lPossuiEquipe) .OR. cMat = aAuxPag[nCnt]:cRegistration %>
+            <% If nCnt == 1 %>
+            <li name="superior"value="<%=aAuxPag[nCnt]:cRegistration%> ">
+               <a href="U_F0801101.APW" class="links" onclick="">
+               <%=nCnt%> . <%=aAuxPag[nCnt]:cName%>
+               </a>
+            </li>
+            <% Else %>
+            <li name="superior" id="superior" value="<%=aAuxPag[nCnt]:cRegistration%> ">
+               <a href="U_F0801107.APW?EmployeeFilial=<%=aAuxPag[nCnt]:cEmployeeFilial%>&codsubfun=<%=aAuxPag[nCnt]:cRegistration%>&depsubfun=<%=aAuxPag[nCnt]:cDepartment%>&nmsuper=<%=aAuxPag[nCnt]:cName%>" class="links" onclick="">
+               <%=nCnt%> . <%=aAuxPag[nCnt]:cName%>
+               </a>
+            </li>
+            <% EndIf %>
+            <% EndIf %>
+            <% Next nCnt %>
+            <% For nCnt := 1 to Len(aAuxPag) %>
+         </ul>
+         <% Next nCnt %>
+         <% Else %>
+         <p align="center" colspan="6">Nao existem registros para exibicao</p>
+         <% EndIf %>		
+         <p></p>
+         <br>
+
+         <h3>Busca de Participantes</h3>
+         <div class="buscaequipe">
+                  <select name="ddlFiltroSolicitacao" id="ddlFiltroSolicitacao">
+                           <option value="1" >Matrícula</option>
+                           <option value="2" >Nome</option>
+                  </select>
+                  <input name="txtFiltroSolicitacao" id="txtFiltroSolicitacao" type="text" size="36" maxlength="50" class="texto" value="">
+                  <input name="btnFiltraSolicitacao" id="btnFiltraSolicitacao" type="button" value="Filtrar" onClick="AplicFiltro(0);">
+                  <input name="btnLimpaSolicitacao" id="btnLimpaSolicitacao" type="submit" value="Limpar Filtro" onClick="AplicFiltro(1);">
+         </div>       
+         <br>              
+
+         <table width="800">
+            <tbody>
+               <tr>
+                  <th>Cód. </th>
+                  <th>Nome </th>
+                  <th>Admissão</th>
+                  <th>Departamento</th>
+                  <th>Situação </th>
+                  <th></th>
+               </tr>
+               <%If Len(HttpSession->aStructure) > 1 %>
+               <% For nCnt := 2 to Len(HttpSession->aStructure)%>
+               <tr height="21" bgcolor="#F2F2F2">
+                  <% If !(HttpSession->aStructure[nCnt]:cSituacao ==" ") %>
+                  <td  class="info-cent"> <%=HttpSession->aStructure[nCnt]:cRegistration%> 
+                  </td>
+                  <% Else %>	    			
+                  <td  class="info-cent">
+                      <a href="U_F0801104.APW?nOperacao=1&funcodigo=<%=HttpSession->aStructure[nCnt]:cRegistration%>&cFilFun=<%=HttpSession->aStructure[nCnt]:CEMPLOYEEFILIAL%>&nIndiceSolic=<%=nCnt%>&nIndice=<%=nCnt%>"  
+							  class="links"><%=HttpSession->aStructure[nCnt]:cRegistration%> </a>
+                  </td>
+                  <% EndIf %>	    			
+                  <td class="TituloMenor"><%=HttpSession->aStructure[nCnt]:cName%></td>
+                  <td class="TituloMenor"><%=HttpSession->aStructure[nCnt]:cAdmissionDate%></td>
+                  <td class="TituloMenor"><%=HttpSession->aStructure[nCnt]:cDepartment%></td>
+                  <td class="TituloMenor"><%=IIf(Empty(HttpSession->aStructure[nCnt]:cDescSituacao), HttpSession->aStructure[nCnt]:cSituacao, HttpSession->aStructure[nCnt]:cDescSituacao)%></td>
+                  <% If (HttpSession->aStructure[nCnt]:lPossuiEquipe) %>
+                  <td class="TituloMenor">
+                     <a href="U_F0801107.APW?EmployeeFilial=<%=HttpSession->aStructure[nCnt]:cEmployeeFilial%>&codsubfun=<%=HttpSession->aStructure[nCnt]:cRegistration%>&depsubfun=<%=HttpSession->aStructure[nCnt]:cDepartment%>&nmsuper=<%=HttpSession->aStructure[nCnt]:cName%>" >
+                     <img id="img_equipe" name="img_equipe" src="imagens-rh/icone_equipe.gif" title="Visualizar equipe do funcionário: <%=HttpSession->aStructure[nCnt]:cRegistration%>">
+                     </a>
+                  </td>
+                  <% EndIf  %>	    			
+               </tr>
+               <% Next nCnt %>
+               <% Else %> 
+               <tr bgcolor="#F2F2F2" class="Texto">
+                  <td align="center" colspan="6">Nao existem registros para exibicao</td>
+                  <!--Nao existem registros para exibicao-->
+               </tr>
+               <% EndIf %>
+               <tr>
+                  <td class="info-cent" colspan="6">
+                  </td>
+               </tr>
+            </tbody>
+         </table> 
+<% 		If (nPTotal > 1) %>
+			<div class='container-pagin'>
+				<div class="pagin-esq">
+					Pagina: <!-- Pagina: -->
+					<input id="txtPagina" class="pagin" name="txtPagina" type="text" value="<%=nCurrentPage%>" size="3" maxlength="3"><%=nPTotal%>
+				</div>
+				<div class="pagin-dir">
+<%				If (nCurrentPage > 1) %>
+						<input type="button" name="button2" onClick="fNextPage( 1, <%=nPTotal%>)" class="ButtonFirst" value="">
+						<input type="button" name="button2" onClick="fNextPage(<%=nCurrentPage-1%>, <%=nPTotal%>)" class="ButtonPrevious" value="">
+<%				Else	%>						
+						<a href="#" class="ButtonFirstDisabled"></a>
+						<a href="#" class="ButtonPreviousDisabled"></a>
+<%				EndIf	%>
+<%				IF (nCurrentPage != nPTotal) %>
+						<input type="button" name="button2" onClick="fNextPage(<%=nCurrentPage+1%>, <%=nPTotal%>)" class="ButtonNext" value="">
+						<input type="button" name="button2" onClick="fNextPage(<%=nPTotal%>, <%=nPTotal%>)" class="ButtonLast" value="">
+<%				Else	%>						
+						<a href="#" class="ButtonNextDisabled"></a>
+						<a href="#" class="ButtonLastDisabled"></a>
+<%				EndIf	%>
+				</div>
+			</div>		    	
+<% 		EndIf %>      
+
+      </div>
+      <h3>Minhas solicitações</h3>
+      <!--Minhas solicitacoes-->
+      <div id="divSolicitacoes" name="divSolicitacoes">
+         <div id="divMinhasSolic" name="divMinhasSolic">
+            <table width="800">
+               <tbody>
+                  <tr>
+                     <th>&nbsp;</th>
+                     <th>C&oacute;d</th>
+                     <th>Matricula</th>
+                     <th>Nome</th>
+                     <th>Status</th>
+                  </tr>
+                  <tr>
+                     <% If OLISTA2 != NIL %>
+                     <% If !(EMPTY(OLISTA2:OWSREGISTRO:oWSRETFERIAS[1]:CCOD))%>
+                     <% For nCnt := 1 to Len(OLISTA2:OWSREGISTRO:oWSRETFERIAS)%>
+                  <tr>
+                     <td><img src="imagens-rh/<%=aLegenda[Val(OLISTA2:OWSREGISTRO:oWSRETFERIAS[nCnt]:CSTATUS)]%>" title="<%=AllTrim(OLISTA2:OWSREGISTRO:oWSRETFERIAS[nCnt]:CSTATUS)%>"></td>
+                     <td><a href="U_F0801104.APW?nOperacao=4&cSolic=<%=OLISTA2:OWSREGISTRO:oWSRETFERIAS[nCnt]:CCOD%>&funcodigo=<%=OLISTA2:OWSREGISTRO:oWSRETFERIAS[nCnt]:CMATRICULA%>&cFilFun=<%=OLISTA2:OWSREGISTRO:oWSRETFERIAS[nCnt]:CFILIALS%>&nIndiceSolic=<%=nCnt%>&nIndice=<%=nCnt%>" class="links"></a></td>
+                     <td><%=OLISTA2:OWSREGISTRO:oWSRETFERIAS[nCnt]:CMATRICULA%></td>
+                     <td><%=OLISTA2:OWSREGISTRO:oWSRETFERIAS[nCnt]:CNOME%></td>
+                     <td><%=IIf(Val(OLISTA2:OWSREGISTRO:oWSRETFERIAS[nCnt]:CSTATUS)==1, "Aprovado", IIf(Val(OLISTA2:OWSREGISTRO:oWSRETFERIAS[nCnt]:CSTATUS)==2, "Reprovado", "Aguardando Aprova&ccedil;&atilde;o"))%></td>
+                  </tr>
+                  <% Next %>
+                  <% Else %>
+                  <tr bgcolor="#F2F2F2" class="Texto">
+                     <td align="center" colspan="5">Nao existem registros para exibicao</td>
+                  </tr>
+                  <% EndIf%>
+                  <% Else %> 
+                  <tr bgcolor="#F2F2F2" class="Texto">
+                     <td align="center" colspan="5">Nao existem registros para exibicao</td>
+                  </tr>
+                  <% EndIf %>  
+                  <tr>
+                     <td class="info-cent" colspan="5">
+                     </td>
+                  </tr>
+               </tbody>
+            </table>
+         </div>
+      </div>
+   </body>
+</html>

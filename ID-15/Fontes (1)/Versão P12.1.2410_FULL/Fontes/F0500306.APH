@@ -1,0 +1,129 @@
+<%
+
+/*/{Protheus.doc} F0500306()
+
+@Author     Henrique Madureira
+@Since      
+@Version    P12.7
+@Project    MAN0000007423039_EF_003
+@Return	 
+/*/
+
+	Local nCnt      := 0
+	Local aLegenda  := {	"br_amarelo_ocean.png",;
+							"br_verde_ocean.png",;
+					 		"br_vermelho_ocean.png",;
+							"br_azul_ocean.png"}
+
+%>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title></title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link href="styles/consulta.css" rel="stylesheet" type="text/css">
+<link href="styles/estilo.css" rel="stylesheet" type="text/css">
+<script src="scripts/ajax.js" language="JavaScript" type="text/javascript"></script>
+<script src="scripts/prototype.js" language="JavaScript" type="text/javascript"></script>
+<script src="scripts/scriptaculous.js" language="JavaScript" type="text/javascript"></script>
+<script language="Javascript">
+
+function GoToPage(nPageType) {
+
+	if (nPageType == 1) {
+		cURL = 'U_F0500306.APW';
+		cDestination = 'divSolicitacoes';
+	}			
+		
+	new Ajax.Updater(	cDestination, cURL);
+	return false;
+}
+
+
+function FiltroSelec() {
+	
+	var pos = document.getElementById("ddlFiltroSolicitacao");
+	
+	var campo = pos.options[pos.selectedIndex].value;
+	
+	var valor = document.getElementById("txtFiltroSolicitacao").value;
+	
+	document.forms[0].action = "U_F0500306.APW?cFiltro='2'&cCampo=" + campo + "&cValor=" + valor +"";
+	document.forms[0].submit();
+	
+}
+
+</script>
+</head>
+<body>
+<p class="Titulo">
+			<H2>	
+				Aprovações
+			</H2>	
+		</p>
+<fieldset>
+<form method="post">
+<select name="ddlFiltroSolicitacao" id="ddlFiltroSolicitacao">
+	<option value="RH3_CODIGO" >Código da solicitação</option>
+	<option value="RH3_FILIAL" >Filial</option>
+	<option value="" >Descrição da filial</option>
+	<option value="PAB_SOLDES" >Tipo de solicitação</option>
+	<option value="RA_NOME" >Nome do Solicitante</option>
+</select>
+<input name="txtFiltroSolicitacao" id="txtFiltroSolicitacao" type="text" size="36" maxlength="50" class="texto" value="">
+<input name="btnFiltraSolicitacao" id="btnFiltraSolicitacao" type="button" value="Filtrar" onClick="javascript:FiltroSelec();">
+<input name="btnLimpaSolicitacao" id="btnLimpaSolicitacao" type="button" value="Limpar Filtro" onClick="document.getElementById('txtFiltroSolicitacao').value=''">
+</form>  
+</fieldset>
+
+<div id="divMinhasSolic" name="divMinhasSolic">	
+<form>
+	<table  width="100%">
+		<tr>
+			<th>&nbsp;</th>
+			<th>Código</th>
+			<th>Filial</th>
+			<th>Descrição</th>
+			<th>Data</th>
+			<th>Tipo da Solicitação</th> <!-- Nome da Solicitacao  -->
+			<th>Subgrupo</th>
+			<th>Status</th>
+			<th>Solicitante</th>
+			<th>Descrição do Centro de Custo</th>
+		</tr>
+		<% If OLISTA2 != NIL %>
+			<% If !(EMPTY(OLISTA2:OWSACOMPANHA:OWSACOMPASOL[1]:CCodigo)) %>
+			<% For nCnt := 1 to Len(OLISTA2:OWSACOMPANHA:OWSACOMPASOL)%>
+			<tr>
+				<td><img src="imagens-rh/<%=aLegenda[VAL(OLISTA2:OWSACOMPANHA:OWSACOMPASOL[nCnt]:cStatus)]%>" title="<%=ALLTRIM(OLISTA2:OWSACOMPANHA:OWSACOMPASOL[nCnt]:cStatus)%>"></td>
+				<td><a href="U_F0500309.APW?cCodigo=<%=OLISTA2:OWSACOMPANHA:OWSACOMPASOL[nCnt]:CCodigo%>&cDesc=<%=OLISTA2:OWSACOMPANHA:OWSACOMPASOL[nCnt]:cTpSolic%>&cTipo=<%=OLISTA2:OWSACOMPANHA:OWSACOMPASOL[nCnt]:cCodSoli%>&cStatus=<%=OLISTA2:OWSACOMPANHA:OWSACOMPASOL[nCnt]:cStatus%>&cVisao=<%=OLISTA2:OWSACOMPANHA:OWSACOMPASOL[nCnt]:cVisao%>&cCodMat=<%=OLISTA2:OWSACOMPANHA:OWSACOMPASOL[nCnt]:cMATRIC%>&cFilRh3=<%=OLISTA2:OWSACOMPANHA:OWSACOMPASOL[nCnt]:cFilRh3%>" class="links"><%=OLISTA2:OWSACOMPANHA:OWSACOMPASOL[nCnt]:CCodigo%></a></td>
+				<td><%=OLISTA2:OWSACOMPANHA:OWSACOMPASOL[nCnt]:cFilRh3%></td>
+				<td><%=OLISTA2:OWSACOMPANHA:OWSACOMPASOL[nCnt]:cDesFilRh3%></td>
+				<td><%=STOD(OLISTA2:OWSACOMPANHA:OWSACOMPASOL[nCnt]:cSOLDATA)%></td>
+		 		<td><%=OLISTA2:OWSACOMPANHA:OWSACOMPASOL[nCnt]:cTpSolic%></td>
+		 		<td><%=OLISTA2:OWSACOMPANHA:OWSACOMPASOL[nCnt]:cDesSubSt%></td>
+		 		<td><%=IIF(VAL(OLISTA2:OWSACOMPANHA:OWSACOMPASOL[nCnt]:cStatus)==1,"Em processo de aprova&ccedil;&atilde;o",IIF(VAL(OLISTA2:OWSACOMPANHA:OWSACOMPASOL[nCnt]:cStatus)==2,"Atendida",IIF(VAL(OLISTA2:OWSACOMPANHA:OWSACOMPASOL[nCnt]:cStatus)==3,"Reprovada","Aguardando Efetiva&ccedil;&atilde;o do RH")))%></td>
+		 		<td><%=OLISTA2:OWSACOMPANHA:OWSACOMPASOL[nCnt]:cSolicita%></td>
+		 		<td><%=OLISTA2:OWSACOMPANHA:OWSACOMPASOL[nCnt]:cDesCentCus%></td>
+			</tr>
+			<% Next %>
+			<% Else %>
+			<tr>
+			<td class="info-cent" colspan="10"> <span>Não existem solicitações para aprovar ou reprovar</span></td>
+			</td>
+		</tr>
+			<% EndIf %>
+		<% Else %>
+			<tr>
+			<td class="info-cent" colspan="10"> <span>Não existem solicitações para aprovar ou reprovar</span></td>
+			</td>
+		</tr>
+		<% EndIf %>  
+		<tr>
+			<td class="info-cent" colspan="10">
+			</td>
+		</tr>
+	</table>
+</form>
+</div>
+</body>
+</html>

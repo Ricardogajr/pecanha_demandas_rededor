@@ -1,0 +1,223 @@
+<% 
+	#Include 'Protheus.ch'
+   #INCLUDE "APWEBEX.CH"
+
+	Local nCnt	:= 0
+   /*/{Protheus.doc} F0200309()
+   Tela de cadastro do treinamento/evento para o funcionário
+   @Author     Henrique Madureira
+   @Since      
+   @Version    P12.7
+   @Project    MAN00000463301_EF_003
+   @Return	 
+   /*/
+
+   %>
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!doctype html public "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <title></title>
+      <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+      <link href="styles/consulta.css" rel="stylesheet" type="text/css">
+      <link href="styles/estilo.css" rel="stylesheet" type="text/css">
+      <script language="Javascript">
+         function fSubmit() {
+         
+         	if(CheckOut(document.forms[0])) {	
+         		var r = confirm("Solicitação será cadastrada, continuar?");
+         		if(r == true){
+         			document.getElementById('Button').disabled=true;	
+         			document.forms[0].action = "U_F0200312.APW?cMat=<%=cMATRI%>&cNome=<%=cNOME%>&cFilFun=<%=cFilFun%>";
+         			document.forms[0].submit();
+         		}
+         	}
+         	
+         }
+         		
+         function CheckOut(f) {
+         	if (f.txtObservacao.value == "") {
+         		alert('Digite as observação da solicitação!');
+         		f.txtObservacao.focus();	
+         		return false;
+         	}
+         	return true;
+         }
+         
+         function fAprova() {
+         	var r = confirm("Solicitação será aprovada, continuar?");
+         	if(r == true){
+         		document.getElementById('button3').disabled=true;
+         		document.forms[0].action = "U_F0200314.APW?cAprova=1&cSolic=<%=cSolic%>&cFiliS=<%=cFiliS%>";
+         		document.forms[0].submit();
+         	}
+         }
+         			
+         function fReprova() {
+         	var r = confirm("Solicitação será reprovada, continuar?");
+         	if(r == true){
+         		document.getElementById('button2').disabled=true;
+         		document.forms[0].action = "U_F0200314.APW?cAprova=2&cSolic=<%=cSolic%>&cFiliS=<%=cFiliS%>";
+         		document.forms[0].submit();
+         	}
+         }
+         		
+      </script>	
+   </head>
+   <body>
+      <h2>Solicitacao de Treinamento/Evento</h2>
+      <br>
+      <% If cInclus != "N" %>
+      <fieldset>
+         <div class="container-cabec">
+            <div class="div-titulo">Codigo Solicitação</div>
+            <div class="div-conteudo"><%=cCodigo%></div>
+         </div>
+         <div class="container-cabec">
+            <div class="div-titulo">Tipo Solicitação</div>
+            <div class="div-conteudo"><%=cDesc%></div>
+         </div>
+         <div class="container-cabec">
+            <div class="div-titulo">Filial solicitação - descrição</div>
+            <div class="div-conteudo"><%=cFilSoli + " - " + cDescFil%></div>
+         </div>
+         <% If !(cTipo $ "002|003") %>
+         <div class="container-cabec">
+            <div class="div-titulo">Filial Funcionario</div>
+            <div class="div-conteudo"><%=cFilSltd + " - " + cDecSltd%></div>
+         </div>
+         <div class="container-cabec">
+            <div class="div-titulo">Matricula Funcionario - Nome</div>
+            <div class="div-conteudo"><%=cMatSltd + " - " + cNomSltd%></div>
+         </div>
+         <div class="container-cabec">
+            <div class="div-titulo">cargo do funcionário</div>
+            <div class="div-conteudo"><%=cCARSLTD%></div>
+         </div>
+         <% EndIf %>
+         <div class="container-cabec">
+            <div class="div-titulo">Filial solicitante - descrição</div>
+            <div class="div-conteudo"><%=cFilIniS + " - " + cDescFlS%></div>
+         </div>
+         <div class="container-cabec">
+            <div class="div-titulo">Matricula solicitante - Nome</div>
+            <div class="div-conteudo"><%=cMatrFlS + " - " + cNomeFlS%></div>
+         </div>
+         <div class="container-cabec">
+            <div class="div-titulo">cargo do solicitante</div>
+            <div class="div-conteudo"><%=cDescCar%></div>
+         </div>
+         <div class="container-cabec">
+            <div class="div-titulo">centro de custo solicitante</div>
+            <div class="div-conteudo"><%=cDescCtt%></div>
+         </div>
+      </fieldset>
+      <% Else %>	
+      <fieldset>
+         <div class="container-cabec">
+            <div class="div-titulo">Matricula:</div>
+            <!--Matricula:-->
+            <div class="div-conteudo"><%=IIF(EMPTY(cMATRI),"",cMATRI)%></div>
+         </div>
+         <div class="container-cabec">
+            <div class="div-titulo">Nome:</div>
+            <!--Nome:-->
+            <div class="div-conteudo"><%=IIF(EMPTY(cNOME),"",cNOME)%></div>
+         </div>
+      </fieldset>
+      <% EndIf %>	
+      <h3>Reserva de Treinamento</h3>
+      <!--Reserva de Treinamento-->
+      <fieldset>
+         <form name="form10" id="form10" method="post">
+            <% If lBtAprova .OR. lRet%>
+            <input name="cNome" type="hidden" id="cNome" value="<%=ALLTRIM(cNOME)%>">
+            <input name="txtCalendario" type="hidden" id="txtCalendario" value="<%=ALLTRIM(cCalendario)%>">
+            <input name="txtCurso" type="hidden" id="txtCurso" value="<%=cCurso%>">
+            <input name="txtTurma" type="hidden" id="txtTurma" value="<%=cTurma%>">
+            <% EndIf %>		
+            <br>
+            <label>Calendario:</label>	&nbsp;<%=IIF(EMPTY(cCalendario),"",cCalendario)%>
+            <br>
+            <label>Curso:</label>&nbsp;<%=IIF(EMPTY(cCurso),"",cCurso)%>
+            <% If cStatus == '1' %>
+            <% If lBtAprova %>
+            <br>
+            <label>Vagas:</label>&nbsp;<%=IIF(EMPTY(cVagas),"",cVagas)%>
+            <% EndIf %>	
+            <% EndIf %>
+            <br>
+            <label>Periodo:</label>&nbsp;<%=IIF(EMPTY(STOD(cInicio)),"",STOD(cInicio))%>&nbsp; - &nbsp;<%=IIF(EMPTY(STOD(cTermino)),"",STOD(cTermino))%>
+            <br>
+            <label>Horario:</label>&nbsp;<%=IIF(EMPTY(cHorario),"",cHorario)%>
+            <br>
+            <% If cObsApr == 'S' %>
+            <label><%="Observação:"%></label>
+            <textarea name="cObserva" cols="80" rows="5" id="cObserva" disabled><%=cObserva%></textarea>
+            <br>
+            <%If oLista2 != NIL%>
+            <% If OLISTA2:OWSREGISTRO:OWSINFHIS[1]:lLRET != .F. %>
+            <p class="Titulo">
+            <h3>	
+               Histórico de Aprovações
+            </h3>
+            </p>
+            <% For nCnt := 1 to Len(OLISTA2:OWSREGISTRO:OWSINFHIS)%>
+            <label><%="Nome Aprovador: "%></label>
+            <input type="text" name="cPAENOMEAP" class="Texto" size="35" disabled="true" value="<%=OLISTA2:OWSREGISTRO:OWSINFHIS[nCnt]:cPAENOMEAP%>">
+            <br> 
+            <label><%="Função Aprovador: "%></label>
+            <input type="text" name="cPAEFUNAPR" class="Texto" size="35" disabled="true" value="<%=OLISTA2:OWSREGISTRO:OWSINFHIS[nCnt]:cPAEFUNAPR%>">
+            <br> 
+            <label><%="Desc C.C. Aprovador: "%></label>
+            <input type="text" name="cPAEDCCAPR" class="Texto" size="35" disabled="true" value="<%=OLISTA2:OWSREGISTRO:OWSINFHIS[nCnt]:cPAEDCCAPR%>">
+            <br> 
+            <label><%="Observacao da Aprovação/Reprovação:"%></label>
+            <textarea name="cPAEOBS" cols="80" rows="5" id="cPAEOBS" disabled="true"><%=OLISTA2:OWSREGISTRO:OWSINFHIS[nCnt]:cPAEOBS%></textarea>
+            <br> 
+            <hr>
+            <br>
+            <% Next %>
+            <%EndIf%>
+            <%EndIf%>
+            <label><%="Observacao da Aprovação/Reprovação:"%></label>
+            <textarea name="cObs" cols="80" rows="5" id="cObs"> </textarea>
+            <br>  
+            <%EndIf%>
+            <% If cStatus == '1' %>
+            <% If lBtAprova %>
+            <br>
+            <label>Observacao:</label><!--Observacao:-->
+            <textarea id="txtObservacao" name="txtObservacao" cols="80" rows="5" class="Texto" required></textarea>
+            <br>
+            <br>		
+            <input type="button" name="Button" class="botoes" onclick="javascript:history.go(-1);" value="Voltar">
+            <div><input type="button" id="Button" name="Button" class="botoes" onclick="fSubmit();" value="Salvar"></div>
+            <% Else %>
+            <% If lRet %>
+            <br>
+            <br>
+            <input name="Button" type="button" class="botoes" value="VOLTAR" onClick="javascript:history.go(-1);" /><!--VOLTAR-->
+            <input type="button" id="button2" name="button2" class="botoes" onClick="javascript:fReprova()" value="REPROVAR"><!--REPROVAR-->
+            <input type="button" id="button3" name="button3" class="botoes" onClick="javascript:fAprova()" value="APROVAR"> <!--APROVAR-->
+            <% Else %>
+            <label><%="Observação:"%></label>
+            <textarea name="cObserva" cols="80" rows="5" id="cObserva" disabled><%=cObserva%></textarea>
+            <br>  
+            <br>
+            <br>
+            <input name="Button" type="button" class="botoes" value="VOLTAR" onClick="javascript:history.go(-1);" /> <!--VOLTAR-->
+            <% EndIf %>	
+            <% EndIf %>
+            <% Else %>
+            <label><%="Observação:"%></label>
+            <textarea name="cObserva" cols="80" rows="5" id="cObserva" disabled><%=cObserva%></textarea>
+            <br>  
+            <br>
+            <br>
+            <input name="Button" type="button" class="botoes" value="VOLTAR" onClick="javascript:history.go(-1);" /> <!--VOLTAR-->
+            <% EndIf %>
+         </form>
+      </fieldset>
+   </body>
+</html>

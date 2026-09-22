@@ -1,0 +1,57 @@
+#INCLUDE "TOTVS.ch"
+
+/*/{Protheus.doc} xKPTOKT0
+Rotina realiza envio do Perfil de Acesso para o Taxfy.
+@type function
+@version 1.0  
+@author Joalisson Laurentino
+@since 01/06/2024
+/*/
+User Function xKPTOKT0(aParam,oGrid,lLogado,oSay,lGeral)
+	Default oGrid	 := Nil
+	Default lLogado  := Type('cEmpAnt') == 'C'
+    Default aParam   := {"01","01010001"}
+	Default oSay     := Nil
+	Default lGeral   := .F.
+	
+	U_xKPTLogMsg("INICIO INTEGRAÇÃO TaxFy - xKPTOKT0.prw")
+			
+	If !lLogado .AND. !lGeral
+		RPCSetType(3)
+		
+		If RPCSetEnv(aParam[1],aParam[2])
+			U_xKPTLogMsg("VIA JOB RPCSetEnv Iniciado Emp: "+aParam[1]+" Fil: "+aParam[2])
+			cEmpAnt := aParam[1] 
+			cFilAnt := aParam[2]	
+			
+			xFilterKT0(oGrid,lLogado,oSay)
+		Else
+			U_xKPTLogMsg("Não foi possivel conectar no ambiente VIA JOB RPCSetEnv - xKPTOKT0.prw")
+		Endif 
+    Else
+        xFilterKT0(oGrid,lLogado,oSay)
+    EndIf
+
+	U_xKPTLogMsg("FIM INTEGRAÇÃO TaxFy - xKPTOKT0.prw")
+
+	If !lLogado
+		RpcClearEnv()
+	EndIf
+Return
+
+Static Function xFilterKT0(oGrid,lLogado,oSay) 
+	Local cFilter := " KT0->KT0_ZONERG = .T. .AND. KT0->KT0_ZINTOG = '1' .AND. KT0->KT0_MSBLQL = '2'"
+	Local aAlias  := {}
+	Local cID	  := "KT001"
+	Local cRotina := "F0100408"
+	Local lRet    := .F.
+
+	Default oSay := Nil
+
+	KT0->(DBClearFilter())
+
+	aAdd(aAlias,{"KT0",Nil,Nil,Nil})
+
+	lRet := U_xKPTOutbound(oGrid,lLogado,aAlias,cFilter,cID,cRotina,oSay) 
+
+Return lRet

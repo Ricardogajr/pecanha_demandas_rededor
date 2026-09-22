@@ -31,7 +31,7 @@ user function mt100ge2()
 	local nValDes   := 0
 	local nDesFin   := 0
 	local nDesFinSp := 0
-//	local nDescNF   := 0
+//	local nDescNF   := 0	
 	local nJuros    := 0
 	local nMulta    := 0
 	local nTotPer   := 0
@@ -63,7 +63,10 @@ user function mt100ge2()
 			SC7->(DbSkip())
 		EndDo
 	EndIf
-	nDesFinSp += SC7->C7_XRETCON
+	//Se tiver desconto financeiro na SP adiciona o valor de retenção.
+	if SC7->C7_XDESFIN > 0
+		nDesFinSp += SC7->C7_XVLRET
+	endif
 
 	If SC7->(FieldPos("C7_XDESFIN")) > 0
 		nDesFin := posicione( 'SC7' , 1 , xfilial( 'SC7' ) + SD1->D1_PEDIDO , 'C7_XDESFIN' )

@@ -1,0 +1,354 @@
+#INCLUDE "tlpp-core.th"
+#INCLUDE "TOTVS.ch"
+#INCLUDE "protheus.ch"
+
+/*/{Protheus.doc} xKPTOutbound 
+Rotina realiza a exportação de dados para o Taxfy.
+@type function
+@version 1.0  
+@author Joalisson Laurentino
+@since 06/11/2021  
+/*/
+User Function xKPTOutbound(oGrid,lLogado,aAlias,cFilter,cID,cRotina,oSay,nOperation) 
+	Local lActiveLog 	:= SuperGetMv("KPT_MNTLOG",,.T.)
+	Local aArea 		:= FWGetArea()
+	Local cNameAlias 	:= ""
+	Local cSX2Unico	 	:= ""
+	Local aStruCabec 	:= {}
+	Local aStruItem		:= {}
+	Local cAliasCab	    := ""
+	Local cPrxCpo		:= ""
+	Local cMSBLQL 		:= ""
+	Local cOnergy		:= ""
+	Local cZINTOGY		:= ""
+	Local cZIDONGY		:= ""
+	Local lMSBLQL 		:= .F. 
+    Local nCpo     	    := 0
+	Local nI		 	:= 0
+	Local nRegs		 	:= 0
+	Local nItens		:= 0
+	Local Count		 	:= 0
+	Local nOrder 		:= 1
+	Local bCondicao		:= {||}
+	Local cSeek			:= {||}
+	Local oCampos    	:= Nil
+    Local cResponse  	:= ""
+	Local aRetorno   	:= {.F.,"",""}
+    Local oData      	:= Nil 
+	Local cIDNew		:= ""
+	Local lRet	  		:= .T.
+	Local cFilOri       := cFilAnt
+    Local cFilBkp       := "" 
+	Local lEstocavel    := .F.
+
+	Default lLogado		:= .F.
+	Default aAlias		:= {}
+	Default cFilter 	:= ""
+	Default cRotina		:= ""	
+	Default oSay 		:= Nil
+	Default nOperation	:= 3
+
+	cAliasCab	:= aAlias[1][1]
+	cPrxCpo	   	:= PrefixoCpo(cAliasCab) 
+	cTabela	   	:= aAlias[1][1] 
+	lItem		:= Len(aAlias) > 1
+	
+	cNameAlias := AllTrim(FWSX2Util():GetX2Name(cAliasCab))
+	cSX2Unico  := AllTrim(FwSX2Util():GetSX2data(cAliasCab,{"X2_UNICO"})[1][2])
+	aStruCabec := (cAliasCab)->(DbStruct())
+
+	(cAliasCab)->(DbSetFilter({|| &cFilter},cFilter))
+	(cAliasCab)->(DbGoTop())
+	
+	DbSelectArea(cAliasCab)
+	Count To nRegs
+	(cAliasCab)->(DbGoTop())
+
+	If lLogado .AND. !(oGrid == Nil)
+		oGrid:SetMaxMeter(nRegs,2)
+	EndIf
+
+	While !(cAliasCab)->(Eof())
+		nI++ 
+		cMacro	:= (cAliasCab)+"->("+cSX2Unico+")"
+		cMsg 	:= "Enviando "+cNameAlias+" ['"+Alltrim(&(cMacro))+"'] - Total: "+ cValtoChar(nI)+" / "+cValtoChar(nRegs)
+
+		If oSay <> Nil
+			oSay:cCaption := cMsg
+			oSay:Refresh()
+		EndIf
+		
+		If lLogado .AND. !(oGrid == Nil)
+			oGrid:SetIncMeter(2,cMsg)
+		Else 
+			U_xKPTLogMsg(cMsg)
+		EndIf
+
+		cFilOri := IIF(cAliasCab == "SA1",cFilAnt,(cAliasCab)->&(cPrxCpo+"_FILIAL"))
+		cFilBkp := cFilAnt
+		cFilAnt := cFilOri
+
+		lMSBLQL := ((cAliasCab)->(FieldPos(cPrxCpo+"_MSBLQL")) > 0)
+
+		If lMSBLQL
+			cMSBLQL := (cAliasCab)->&(cPrxCpo+"_MSBLQL")
+		EndIf 
+
+		If cTabela <> "SD1" 
+			cOnergy	 := Alltrim((cAliasCab)->&(cPrxCpo+IIF(cAliasCab $ "DAK|DA4|CTT|P11|P13|P02|KT0","_ZIDONG","_ZIDONGY")))
+			cZINTOGY := cPrxCpo+IIF(cAliasCab $ "DAK|DA4|CTT|P11|P13|P02|KT0","_ZINTOG","_ZINTOGY")
+			cZIDONGY := cPrxCpo+IIF(cAliasCab $ "DAK|DA4|CTT|P11|P13|P02|KT0","_ZIDONG","_ZIDONGY")
+		EndIf
+
+		If cTabela == "SC7"  
+			P17->(DbSetOrder(1))
+			If P17->(MsSeek(FWxFilial("P17")+(cAliasCab)->C7_PRODUTO+(cAliasCab)->C7_FILIAL))
+				lEstocavel := ( P17->P17_ESTOQ == "S" )
+			EndIf
+			
+			If lEstocavel .AND. !Empty((cAliasCab)->C7_XID) .AND. !Empty((cAliasCab)->C7_XNUM) .AND. Empty((cAliasCab)->(C7_XIDEXNF)) .AND. (cAliasCab)->(C7_XSOLPAG) <> "1" .AND. Empty(AllTrim((cAliasCab)->C7_XCTSERV)) .AND. Empty(AllTrim((cAliasCab)->C7_XIDEXNF))
+				cID := "SC701"
+			ElseIf lEstocavel .AND. Empty((cAliasCab)->C7_XID) .AND. Empty((cAliasCab)->C7_XNUM)
+				aRetorno[1] := .F.
+				aRetorno[2] := "Pedido não retornado do TASY/WPD"
+				aRetorno[3] := ""
+			EndIf
+
+			If !lEstocavel  .AND.  Empty((cAliasCab)->C7_XID) .AND. Empty((cAliasCab)->C7_XNUM) .AND. Empty((cAliasCab)->(C7_XIDEXNF)) .AND. (cAliasCab)->(C7_XSOLPAG) <> "1" .AND. Empty(AllTrim((cAliasCab)->C7_XCTSERV)) .AND. Empty(AllTrim((cAliasCab)->C7_XIDEXNF))
+				cID := "SC702"
+			ElseIf !lEstocavel  .AND.  Empty((cAliasCab)->C7_XID) .AND. Empty((cAliasCab)->C7_XNUM) .AND. Empty((cAliasCab)->(C7_XIDEXNF)) .AND. (cAliasCab)->(C7_XSOLPAG) <> "1" .AND. !Empty(AllTrim((cAliasCab)->C7_XCTSERV)) .AND. Empty(AllTrim((cAliasCab)->C7_XIDEXNF))
+				cID := "SC703"   
+			EndIf
+		EndIf
+
+		// ---------------------------------------------------------------
+		// RECUPERA O CONTEUDO DE CADA CAMPO DO ALIAS FILHO
+		oData := JsonObject():New()
+		oData["cEmpAnt"]  := cEmpAnt
+		oData["tenantId"] := cFilOri
+		oData["log"] 	  := JsonObject():New()
+		oData["id"]		  := cID
+		oData["rotina"]	  := cRotina
+		oData["nOpc"]	  := GetMSBLQL(lMSBLQL,cMSBLQL,cOnergy,nOperation)  
+		oData["id-onergy"]:= cOnergy
+		oData["data_env"] := FwTimeStamp(5,Date(),"00:00:00") 
+		oData["data"]	  := JsonObject():New()
+		
+		oLog := JsonObject():New()
+		oLog["EmpFil"]      := cEmpAnt + "/" + cFilAnt 
+		oLog["Empresa"]     := Capital(AllTrim(GetAdvFVal("SM0","M0_NOMECOM",cEmpAnt + cFilAnt,1,""))) 
+		oLog["Filial"]      := Capital(AllTrim(GetAdvFVal("SM0","M0_FILIAL" ,cEmpAnt + cFilAnt,1,""))) 
+		oLog["Environment"] := GetEnvServer()  
+		oLog["StartPath"]   := GetSrvProfString("StartPath","")
+		oLog["RootPath"]    := GetSrvProfString("RootPath" ,"") 
+		oLog["Versao"]      := GetVersao(.T.) 
+		oLog["User"]        := __cUserId + " " +  cUserName 
+		oLog["Computer"]    := GetComputerName() 
+
+		oData["log"]["Ambiente"] := oLog
+
+		oCampos := JsonObject():New()
+
+		// ---------------------------------------------------------------
+		// RECUPERA O CONTEUDO DE CADA CAMPO DO ALIAS PRINCIPAL
+		For nCpo := 1 To Len(aStruCabec)
+			cCampo 	 := Alltrim(aStruCabec[nCpo][01])
+			cTypeCpo := aStruCabec[nCpo,2]
+			xValue	 := Iif(cTypeCpo <> "M",&("(cAliasCab)->"+cCampo),"")		
+
+			If cCampo $ "A5_PRODUTO"
+				SB1->(DbSetOrder(1))
+				If (SB1->(dbSeek(FWxFilial("SB1")+xValue)))
+					oCampos["B1_CONTA"] := SB1->B1_CONTA
+					oCampos["B1_CC"]    := SB1->B1_CC
+				Else 
+					oCampos["B1_CONTA"] := ""
+					oCampos["B1_CC"]    := ""
+				EndIf
+				SB1->(DBCloseArea())
+			EndIf
+			
+			If cCampo $ "A5_FORNECE"
+				SA2->(DbSetOrder(1))
+				If (SA2->(dbSeek(FWxFilial("SA2")+PadR(xValue,TamSx3("A5_FORNECE")[1])+PadR((cAliasCab)->&(cPrxCpo+"_LOJA"),TamSx3("A5_LOJA")[1]))))
+					oCampos["A2_CGC"] := SA2->A2_CGC
+					oCampos["A2_NOME"] := SA2->A2_NOME
+					oCampos["A2_NREDUZ"] := SA2->A2_NREDUZ
+					oCampos["A2_EST"] := SA2->A2_EST
+				Else 
+					oCampos["A2_CGC"] := ""
+				EndIf
+				SA2->(DBCloseArea())
+			EndIf	
+
+			If cCampo $ "C7_FORNECE"
+				SA2->(DbSetOrder(1))
+				If (SA2->(dbSeek(FWxFilial("SA2")+PadR(xValue,TamSx3("C7_FORNECE")[1])+PadR((cAliasCab)->&(cPrxCpo+"_LOJA"),TamSx3("C7_LOJA")[1]))))
+					oCampos["A2_CGC"] := SA2->A2_CGC
+					oCampos["A2_NOME"] := SA2->A2_NOME
+					oCampos["A2_NREDUZ"] := SA2->A2_NREDUZ
+					oCampos["A2_EST"] := SA2->A2_EST
+					
+					If FieldPos("A2_XDTFIX") > 0
+						cIdUserBkp := __cUserId
+						__cUserId := (cAliasCab)->&(cPrxCpo+"_USER")
+						oCampos["A2_XDTFIX"] := SA2->A2_XDTFIX 
+						oCampos["lDtFix"] := U_fUsrDtFixa()
+
+						__cUserId := cIdUserBkp
+					EndIf
+					
+					SA2->(DBCloseArea())
+				Else 
+					oCampos["A2_CGC"] := ""
+				EndIf
+			EndIf
+
+			If cCampo $ "A2_PAIS|A1_PAIS|A3_PAIS"
+				SYA->(DbSetOrder(1))
+				If SYA->(DbSeek(FWxFilial("SYA")+PadR(xValue,TamSx3("YA_CODGI")[1])))
+					oCampos["YA_SISEXP"] := SYA->YA_SISEXP
+				Else 
+					oCampos["YA_SISEXP"] := ""
+				Endif
+				SYA->(DBCloseArea())
+			EndIf
+
+			If cTypeCpo <> "M" .AND. !(SubsTr(cCampo,4) $ "_USERLGI|_USERLGA|_USERGI|_USERGA")
+				oCampos[cCampo] := Iif(cTypeCpo == "C",AllTrim(U_xKPTConvType(xValue,cTypeCpo)),U_xKPTConvType(xValue,cTypeCpo))
+			EndIf
+		Next
+
+		oData["data"]["header"]	:= oCampos
+		
+		If (lItem)
+			oData["data"]["itens"]  := {}
+			nItens := 0
+
+			cAliasItem := aAlias[2][1]
+			cTabItem   := aAlias[2][1]
+			cCondicao  := aAlias[2][2]
+			nOrder 	   := aAlias[2][3]
+			cSeek	   := aAlias[2][4]
+			
+			aStruItem := {}
+			aStruItem := (cAliasItem)->(DbStruct())
+
+			(cAliasItem)->(DbSetFilter( {|| &cCondicao },cCondicao))
+			(cAliasItem)->(DbGoTop())
+
+			DbSelectArea(cAliasItem)
+			Count To nItens
+			(cAliasItem)->(DbGoTop())
+
+			While !(cAliasItem)->(Eof())
+
+				oItens := JsonObject():New()
+
+				For nCpo := 1 To Len(aStruItem)					
+					cCampo 	 := Alltrim(aStruItem[nCpo][01])
+					cTypeCpo := aStruItem[nCpo,2]
+					xValue	 := Iif(cTypeCpo <> "M",&("(cAliasItem)->"+cCampo),"")
+
+					If cTypeCpo <> "M" .AND. !(SubsTr(cCampo,4) $ "_USERLGI|_USERLGA|_USERGI|_USERGA")
+						oItens[cCampo] := U_xKPTConvType(xValue,cTypeCpo)
+					EndIf
+				Next
+
+				aAdd(oData["data"]["itens"],oItens)
+
+				(cAliasItem)->(DbSkip())
+			EndDo 
+			(cAliasItem)->(DbClearFilter())
+		EndIf
+
+		cPostParams := oData:ToJson()
+		
+		If cPostParams <> Nil
+			aRetorno := U_xKPTFWRest("POST",/*cUrl*/,/*cSetPath*/,cPostParams,/*aHeader*/,/*lCallBack*/,cOnergy,cTabela)
+			
+			If aRetorno[1]
+				U_xKPTLogMsg("Extração realizada com SUCESSO: "+aRetorno[3])
+
+				oRetorno := JsonObject():New()
+				cJson := oRetorno:FromJson(aRetorno[3])
+			
+				If ValType(cJson) == "U"
+					cIDNew := Alltrim(aRetorno[2])
+					lRet  := .T.//oRetorno["Status"]
+				Else
+					aRetorno[3] := "Falha ao popular JsonObject. Erro: " + cJson
+				EndIf
+				
+				If (nOperation <> 2 .AND. nOperation <> 5)
+					If !(cTabela $ "SC7;SD1")
+						(cAliasCab)->(RecLock(cAliasCab,.F.))
+							(cAliasCab)->&(cZINTOGY) := IIF(!Empty(cIDNew),IIF(lRet,'2','3'),'3') //1-Pendente | 2-Integrado
+							(cAliasCab)->&(cZIDONGY) := IIF(lRet,cIDNew,"")
+						(cAliasCab)->(MsUnlock())
+					ElseIf cTabela == "SC7"
+						cChave := (cAliasCab)->(C7_FILIAL+C7_NUM)
+						(cAliasCab)->(DBClearFilter())
+						SC7->(DBClearFilter())
+						DbSelectarea("SC7")
+						DbSetorder(1)
+						If DbSeek(cChave)
+							While !SC7->(Eof()) .AND. SC7->(C7_FILIAL+C7_NUM) == cChave
+								RecLock("SC7",.F.)
+									SC7->&(cZINTOGY) := IIF(!Empty(cIDNew),IIF(lRet,'2','3'),'3') //1-Pendente | 2-Integrado
+									SC7->&(cZIDONGY) := IIF(lRet,cIDNew,"")
+								SC7->(MsUnlock())
+							SC7->(DbSKip())
+							EndDo
+						EndIf
+						SC7->(DBCloseArea())	
+					EndIf
+				EndIf
+			Else				
+				If Empty(aRetorno[2])
+					aRetorno[2] := "Falha na requisição."
+					U_xKPTLogMsg("Error: "+aRetorno[3])
+				EndIf
+
+				lRet	  := .F.
+				lErro     := .F.
+				cRequest  := cPostParams
+				cResponse += "Erro ao realizar a extração de: "+cNameAlias+" ERROR: "+aRetorno[3]
+				cUrl      := aRetorno[4]
+			EndIf
+		Else 
+			U_xKPTLogMsg("ERROR NIL oData:ToJson :"+cNameAlias)
+		EndIf
+		
+		U_xKPTGrvLog(lActiveLog,cFilOri,cID,cRotina,cIDNew,"PROTHEUS","TAXFY",cPostParams,Alltrim(aRetorno[3]),IIf(lRet,"2","3"),dDatabase,Substr(Time(),1,5))
+
+		If cTabela == "SC7"
+			Exit
+		EndIf 
+		
+		cFilAnt   := cFilBkp
+		(cAliasCab)->(DBSkip())
+	EndDo
+	(cAliasCab)->(DBClearFilter())
+	
+	FwRestArea(aArea)
+Return(aRetorno[1])
+
+
+Static Function GetMSBlQL(lMSBLQL,cMSBLQL,cOnergy,nOperation)
+	Local cRet := ""
+
+	If nOperation ==  5
+		cRet := "5"
+	Else 
+		If Empty(cOnergy)
+			cRet := "I" 
+		Else 
+			If (lMSBLQL)
+				cRet := IIF(cMSBLQL <> "1","A","E")
+			Else 
+				cRet := "A"
+			EndIf 
+		EndIf
+	EndIf 
+Return(cRet)

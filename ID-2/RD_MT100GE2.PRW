@@ -63,14 +63,17 @@ user function mt100ge2()
 			SC7->(DbSkip())
 		EndDo
 	EndIf
-	nDesFinSp += SC7->C7_XRETCON
-	
-	If SC7->(FieldPos("C7_XCNPJTO")) > 0
-		SE2->E2_XCNPJTO := posicione( 'SC7' , 1 , xfilial( 'SC7' ) + SD1->D1_PEDIDO , 'C7_XCNPJTO' )
+	//Se tiver desconto financeiro na SP adiciona o valor de retenção.
+	if SC7->C7_XDESFIN > 0
+		nDesFinSp += SC7->C7_XVLRET
+	endif
+
+	If SC7->(FieldPos("C7_XCNPJ")) > 0
+		SE2->E2_XCNPJ := posicione( 'SC7' , 1 , xfilial( 'SC7' ) + SD1->D1_PEDIDO , 'C7_XCNPJ' )
 	EndIf
 
-	If SC7->(FieldPos("C7_XCNPJDS")) > 0
-		SE2->E2_XCNPJDS := posicione( 'SC7' , 1 , xfilial( 'SC7' ) + SD1->D1_PEDIDO , 'C7_XCNPJDS' )
+	If SC7->(FieldPos("C7_XNOMFIL")) > 0
+		SE2->E2_XCNPJDS := posicione( 'SC7' , 1 , xfilial( 'SC7' ) + SD1->D1_PEDIDO , 'C7_XNOMFIL' )
 	EndIf
 
 	If SC7->(FieldPos("C7_XDESFIN")) > 0

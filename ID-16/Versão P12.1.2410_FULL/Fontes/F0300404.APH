@@ -1,0 +1,239 @@
+<%
+
+/*
+{Protheus.doc} F0300404()
+
+@Author     Henrique Madureira
+@Since      
+@Version    P12.7
+@Project    MAN00000463701_EF_004
+@Return	 
+*/
+
+	Local nCnt      := 1
+	Local nCont     := 1
+	Local nProx     := 1
+	Local nReg          	:= 0
+	Local nInicio       	:= 2
+	Local cEmployeeFilial 	:= Iif(Valtype(HttpGet->EmployeeFilial) == "U", "", HttpGet->EmployeeFilial)
+	Local cRegistration  	:= Iif(Valtype(HttpGet->Registration) == "U", "", HttpGet->Registration)
+	Local cTitulo			:= ''
+	Local cEmployeeEmp 	:= Iif(Valtype(HttpGet->EmployeeEmp) == "U", "", HttpGet->EmployeeEmp)
+%>
+
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
+	<title></title>
+	<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+	<link href="styles/consulta.css" rel="stylesheet" type="text/css">
+	<link href="styles/estilo.css" rel="stylesheet" type="text/css">
+	<script src="scripts/ajax.js" language="JavaScript" type="text/javascript"></script>
+	<script src="scripts/prototype.js" language="JavaScript" type="text/javascript"></script>
+	<script src="scripts/scriptaculous.js" language="JavaScript" type="text/javascript"></script>
+	
+	<body>
+<script language="Javascript">
+
+function marcarTodos(marcar){
+	var itens = document.getElementsByName('ckb');
+
+	if(marcar){
+		document.getElementById('acao').innerHTML = 'Desm';
+	}else{
+		document.getElementById('acao').innerHTML = 'Marc';
+	}
+
+	var i = 0;
+	for(i=0; i<itens.length;i++){
+		itens[i].checked = marcar;
+	}
+
+}
+function changeTest ()
+{
+	var e = document.getElementById("ItmAcao");
+	var itemSelecionado = e.options[e.selectedIndex].value;
+	var textoSelecionado = e.options[e.selectedIndex].text;
+	testStar.value = itemSelecionado;	
+	ItmAcaoRes.value = textoSelecionado;	
+}	
+
+function changePeriodo ()
+{
+	var e = document.getElementById("periodo");
+	var itemSelecionado = e.options[e.selectedIndex].value;
+	dtInicio.value = itemSelecionado.slice(6, 14);	
+	dtFim.value = itemSelecionado.slice(14, 22);
+}	
+
+function changeInicial ()
+{
+	var nCnt = document.getElementById("periodo"); //Pega a posição do combo
+	var citemSelecionado = nCnt.options[nCnt.selectedIndex].value; // pega o valor do item selecionado
+	var cDtIni = citemSelecionado.slice(6, 14);	// Pega apenas a data inicial 
+	var cGetDtIni = document.getElementById("dtInicio").value; // pega o valor informado no campo data
+	// Modifico o valor para comparação
+	var res = cGetDtIni.substr(0, 4);
+    var res1 = cGetDtIni.substr(5, 2);
+    var res2 = cGetDtIni.substr(8, 2);
+    var res3 = res.concat(res1)
+    var res4 = res3.concat(res2)
+	// Acredite ele efetua essa comparação!!!
+	if(cDtIni >= res4){
+		alert("Data Inicial Invalida!" );
+		return false;
+	}else{
+		return true;
+	}
+}
+
+function changeFinal ()
+{
+	var nCnt = document.getElementById("periodo");
+	var citemSelecionado = nCnt.options[nCnt.selectedIndex].value;
+	var cDtFim = citemSelecionado.slice(14, 22);	
+	var cGetDtFim = document.getElementById("dtFim").value;
+	
+	var res = cGetDtIni.substr(0, 4);
+    var res1 = cGetDtIni.substr(5, 2);
+    var res2 = cGetDtIni.substr(8, 2);
+    var res3 = res.concat(res1)
+    var res4 = res3.concat(res2)
+	
+	if(cDtFim >= res4){
+		alert("Data Final Invalida!");
+		return false;
+	}else{
+		return true;
+	}
+}
+
+function changeSalvar ()
+{
+	if (changeInicial() == false){
+		return false;
+	}
+	if (changeFinal () == false){
+		return false;
+	}
+}
+</script>
+	<h2>Plano de Desenvolvimento em Equipe</h2>
+	<h4>Demosntração da equipe a ser selecionada, para geração do Plano de Desenvolvimento Individual - Coletivo</h4>
+		<Form name="form1" action="U_F0300404.APW" method="post">		
+		<p>&nbsp;</p>
+		<h3>Minha Equipe </h3><!-- Equipe -->
+		<p></p>
+		<%If Len(aAuxPag) > 1 %>
+         <% For nProx := 1 to Len(aAuxPag)%>
+         <ul style="list-style-type: none;">
+            <% IF (aAuxPag[nProx]:lPossuiEquipe) .OR. cMat = aAuxPag[nProx]:cRegistration %>
+            <% IF nProx == 1 %>
+            <li name="superior"value="<%=aAuxPag[nProx]:cRegistration%> ">
+               <a href="U_F0300401.APW" class="links" onclick="">
+               <%=nProx%> . <%=aAuxPag[nProx]:cName%>
+               </a>
+            </li>
+            <% ELSE %>
+            <li name="superior" id="superior" value="<%=aAuxPag[nProx]:cRegistration%> ">
+               <a href="U_F0300406.APW?codsubfun=<%=aAuxPag[nProx]:cRegistration%>&depsubfun=<%=aAuxPag[nProx]:cDepartment%>&nmsuper=<%=aAuxPag[nProx]:cName%>" class="links" onclick="">
+               <%=nProx%> . <%=aAuxPag[nProx]:cName%>
+               </a>
+            </li>
+            <% ENDIF %>
+            <% ENDIF %>
+            <% Next nProx %>
+            <% FOR nProx := 1 to Len(aAuxPag) %>
+         </ul>
+         <% Next nProx %>
+         <% EndIf %>		
+		
+		<p></p>
+		<br>
+		
+		<h4>Selecione as informações para adicionar no PDI do participante.</h4>
+		<fieldset>
+			<table>
+				<tr>
+					<td><h3>Ação:</h3></td>
+					<td><h3>Descrição:</h3></td>
+					<td><h3>Periodo:</h3></td>
+					<td><h3>De:</h3></td>
+					<td><h3>Até:</h3></td>
+				</tr>
+				<tr>
+					<td>
+					<select name="ItmAcao" onchange="javascript:changeTest();" id="ItmAcao" required>
+							<option value="" selected></option>
+						<% If oAcao1 != Nil%>
+							<% For nCnt := 1 to Len(OACAO1:OWSINFRDW:OWSACAO)%>
+					     		<option value="<%=ALLTRIM(OACAO1:OWSINFRDW:OWSACAO[nCnt]:CRDWDESCIT)%>" ><%=OACAO1:OWSINFRDW:OWSACAO[nCnt]:CRDWITEM + '-' + OACAO1:OWSINFRDW:OWSACAO[nCnt]:CRDWCODOBJ%></option>
+			    			<% Next %>
+						<% EndIf %>
+			    	</select>
+			  	</td>
+			  	<td><input id="testStar" type="text" name="testStar" size="40" maxlength="150" value="" ></td>
+			  	<td>
+					<select name="periodo" onchange="javascript:changePeriod();" id="periodo" required> 
+							<option value="" selected></option>
+						<% If oPerio != Nil%>
+							<% For nCnt := 1 to Len(OPERIO:OWSINFRDU:OWSPERI)%>
+					     		<option value="<%=ALLTRIM(OPERIO:OWSINFRDU:OWSPERI[nCnt]:CRDUCODIGO)%>" ><%=OPERIO:OWSINFRDU:OWSPERI[nCnt]:CRDUDESC%></option>
+			    			<% Next %>
+						<% EndIf %>
+			    	</select>
+			  	</td>
+			  	<td><input type="date" name="dtInicio" id="dtInicio" onblur="javascript:changeInicial();" value="" required></td>
+			  	<td><input type="date" name="dtFim" id="dtFim" onblur="javascript:changeFinal();" value="" required></td>
+			  </tr>
+			</table>
+		</fieldset>
+
+		<br>
+		<input name="ItmAcaoRes" type="hidden" id="ItmAcaoRes" value="">	
+		<table width="850">
+
+			<tbody>
+			<tr>
+				<th>Matricula</th><!-- Participante -->
+				<th>Nome </th><!-- Nome -->
+				<th>Admissão</th><!-- Admissao -->
+				<th>Departamento</th><!-- Departamento -->
+				<th>Situação </th><!-- Situação -->
+				<th><input type='checkbox' class="ckb" name="ckb" onclick="javascript:marcarTodos(this.checked);"/><span id="acao">Marc</span></th>
+				<th></th>
+			</tr>
+			
+			 <%If Len(HttpSession->aStructure) > 1 %>
+               <% For nReg := nInicio to Len(HttpSession->aStructure)%>
+               <tr height="21" bgcolor="#F2F2F2">	    			
+                  <td  class="info-cent"><%=HttpSession->aStructure[nReg]:cRegistration%></td>	
+                  <td class="TituloMenor"><%=HttpSession->aStructure[nReg]:cName%></td>
+                  <td class="TituloMenor"><%=HttpSession->aStructure[nReg]:cAdmissionDate%></td>
+                  <td class="TituloMenor"><%=HttpSession->aStructure[nReg]:cDepartment%></td>
+                  <td class="TituloMenor"><%=Iif(Empty(HttpSession->aStructure[nReg]:cDescSituacao),HttpSession->aStructure[nReg]:cSituacao,HttpSession->aStructure[nReg]:cDescSituacao)%></td>
+                  <td><input type="checkbox"  class="ckb" name="ckb" value="<%=HttpSession->aStructure[nReg]:cRegistration%> "/></td>
+                  <% IF (HttpSession->aStructure[nReg]:lPossuiEquipe) %>
+	    				<td class="TituloMenor">
+						 	<a href="U_F0300406.APW?codsubfun=<%=HttpSession->aStructure[nReg]:cRegistration%>&depsubfun=<%=HttpSession->aStructure[nReg]:cDepartment%>&nmsuper=<%=HttpSession->aStructure[nReg]:cName%>" >
+								<img id="img_equipe" name="img_equipe" src="imagens-rh/icone_equipe.gif" title="Visualizar equipe do funcionário: <%=HttpSession->aStructure[nReg]:cRegistration%>">
+							</a>
+		    			</td> 
+		    		<% Else%>
+		    			<td class="TituloMenor"></td>
+					<% EndIf  %>    			
+               </tr>
+               <% Next nReg %>
+               <% Else %> 
+               <tr bgcolor="#F2F2F2" class="Texto">
+                  <td align="center" colspan="6">Nao existem registros para exibicao</td>
+                  <!--Nao existem registros para exibicao-->
+               </tr>
+               <% EndIf %>
+			</tbody>
+		</table>
+		<br>
+		
+		<div><input type="submit" name="Button" class="botoes" value="Salvar"></div>
+	</form>
+	</body>
+</html>

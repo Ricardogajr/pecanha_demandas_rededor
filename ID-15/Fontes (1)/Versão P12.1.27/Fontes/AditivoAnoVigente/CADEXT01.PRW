@@ -1,0 +1,880 @@
+#INCLUDE "PROTHEUS.CH"
+#INCLUDE "HEADERGD.CH"
+
+/* 
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหอออออออัออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบPrograma  ณCADMETA   บAutor  ณJamer Nunes Pedroso บ Data ณ  01/09/14   บฑฑ
+ฑฑฬออออออออออุออออออออออสอออออออฯออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDesc.     ณ Cadastro de Extratores                                     บฑฑM
+ฑฑบ          ณ                                                            บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ TDI                                                        บฑฑ
+ฑฑศออออออออออฯออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+*/
+
+User Function CADEXT01()
+
+	Private cCadastro	:= "Cadastro de Processos de Importa็ใo"
+	
+	Private aRotina 	:= MenuDef()
+	
+	//SysErrorBlock ({|| U_SysError() })
+	
+	mBrowse( 6 , 1 , 22 , 75 , "ZVJ" )
+Return( NIL )
+
+
+************************
+User Function SysError()
+************************
+   Local cPathTmp := U_GetTmpPath() + "migra\"
+   Local aFiles   := DIRECTORY(cPathTmp + "*.bat")
+   
+   AEval(aFiles,{|f| If(File(f[1]),fErase(f[1]),)})
+   
+Return nil     
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหอออออออัออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบPrograma  ณMenuDef   บAutor  ณJamer Nunes Pedroso บ Data ณ  01/09/14   บฑฑ
+ฑฑฬออออออออออุออออออออออสอออออออฯออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDesc.     ณ Opc็๕es do menu Arotina                                    บฑฑ
+ฑฑบ          ณ                                                            บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ TDI                                                        บฑฑ
+ฑฑศออออออออออฯออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+*/
+Static Function MenuDef()
+Local Vcall := "Processa( {|lAbort| StaticCall(SUPEXT01,ProcSupTXT,SM0->M0_CODIGO,ZVJ->ZVJ_CODIGO,6) }, 'Aguarde...Preparando arquivo...', 'Carregando: '+Alltrim(ZVJ->ZVJ_DESTINO) ,.T.)"
+
+Return(;
+		{;
+			{ "Pesquisar"		        ,	"AxPesqui"                                                         , 0 , 1 ,0  , .F. },;
+			{ "Visualizar"		        ,	"StaticCall(CADEXT01,MntExe,'ZVJ',ZVJ->(Recno()),2)"               , 0 , 2 ,0  , NIL },;
+			{ "Incluir"			        ,	"StaticCall(CADEXT01,MntExe,'ZVJ',ZVJ->(Recno()),3)"               , 0 , 3 ,0  , NIL },;
+			{ "Alterar"			        ,	"StaticCall(CADEXT01,MntExe,'ZVJ',ZVJ->(Recno()),4)"               , 0 , 4 ,15 , NIL },;
+			{ "Excluir"			        ,	"StaticCall(CADEXT01,MntExe,'ZVJ',ZVJ->(Recno()),5)"               , 0 , 5 ,16 , NIL },;
+			{ "Executar Pacote"	        ,	"U_CNCTAEXE"                                                       , 0 , 1 ,16 , NIL },;
+			{ "Visualizar Log"		    ,	"StaticCall(CNCTAEXE,PreviewLog,.T.,AllTrim(ZVJ->ZVJ_CODIGO),,,)"  , 0 , 1 ,16 , NIL },;
+			{ "Cria Intermediแria"	    ,	"U_MGATMP00"                                                       , 0 , 6 ,16 , NIL },;
+			{ "Configurar conexใo"	    ,	"U_SetCfgCnx"                                                      , 0 , 6 ,16 , NIL },;
+			{ "Sincronizar c/dicionแrio",   "U_CNCTAVLD(ZVJ->ZVJ_CODIGO,.T.,.T.)"                              , 0 , 3 ,16 , NIL } ;
+		};                     
+)
+
+			//{ "Executar"		        ,	"StaticCall(CADEXT01,SelectImp)"                                   , 0 , 6 ,16 , NIL },;
+
+***************************
+Static Function SelectImp()
+***************************
+    Local cTpImp := AllTrim(ZVJ->ZVJ_TPIMP)
+    Local cAlias := AllTrim(ZVJ->ZVJ_DESTIN)
+    
+    
+    StaticCall(CNCTALIB,EnableTrig,RetSqlName(cAlias),.F.)
+    
+    Do Case
+       Case ( cTpImp == "1" ) //SQL Loader
+       
+            U_IMPTAB(RetSqlName(AllTrim(ZVJ->ZVJ_DESTIN)),AllTrim(ZVJ->ZVJ_DIRIMP))
+            
+       Case ( cTpImp == "2" ) //Valida็ใo (ZVJ/ZVK)
+       
+            U_DORCHARGE()
+            
+       Case ( cTpImp == "3" ) //Stored Procedure/Banco.
+       
+            U_MGATMP01()
+            
+       Case ( cTpImp == "4" ) //MsExecAuto: rotina automแtica Protheus.
+       
+            ExecAuto(AllTrim(ZVJ->ZVJ_DESTIN))
+
+       Case ( cTpImp == "5" ) //Stored Procedure S/Loader
+            
+            U_SPNLDR(AllTrim(ZVJ->ZVJ_DESTIN))            
+            
+       Otherwise
+           
+            MsgStop("Nใo foi possํvel identificar o m้todo de importa็ใo utilizado! Verifique.")
+           
+    EndCase 
+
+    StaticCall(CNCTALIB,EnableTrig,RetSqlName(cAlias),.T.)
+       
+Return        	
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหอออออออัออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบPrograma  ณExecMnt   บAutor  ณJamer Nunes Pedroso บ Data ณ  01/09/14   บฑฑ
+ฑฑฬออออออออออุออออออออออสอออออออฯออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDesc.     ณ Manuten็ใo Modelo 3                                        บฑฑ
+ฑฑบ          ณ                                                            บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ TDI                                                        บฑฑ
+ฑฑศออออออออออฯออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+*/
+
+Static Function MntExe( cAlias , nReg , nOpc )
+
+	Local aZVJCols		:= {}
+	Local aSvZVJCols	:= {}
+	Local aZVJHeader	:= {}
+	Local aZVJFields	:= {}
+	Local aZVJVirtEn	:= {}
+	Local aZVJVisuEn	:= {}
+	Local aZVJNotFields	:= {}
+	Local aZVJAltera	:= {}
+	Local aZVJNaoAlt	:= {}
+	Local aZVJRecnos	:= {}
+	Local aZVJKeys		:= {}
+    Local nSaveSX8
+
+
+	Local aZVKKeys
+	Local aZVKVirtGd
+	Local aZVKVisuGd
+	Local aZVKNotFields	:= { "ZVK_CODEXT" }
+	Local aZVKRecnos
+	Local aSvZVKCols
+
+	Local bGetZVJ
+	Local bGetZVK  // Parei aqui
+
+	Local cZVJFil		:= ""
+	Local cZVJCodigo	:= ""
+	Local cZVKKeySeek
+
+	Local lMod3Ret		:= .F.
+	Local lLocks		:= .F.
+	Local lExecLock		:= ( ( nOpc <> 2 ) /*/Visualizacao/*/ .and. ( nOpc <> 3 ) /*/Inclusao/*/ )
+
+	Local nLoop			:= 0
+	Local nOpcGD		:= nOPC
+	Local nZVJUsado		:= 0
+	Local nZVKUsado		:= 0
+	Local nZVKOrder		:= RetOrder( "ZVK" , "ZVK_FILIAL+ZVK_CODEXT+ZVK_SEQ" )
+	Local aAreaZVJ      := nil
+
+	Private aCols		:= {}
+	Private aHeader		:= {}
+
+	Private aGets
+	Private aTela
+
+	Private n			:= 1
+
+	BEGIN SEQUENCE
+
+		aRotSetOpc( cAlias , @nReg , nOpc )
+
+		bGetZVJ			:= { |lLock,lExclu|	IF( lExecLock , ( lLock := .T. , lExclu	:= .T. ) , aZVJKeys := NIL ),;
+											aZVJCols := ZVJ->(;
+									  							GdBuildCols(	@aZVJHeader		,;	//01 -> Array com os Campos do Cabecalho da GetDados
+																				@nZVJUsado		,;	//02 -> Numero de Campos em Uso
+																				@aZVJVirtEn		,;	//03 -> [@]Array com os Campos Virtuais
+																				@aZVJVisuEn		,;	//04 -> [@]Array com os Campos Visuais
+																				"ZVJ"			,;	//05 -> Opcional, Alias do Arquivo Carga dos Itens do aCols
+																				aZVJNotFields	,;	//06 -> Opcional, Campos que nao Deverao constar no aHeader
+																				@aZVJRecnos		,;	//07 -> [@]Array unidimensional contendo os Recnos
+																				"ZVJ"		   	,;	//08 -> Alias do Arquivo Pai
+																				NIL				,;	//09 -> Chave para o Posicionamento no Alias Filho
+																				NIL				,;	//10 -> Bloco para condicao de Loop While
+																				NIL				,;	//11 -> Bloco para Skip no Loop While
+																				NIL				,;	//12 -> Se Havera o Elemento de Delecao no aCols 
+																				NIL				,;	//13 -> Se Sera considerado o Inicializador Padrao
+																				NIL				,;	//14 -> Opcional, Carregar Todos os Campos
+																				NIL				,;	//15 -> Opcional, Nao Carregar os Campos Virtuais
+																				NIL				,;	//16 -> Opcional, Utilizacao de Query para Selecao de Dados
+																				NIL				,;	//17 -> Opcional, Se deve Executar bKey  ( Apenas Quando TOP )
+																				NIL				,;	//18 -> Opcional, Se deve Executar bSkip ( Apenas Quando TOP )
+																				NIL				,;	//19 -> Carregar Coluna Fantasma
+																				NIL				,;	//20 -> Inverte a Condicao de aNotFields carregando apenas os campos ai definidos
+																				NIL				,;	//21 -> Verifica se Deve Checar se o campo eh usado
+																				NIL				,;	//22 -> Verifica se Deve Checar o nivel do usuario
+																				NIL				,;	//23 -> Verifica se Deve Carregar o Elemento Vazio no aCols
+																				@aZVJKeys		,;	//24 -> [@]Array que contera as chaves conforme recnos
+																				@lLock			,;	//25 -> [@]Se devera efetuar o Lock dos Registros
+																				@lExclu			 ;	//26 -> [@]Se devera obter a Exclusividade nas chaves dos registros
+																		    );
+															  ),;
+											IF( lExecLock , ( lLock .and. lExclu ) , .T. );
+		  					} 
+	    
+	    aAreaZVJ := ZVJ->(GetArea())
+	    ZVJ->(DbSetOrder( 1 )) 
+	    IF !( lLocks := WhileNoLock( "ZVJ" , NIL , NIL , 1 , 1 , .T. , 1 , 5 , bGetZVJ ) )
+			Break
+		EndIF
+	    RestArea(aAreaZVJ)
+
+		MkArrEdFlds( nOpc , aZVJHeader , aZVJVisuEn , aZVJVirtEn , @aZVJNaoAlt , @aZVJAltera , @aZVJFields )
+
+   		For nLoop := 1 To nZVJUsado
+   			SetMemVar( aZVJHeader[ nLoop , __AHEADER_FIELD__ ] , aZVJCols[ 01 , nLoop ] , .T. )
+   		Next nLoop
+
+		cZVJFil		:= ZVJ->ZVJ_FILIAL
+		cZVJCodigo	:= ZVJ->ZVJ_CODIGO
+		cZVKKeySeek	:= cZVJFil+cZVJCodigo
+
+		ZVK->( dbSetOrder( nZVKOrder ) )
+
+		ZVK->( dbSeek( cZVKKeySeek , .F. ) )
+
+		bGetZVK	:= { |lLock,lExclu|	IF( lExecLock , ( lLock := .T. , lExclu := .T. ) , aZVKKeys := NIL ),;
+						 				aCols := ZVK->(;
+														GdBuildCols(	@aHeader		,;	//01 -> Array com os Campos do Cabecalho da GetDados
+																		@nZVKUsado		,;	//02 -> Numero de Campos em Uso
+																		@aZVKVirtGd		,;	//03 -> [@]Array com os Campos Virtuais
+																		@aZVKVisuGd		,;	//04 -> [@]Array com os Campos Visuais
+																		"ZVK"			,;	//05 -> Opcional, Alias do Arquivo Carga dos Itens do aCols
+																		aZVKNotFields	,;	//06 -> Opcional, Campos que nao Deverao constar no aHeader
+																		@aZVKRecnos		,;	//07 -> [@]Array unidimensional contendo os Recnos
+																		"ZVJ"		   	,;	//08 -> Alias do Arquivo Pai
+																		cZVKKeySeek		,;	//09 -> Chave para o Posicionamento no Alias Filho
+																		NIL				,;	//10 -> Bloco para condicao de Loop While
+																		NIL				,;	//11 -> Bloco para Skip no Loop While
+																		NIL				,;	//12 -> Se Havera o Elemento de Delecao no aCols 
+																		NIL				,;	//13 -> Se Sera considerado o Inicializador Padrao
+																		NIL				,;	//14 -> Opcional, Carregar Todos os Campos
+																		NIL				,;	//15 -> Opcional, Nao Carregar os Campos Virtuais
+																		NIL				,;	//16 -> Opcional, Utilizacao de Query para Selecao de Dados
+																		.F.				,;	//17 -> Opcional, Se deve Executar bKey  ( Apenas Quando TOP )
+																		.F.				,;	//18 -> Opcional, Se deve Executar bSkip ( Apenas Quando TOP )
+																		NIL				,;	//19 -> Carregar Coluna Fantasma e/ou BitMap ( Logico ou Array )
+																		NIL				,;	//20 -> Inverte a Condicao de aNotFields carregando apenas os campos ai definidos
+																		NIL				,;	//21 -> Verifica se Deve Checar se o campo eh usado
+																		NIL				,;	//22 -> Verifica se Deve Checar o nivel do usuario
+																		NIL				,;	//23 -> Verifica se Deve Carregar o Elemento Vazio no aCols
+																		@aZVKKeys		,;	//24 -> [@]Array que contera as chaves conforme recnos
+																		@lLock			,;	//25 -> [@]Se devera efetuar o Lock dos Registros
+																		@lExclu			,;	//26 -> [@]Se devera obter a Exclusividade nas chaves dos registros
+																		1				,;	//27 -> Numero maximo de Locks a ser efetuado
+																		Altera			 ;	//28 -> Utiliza Numeracao na GhostCol
+																    );
+														  ),;
+										IF( lExecLock , ( lLock .and. lExclu ) , .T. );
+		  		    }
+
+	    IF !( lLocks := WhileNoLock( "ZVK" , NIL , NIL , 1 , 1 , .T. , 1 , 5 , bGetZVK ) )
+			Break
+		EndIF
+
+		IF ( nOpc == 3  ) //Inclusao
+		  
+			GdDefault( NIL , "ZVJ" , aZVJHeader , @aZVJCols , NIL , .F. )
+			
+			dbSelectArea("ZVJ")
+			dbSetOrder(1)
+			dbGobottom()
+			                             
+		    nSaveSX8 := ZVJ->ZVJ_CODIGO                           
+		    
+			While (M->ZVJ_CODIGO <= nSaveSX8)
+			   M->ZVJ_CODIGO := ZVJ->(GetSX8Num("ZVJ","ZVJ_CODIGO"))
+		    EndDo
+			
+			nSaveSX8 := ZVJ->(GetSX8Len())
+            
+
+		EndIF
+
+		aSvZVJCols	:= aClone( aZVJCols )
+		aSvZVKCols	:= aClone( aCols )
+
+       lMod3Ret	:=	Modelo3(;
+									cCadastro						,;	//cTitulo
+									"ZVJ"	  						,;	//cAlias1
+									"ZVK"							,;	//cAlias2
+									@aZVJFields						,;	//aMyEncho/
+									"StaticCall(CADEXT01,Mod3Lok)"	,;	//cLinOk
+									"StaticCall(CADEXT01,Mod3Tok)"	,;	//cTudoOk
+									nOpc							,;	//nOpcE
+									nOpcGD							,;	//nOpcG,
+									NIL								,;	//cFieldOk,
+									.T.								,;	//lVirtual
+									999								,;	//nLinhas
+									aZVJAltera						,;	//aAltEnchoice
+									NIL								,;	//nFreeze,
+									NIL								,;	//aButtons
+									NIL  							,;	//aCordW
+									170								 ;	//nSizeHeader
+								)
+	
+		IF ( lMod3Ret )
+		
+	 		IF ( nOpc != 2 )
+	 		    
+	 		    Begin Transaction 
+	 		    
+	 		    if ( nOpc == 3 )
+	 		    
+	 		       While (GetSX8Len() > nSaveSX8)
+			          ZVJ->(ConfirmSX8())
+		           EndDo
+		           
+                Endif
+	 		    
+				MsAguarde(;
+							{ ||;
+									Mod3ExecGrv(;
+													@nOpc		,;	//01 -> Opcao de Acordo com aRotina
+								 					@nReg		,;	//02 -> Numero do Registro do Arquivo Pai ( ZVK )
+								 					@aZVJHeader	,;	//03 -> Campos do Arquivo Pai ( ZVJ )
+								 					@aZVJVirtEn	,;	//04 -> Campos Virtuais do Arquivo Pai ( ZVJ )
+								 					@aZVJCols	,;	//05 -> Conteudo Atual dos Campos do Arquivo Pai ( ZVJ )
+								 					@aSvZVJCols	,;	//06 -> Conteudo Anterior dos Campos do Arquivo Pai ( ZVJ )
+								 					@aHeader	,;	//07 -> Campos do Arquivo Filho ( ZVK )
+								 					@aCols		,;	//08 -> Itens Atual do Arquivo Filho ( ZVK )
+								 					@aSvZVKCols	,;	//09 -> Itens Anterior do Arquivo Filho ( ZVK )
+								 					@aZVKVirtGd	,;	//10 -> Campos Virtuais do Arquivo Filho ( ZVK )
+								 					@aZVKRecnos	 ;	//11 -> Recnos do Arquivo Filho ( ZVK )
+								 				 );
+							};
+						  )    
+						  
+			    End Transaction
+						  
+			EndIF         
+			
+		Else                
+		
+		   if ( nOpc == 3 ) // SX8Rollback
+		      RollbackSX8()
+		   Endif
+		   
+		EndIF
+
+	END SEQUENCE
+
+	FreeLocks( "ZVK" , aZVKRecnos , .T. , aZVKKeys )
+	FreeLocks( "ZVJ" , aZVJRecnos , .T. , aZVJKeys )
+	
+Return( NIL )
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหอออออออัออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบPrograma  ณMod3Lok   บAutor  ณJamer Nunes Pedroso บ Data ณ  01/09/14   บฑฑ
+ฑฑฬออออออออออุออออออออออสอออออออฯออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDesc.     ณ Funcao para Validacao da Linha Ok da GetDados              บฑฑ
+ฑฑบ          ณ                                                            บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ TDI                                                        บฑฑ
+ฑฑศออออออออออฯออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+*/
+Static Function Mod3Lok()
+
+	Local lLinOk  		:= .T.
+	
+	Local aCposKey 
+
+	Begin Sequence
+
+		IF !( GdDeleted() )
+			aCposKey := GdObrigat( aHeader )
+			IF !( lLinOk := GdNoEmpty( aCposKey ) )
+		    	Break
+			EndIF
+			//aCposKey := GetArrUniqe( "ZVK" )
+			aCposKey := {"ZVK_FILIAL","ZVK_CODEXT","ZVK_SEQ"}
+			IF !( lLinOk := GdCheckKey( aCposKey , 4 ) )
+				Break
+			EndIF
+		EndIF
+
+	End Sequence
+
+Return( lLinOk )
+
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหอออออออัออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบPrograma  ณMod3Tok   บAutor  ณJamer Nunes Pedroso บ Data ณ  01/09/14   บฑฑ
+ฑฑฬออออออออออุออออออออออสอออออออฯออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDesc.     ณ Funcao Para Validacao do TudoOk da GetDados                บฑฑ
+ฑฑบ          ณ                                                            บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ TDI                                                        บฑฑ
+ฑฑศออออออออออฯออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+*/
+
+Static Function Mod3Tok()
+
+	Local lTudoOk		:= .T.
+	
+	Local nLoop
+	Local nLoops
+	Local nDeleted
+
+	IF ( Type( "n" ) <> "N" )
+		Private n := 0
+	EndIF
+	
+	Begin Sequence
+	
+		nDeleted := GdFieldPos( "GDDELETED" )
+		
+		nLoops := Len( aCols )
+		For nLoop := 1 To nLoops
+			n := nLoop
+			IF !( aCols[ n , nDeleted ] )
+				IF !( lTudoOk := Mod3Lok() )
+					Break
+				EndIF
+			EndIF
+		Next nLoop
+	
+	End Sequence
+
+Return( lTudoOk  )
+
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหอออออออัออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบPrograma  ณMod3ExecGrv บAutor  ณJamer Nunes Pedroso บ Data ณ  01/09/14 บฑฑ
+ฑฑฬออออออออออุออออออออออสอออออออฯออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDesc.     ณ Funcao Para GRava็ใo do Modelo3                            บฑฑ
+ฑฑบ          ณ                                                            บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ TDI                                                        บฑฑ
+ฑฑศออออออออออฯออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+*/
+Static Function Mod3ExecGrv(nOpc		,;	//01 -> Opcao de Acordo com aRotina
+						 	nReg		,;	//02 -> Numero do Registro do Arquivo Pai ( ZVJ )
+						 	aZVJHeader	,;	//03 -> Campos do Arquivo Pai ( ZVJ )
+						 	aZVJVirtEn	,;	//04 -> Campos Virtuais do Arquivo Pai ( ZVJ )
+						 	aZVJCols	,;	//05 -> Conteudo Atual dos Campos do Arquivo Pai ( ZVJ )
+						 	aSvZVJCols	,;	//06 -> Conteudo Anterior dos Campos do Arquivo Pai ( ZVJ )
+						 	aZVKHeader	,;	//07 -> Campos do Arquivo Filho ( ZVK )
+						 	aZVKCols	,;	//08 -> Itens Atual do Arquivo Filho ( ZVK )
+						 	aSvZVKCols	,;	//09 -> Itens Anterior do Arquivo Filho ( ZVK )
+						 	aZVKVirtGd	,;	//10 -> Campos Virtuais do Arquivo Filho ( ZVK )
+						 	aZVKRecnos	 ;	//11 -> Recnos do Arquivo Filho ( ZVK )
+						  )
+
+	Local aMestre	:= GdPutIStrMestre( 01 )
+	Local aItens	:= {}
+	Local cOpcao	:= IF( ( nOpc == 5 ) , "DELETE" , IF( ( ( nOpc == 3 ) .or. ( nOpc == 4 ) ) , "PUT" , NIL ) )
+	Local cZVJCodigo	:= GetMemVar( "ZVJ_CODIGO" )
+	Local lAllModif	:= .F.
+	Local lZVJModif	:= .F.
+	Local lZVKModif	:= .F.
+	Local lZVKDelet	:= .F.
+	
+	Local aZVKColDel
+	Local aZVKRecDel
+	
+	Local nLoop
+	Local nLoops
+	Local nItens
+
+	IF ( cOpcao == "DELETE" )
+		GdSuperDel( aZVKHeader , @aZVKCols , NIL , .T. )
+		lZVJModif := .T.
+	EndIF
+
+	IF ( lZVKModif := !ArrayCompare( aZVKCols , aSvZVKCols ) )
+		IF ( cOpcao <> "DELETE" )
+			GdSuperDel( aZVKHeader , @aZVKCols , NIL , .T. , GdGetBlock( "ZVK" , aZVKHeader , .F. ) ) 
+		EndIF	
+		lZVKDelet := GdSplitDel( aZVKHeader , @aZVKCols , @aZVKRecnos , @aZVKColDel , @aZVKRecDel )
+	EndIF
+
+	IF ( lZVKModif )
+
+		IF ( lZVKDelet )
+
+			aAdd( aItens , GdPutIStrItens() )
+			nItens := Len( aItens )
+
+			aItens[ nItens , 01 ] := "ZVK"
+			aItens[ nItens , 02 ] := NIL
+			aItens[ nItens , 03 ] := aClone( aZVKHeader )
+			aItens[ nItens , 04 ] := aClone( aZVKColDel )
+			aItens[ nItens , 05 ] := aClone( aZVKVirtGd )
+			aItens[ nItens , 06 ] := aClone( aZVKRecDel )
+			aItens[ nItens , 07 ] := {}
+			aItens[ nItens , 08 ] := NIL
+			aItens[ nItens , 09 ] := NIL
+			aItens[ nItens , 10 ] := ""
+
+		EndIF
+
+		aAdd( aItens , GdPutIStrItens() )
+		nItens := Len( aItens )
+		aItens[ nItens , 01 ] := "ZVK"
+		aItens[ nItens , 02 ] := {;
+									{ "FILIAL"	, xFilial( "ZVK" , xFilial( "ZVJ" ) ) },;
+									{ "CODEXT"  , cZVJCodigo };
+							 	 }
+		aItens[ nItens , 03 ] := aClone( aZVKHeader )
+		aItens[ nItens , 04 ] := aClone( aZVKCols   )
+		aItens[ nItens , 05 ] := aClone( aZVKVirtGd )
+		aItens[ nItens , 06 ] := aClone( aZVKRecnos )
+		aItens[ nItens , 07 ] := {}
+		aItens[ nItens , 08 ] := NIL
+		aItens[ nItens , 09 ] := NIL
+		aItens[ nItens , 10 ] := ""
+
+	EndIF
+                           
+    If Valtype(aZVJCols[ 01 , 01 ]) == "A"
+       aZVJCOls := aZVJCols[01]
+    Endif   
+
+	IF !( lZVJModif )
+		nLoops := Len( aZVJHeader )
+		For nLoop := 1 To nLoops                                          
+			aZVJCols[ 01 , nLoop ] := GetMemVar( aZVJHeader[ nLoop , 02 ] )
+		Next nLoop
+		lZVJModif := !( ArrayCompare( aZVJCols , aSvZVJCols ) )
+	EndIF
+
+ 	lAllModif := ( ( lZVKModif ) .or. ( lZVJModif ) )
+
+	IF ( lAllModif )
+
+		aMestre[ 01 , 01 ]	:= "ZVJ"
+		aMestre[ 01 , 02 ]	:= nReg
+		aMestre[ 01 , 03 ]	:= lZVJModif
+		aMestre[ 01 , 04 ]	:= aClone( aZVJHeader )
+		aMestre[ 01 , 05 ]	:= aClone( aZVJVirtEn )
+		aMestre[ 01 , 06 ]	:= {}
+		aMestre[ 01 , 07 ]	:= aClone( aItens )
+		aMestre[ 01 , 08 ]	:= ""
+
+		GdPutInfoData( aMestre , cOpcao , .F. , .F. )
+
+		IF ( cOpcao <> "DELETE" )
+			ZVK->( FkCommit() )
+			ZVJ->( FkCommit() )
+		Else
+			ZVJ->( FkCommit() )
+			ZVK->( FkCommit() )
+		EndIF
+
+	EndIF
+
+Return( NIL )		
+
+
+
+/*Leitura de texto delimitado */
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหอออออออัออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบPrograma  ณProcTxt1  บAutor  ณMicrosiga           บ Data ณ  03/30/17   บฑฑ
+ฑฑฬออออออออออุออออออออออสอออออออฯออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDesc.     ณ                                                            บฑฑ
+ฑฑบ          ณ                                                            บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ AP                                                        บฑฑ
+ฑฑศออออออออออฯออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+*/
+static Function ProcTXT(cpEmp, pcCodExt)
+
+Local aArea := GetArea()
+Local aCampos := {}
+Local cAliasOrigem, cAliasDestino
+Local lRet := .T.
+Local cTcSql
+Local cCRLF := Chr(10)+Chr(13)
+Local cLinha  := ""
+Local lPrim   := .T.
+Local aDados  := {}
+
+Private aErro := {}
+Private cDir :="/"
+Private cArq :="cn9.txt"
+
+if Ascan(aProcTxt,cpEmp) > 0
+ 
+ Return(.T.)
+else
+ aadd( aProcTxt, cpEmp )
+ 
+ RecLock("ZVJ",.F.)
+ ZVJ->ZVJ_EMPORI := cpEmp
+ ZVJ->(MsUnlock())
+ 
+endif
+
+dbSelectArea("ZVK")
+dbSetOrder(1)
+dbSeek(xFilial("ZVK")+ZVJ->ZVJ_CODIGO)
+
+DbEval ( {|| aAdd( aCampos , { ZVK->ZVK_SEQ, ZVK->ZVK_CPOORI, ZVK->ZVK_CPODES, ZVK->ZVK_TIPCPO } ) },,{|| ZVK->ZVK_CODEXT == ZVJ->ZVJ_CODIGO },,,) // varrendo dados
+
+cAliasDestino := OpenOEmp(alltrim(ZVJ->ZVJ_DESTINO),ZVJ->ZVJ_EMPDES)
+
+//CRLF := Chr(10)+Chr(13)
+
+/*cSqlExec := " BEGIN "+CRLF
+cSqlExec := " TRUNCATE TABLE " +RetSqlName( Alltrim(ZVJ->ZVJ_DESTINO) )+ " IMMEDIATE ;" + CRLF
+cSqlExec += " "+CRLF
+cSqlExec += " COMMIT; "+CRLF
+cSqlExec += " END; "+CRLF
+
+
+cTcSql := TCSQLExec( cSqlExec )
+
+ConOut( "Retorno da remo็ใo: "+ Strzero(cTcSql,10)+ " - "+"delete "+RetSqlName( Alltrim(ZVJ->ZVJ_DESTINO) ) )
+
+ConOut( "Iniciando importa็ใo: "+pcCodExt+"|"+cpEmp+"|"+cAliasOrigem+"|"+ZVJ->ZVJ_EMPDES+"|"+cAliasDestino)
+*/
+
+FT_FUSE(cDir+cArq)
+ProcRegua(FT_FLASTREC())
+FT_FGOTOP()
+While !FT_FEOF()
+ 
+ IncProc("Lendo arquivo texto...")
+ 
+ cLinha := FT_FREADLN()
+ 
+ If lPrim
+  aCampos := Separa(cLinha,";",.T.)
+  lPrim := .F.
+ Else
+  AADD(aDados,Separa(cLinha,";",.T.))
+  Copia_Registro( cAliasOrigem, ZVJ->ZVJ_INDORI, ZVJ->ZVJ_CHVPSQ, cAliasDestino, ZVJ->ZVJ_INDDES, aCampos )
+  
+  FT_FSKIP()
+  
+  
+  //    aDados := STRTOKARR(fT_readln(),2)
+  
+  ConOut( "Iniciando importa็ใo: "+pcCodExt+"|"+cpEmp+"|"+cAliasOrigem+"|"+ZVJ->ZVJ_EMPDES+"|"+cAliasDestino)
+  
+  //For i:=1 to Len(aDados)
+ EndIf
+ 
+ 
+ //Next i
+ 
+EndDo
+
+ConOut( "Finalizando importa็ใo: "+pcCodExt+"|"+cpEmp+"|"+cAliasOrigem+"|"+ZVJ->ZVJ_EMPDES+"|"+cAliasDestino)
+
+(cAliasDestino)->(dbCloseArea())
+
+RecLock("ZVJ",.F.)
+ZVJ->ZVJ_EMPORI := cEmpZVJ
+ZVJ->(MsUnlock())
+
+RestArea(aArea)
+
+Return(.T.)
+
+
+User Function CarrCols(cpAlias)
+
+Local aArea := getArea() 
+Local nSeq  := 0
+Local nLin  := 0
+
+dbSelectArea("SX3")
+dbSetOrder(1)
+dbgotop()
+
+if dbSeek(Alltrim(cpAlias)) .and. Len(aCols) == 1 .and. Empty(aCols[1,2] )
+   aCols := {}
+   SX3->( DbEval ( {||aadd(aCols,Array(Len(aHeader)+1)), Carrdef(++nLin, ++nSeq) },,{|| SX3->X3_ARQUIVO == Alltrim(cpAlias) },,,)  ) // varrendo dados
+endif
+
+oGetDados:oBrowse:Refresh()
+
+RestArea(aArea)
+
+Return(.T.)
+
+Static function CarrVld()                    
+
+Local cVldPro := Alltrim(SX3->X3_VALID)
+Local cVldUsr := Alltrim(SX3->X3_VLDUSER)
+             
+Local cVldAll := Iif( !Empty(Alltrim(cVldPro)), " (" + Alltrim(cVldPro) + " ) ", ""  ) 
+      cVldAll += Iif( !Empty(Alltrim(cVldUsr)), IIF( !Empty(Alltrim(cVldAll))," .and. ", "") + "( " +Alltrim(cVldUsr)+ ") ", "" )
+
+
+Return( cVldAll )
+
+Static Function CarrDef(npLin,npSeq)
+ 
+	aCols[npLin,1]  := StrZero(npSeq,3)
+	aCols[npLin,2]  := SX3->X3_CAMPO 
+	aCols[npLin,3]  := "6"
+	aCols[npLin,4]  := SX3->X3_CAMPO
+	aCols[npLin,5]  := Replicate( " ", TamSx3("ZVK_RELACA")[1] )
+	aCols[npLin,6]  := Replicate( " ", TamSx3("ZVK_VALIDA")[1] )
+	aCols[npLin,7]  := CarrVld() 
+	aCols[npLin,8]  := "N"
+	aCols[npLin,9]  := "N"
+	aCols[npLin,10]  := SX3->X3_DESCRIC
+	aCols[npLin,11]  := SX3->X3_TIPO
+	aCols[npLin,12]  := Alltrim(Str(SX3->X3_TAMANHO))
+	aCols[npLin,13]  := SX3->X3_DECIMAL
+	aCols[npLin,14]  := IIF(Empty(SX3->X3_OBRIGAT),'N','S')
+	aCols[npLin,15]  := ''//A DEFINIR
+	aCols[npLin,16]  := SX3->X3_F3
+	aCols[npLin,17]  :=  IIF(SX3->X3_CONTEXT=='V','S','N')
+	aCols[npLin,18]  := SX3->X3_CBOX
+	aCols[npLin,19]  := SX3->X3_GRPSXG
+	aCols[npLin,20] := "ZVK"
+	aCols[npLin,21] := 0
+	aCols[npLin,22] := .F.
+
+Return(.T.)
+
+
+Static Function Modelo3(cTitulo,cAlias1,cAlias2,aMyEncho,cLinOk,cTudoOk,nOpcE,nOpcG,cFieldOk,lVirtual,nLinhas,aAltEnchoice,nFreeze,aButtons,aCordW,nSizeHeader)
+Local lRet, nOpca := 0,cSaveMenuh,nReg:=(cAlias1)->(Recno()),oDlg
+Local oEnchoice
+Local nDlgHeight   
+Local nDlgWidth
+Local nDiffWidth := 0          
+Local nDiffHeight := 0 
+Local lMDI := .F.      
+Local lPlugin := .F.
+Local nTop := 32
+Local aSize := {}
+
+Private Altera:=.t.,Inclui:=.t.,lRefresh:=.t.,aTELA:=Array(0,0),aGets:=Array(0),;
+bCampo:={|nCPO|Field(nCPO)},nPosAnt:=9999,nColAnt:=9999
+Private cSavScrVT,cSavScrVP,cSavScrHT,cSavScrHP,CurLen,nPosAtu:=0
+
+If IsPlugin() 
+	lPlugin := .T.
+EndIf
+
+nOpcE := If(nOpcE==Nil,3,nOpcE)
+nOpcG := If(nOpcG==Nil,3,nOpcG)
+lVirtual := Iif(lVirtual==Nil,.F.,lVirtual)
+nLinhas:=Iif(nLinhas==Nil,99,nLinhas)
+
+If SetMDIChild()
+	oMainWnd:ReadClientCoors()
+	nDlgHeight := oMainWnd:nHeight
+	nDlgWidth := oMainWnd:nWidth
+	lMdi := .T.
+	nDiffWidth := 2
+	If lPlugin
+		nDiffHeight := 25
+	EndIf
+Else           
+	If lPlugin
+		nDlgHeight := oMainWnd:nHeight-55
+		nDlgWidth	:= oMainWnd:nWidth-12
+		nDiffHeight := 80
+		nTop := 10
+	Else		
+		nDlgHeight := oMainWnd:nHeight-50
+		nDlgWidth	:= oMainWnd:nWidth-27
+	Endif
+	nDiffWidth := 7
+EndIf
+
+Default aCordW := {nTop,000,nDlgHeight,nDlgWidth}
+Default nSizeHeader := 110
+                                       
+Aadd(aSize,nSizeHeader)
+
+DEFINE MSDIALOG oDlg TITLE cTitulo From aCordW[1],aCordW[2] to aCordW[3],aCordW[4] Pixel of oMainWnd
+If lMdi
+	oDlg:lMaximized := .T.
+EndIf
+
+oEnchoice := Msmget():New(cAlias1,nReg,nOpcE,,,,aMyEncho,{13,1,(nSizeHeader/2)+13,If(lMdi, (oMainWnd:nWidth/2)-2,__DlgWidth(oDlg)-nDiffWidth)},aAltEnchoice,3,,,,oDlg,,lVirtual,,,,,,,,.F.)       
+
+oGetDados := MsGetDados():New((nSizeHeader/2)+13+2,1,(oMainWnd:nHeight/2)-nDiffHeight,oMainWnd:nWidth/2-nDiffWidth,nOpcG,cLinOk,cTudoOk,"",.T.,,nFreeze,,nLinhas,cFieldOk,,,,oDlg)
+
+ACTIVATE MSDIALOG oDlg ON INIT (EnchoiceBar(oDlg,{||nOpca:=1,If(oGetDados:TudoOk(),If(!obrigatorio(aGets,aTela),nOpca := 0,oDlg:End()),nOpca := 0)},{||oDlg:End()},,aButtons),AlignObject(oDlg,{oEnchoice:oBox,oGetDados:oBrowse},1,,aSize))
+
+lRet:=(nOpca==1)
+Return lRet
+
+Static Function Call_ProcImp(nRecno)
+
+Local aArea := GetArea()
+Local aPergs := {}
+Local nQtdThreads := 0
+Local aRet := {}
+
+Private lAbort := .F.
+Private oProcimp 
+
+ZVJ->(dbGoto(nRecno))
+
+ 
+aAdd( aPergs ,{3,"Execu็ใo em Threads   ?",2, {"Sim", "Nao"}, 50,'.T.',.T.})    
+aAdd( aPergs ,{1,"Quantidade de Threads:",nQtdThreads,"999",".T.","",".T.",30,.F.})   
+	  		  	
+If !ParamBox(aPergs ,"Threads",aRet)   
+   Return(.F.)
+Endif
+
+if mv_par02 == 0 .or. mv_par02 > 15
+   mv_par02 := 15
+endif    
+
+if mv_par01 == 1
+   //mv_par02 := 2
+   oProcImp := MsNewProcess():New( {|lAbort| StaticCall(SUPIMP01,ProcTXThreah,SM0->M0_CODIGO,ZVJ->ZVJ_CODIGO,@oProcImp,@lAbort,mv_par02) }, 'Aguarde...Preparando arquivo...', 'Carregando: '+Alltrim(ZVJ->ZVJ_DESTINO) , .T. )
+else
+                                          
+   oProcImp := MsNewProcess():New( {|lAbort| StaticCall(SUPEXT01,ProcSupTXT  ,SM0->M0_CODIGO,ZVJ->ZVJ_CODIGO,@oProcImp,@lAbort) }, 'Aguarde...Preparando arquivo...', 'Carregando: '+Alltrim(ZVJ->ZVJ_DESTINO) , .T. )
+endif
+
+//oProcImp:odlg:nleft := 690
+
+oProcImp:Activate()
+
+FreeObj(oProcImp)
+
+RestArea(aArea)	
+Return(.T.)
+
+
+********************************
+Static function ExecAuto(cAlias)
+********************************
+   Local lRet      := .F.
+   Local cFunction := "U_ExAuto"+AllTrim(cAlias)
+   
+   If FindFunction(cFunction)
+      lRet := &(cFunction+'()')
+   Else
+      MsgStop('A rotina "'+cFunction+'" nใo estแ compilada!')
+   Endif
+   
+Return lRet
+
+

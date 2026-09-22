@@ -1,0 +1,47 @@
+========================================================
+PROJETO TOTVS / PROTHEUS - REDEDOR
+Demanda ID-13 - Contabilidade
+========================================================
+
+ESTRUTURA DE PASTAS
+-------------------
+
+01-Documentos/
+    01-Especificacao-Processo (MIT041)/
+        - Especificação de Processo-transferencia de lançamentos contabeis entre filias.docx
+        - MIT041_Transferencia_Lancamentos_Contabeis.docx         (versão anterior)
+        - MIT041_Transferencia_Lancamentos_Contabeis_v2_2.docx    (VERSÃO ATUAL)
+        - Cópia de Diagrama dos processos - MIT041 (1).docx
+    02-Atas-Reuniao/         (reservado p/ atas e minutas)
+    03-Homologacao/          (reservado p/ evidências de homologação)
+
+02-Fontes/
+    ADVPL/
+        - FMIGRACT2.prw      (customização ADVPL - migração contábil)
+
+03-Parametrizacoes (MIT043)/
+    - Protheus - MIT043.xlsx
+    - Protheus_-_MIT043_P54.xlsx
+
+04-Gestao-Projeto/
+    Cronograma/              (EAP, cronograma, planos)
+    Status-Reports/          (SRs periódicos)
+    Riscos/                  (matriz de riscos, issues)
+
+
+REFERÊNCIA RÁPIDA - TEMPLATES MIT TOTVS
+---------------------------------------
+MIT041 = Especificação de Processo (BP "to be")
+MIT042 = Fluxograma de Processo
+MIT043 = Especificação de Parametrização
+
+Fonte: https://tdn.totvs.com/display/MD/Guia+de+Templates+-+MIT+Digital
+
+
+COMO USAR
+---------
+1) Dê duplo-clique no arquivo "Organizar.bat" (primeira vez apenas).
+   Ele cria as pastas, move os arquivos existentes e limpa temporários.
+2) A partir daí, salve novos documentos diretamente na pasta correspondente
+   usando o padrão de nomenclatura:
+   MIT0xx_AssuntoCurto_vX_Y.ext   (ex.: MIT041_TransferLancCont_v2_3.docx)

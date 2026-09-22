@@ -1,0 +1,58 @@
+#INCLUDE "TOTVS.ch"
+
+/*/{Protheus.doc} xKPTOCTT
+Rotina realiza a exportação de dados da Centro CTT para o Taxfy.
+Caminho: Ambiente Faturamento (SIGAFAT) [05] -> Atualizações -> Cadastros -> Centro de Custos [CTBA030]
+@type function
+@version 1.0  
+@author Joalisson Laurentino
+@since 20/02/2024
+/*/
+User Function xKPTOCTT(aParam,oGrid,lLogado,oSay,lGeral)
+	Default oGrid	 := Nil
+	Default lLogado  := Type('cEmpAnt') == 'C'
+    Default aParam   := {"01","01010001"}
+	Default oSay     := Nil
+	Default lGeral   := .F.
+	
+	U_xKPTLogMsg("INICIO INTEGRAÇÃO TaxFy - xKPTOCTT.prw")
+			
+	If !lLogado .AND. !lGeral
+		RPCSetType(3)
+		
+		If RPCSetEnv(aParam[1],aParam[2])
+			U_xKPTLogMsg("VIA JOB RPCSetEnv Iniciado Emp: "+aParam[1]+" Fil: "+aParam[2])
+			cEmpAnt := aParam[1] 
+			cFilAnt := aParam[2]	
+			
+			xFilterCTT(oGrid,lLogado,oSay)
+		Else
+			U_xKPTLogMsg("Não foi possivel conectar no ambiente VIA JOB RPCSetEnv - xKPTOCTT.prw")
+		Endif 
+    Else
+        xFilterCTT(oGrid,lLogado,oSay)
+    EndIf
+
+	U_xKPTLogMsg("FIM INTEGRAÇÃO TaxFy - xKPTOCTT.prw")
+
+	If !lLogado
+		RpcClearEnv()
+	EndIf
+Return
+
+Static Function xFilterCTT(oGrid,lLogado,oSay)
+	Local cFilter := " CTT->CTT_ZONERG = .T. .AND. CTT->CTT_ZINTOG = '1' .AND. CTT->CTT_BLOQ = '2'"
+	Local aAlias  := {}
+	Local cID	  := "CTT01"
+	Local cRotina := "CTBA030"
+	Local lRet    := .F.
+
+	Default oSay := Nil
+
+	CTT->(DBClearFilter())
+
+	aAdd(aAlias,{"CTT",Nil,Nil,Nil})
+
+	lRet := U_xKPTOutbound(oGrid,lLogado,aAlias,cFilter,cID,cRotina,oSay) 
+
+Return lRet

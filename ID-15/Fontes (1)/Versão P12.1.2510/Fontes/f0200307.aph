@@ -1,0 +1,62 @@
+<%
+
+/*
+{Protheus.doc} F0200307()
+Tela com as solicitações de treinamento/evento
+@Author     Henrique Madureira
+@Since      
+@Version    P12.7
+@Project    MAN00000463301_EF_003
+@Return	 
+*/
+	Local nTotal    := 0
+	Local nI        := 0
+	Local nPos      := 0
+	Local nX        := 0
+	Local nCnt		:= 0
+	Local nQtdItens := 0
+	Local NPAGETOTAL := 0
+	Local nCodSts   := 0
+	Local aLegenda  := {	"br_amarelo_ocean.png",;
+							"br_verde_ocean.png",;
+					 		"br_vermelho_ocean.png",;
+							"br_azul_ocean.png"}
+
+%>
+<div id="divMinhasSolic" name="divMinhasSolic">	
+	
+	<table  width="800">
+		<tr>
+			<th>&nbsp;</th>
+			<th>C&oacute;d</th>
+			<th>Data</th>
+			<th>Status</th>
+		</tr>
+		<% If OLISTA2 != NIL %>
+			<% If !(EMPTY(OLISTA2:OWSTRMSL:OWSTREISOLICI[1]:CCodigoTrm)) %>
+			<% For nCnt := 1 to Len(OLISTA2:OWSTRMSL:OWSTREISOLICI)%>
+			<tr>
+				<td><img src="imagens-rh/<%=aLegenda[VAL(OLISTA2:OWSTRMSL:OWSTREISOLICI[nCnt]:CStatusTrm)]%>" title="<%=ALLTRIM(OLISTA2:OWSTRMSL:OWSTREISOLICI[nCnt]:CStatusTrm)%>"></td>
+				<td><a href="U_F0200313.APW?cSolic=<%=OLISTA2:OWSTRMSL:OWSTREISOLICI[nCnt]:CCodigoTrm%>&cStatus=<%=OLISTA2:OWSTRMSL:OWSTREISOLICI[nCnt]:CStatusTrm%>&cFiliS=<%=OLISTA2:OWSTRMSL:OWSTREISOLICI[nCnt]:CfilialTrm%>" class="links"><%=OLISTA2:OWSTRMSL:OWSTREISOLICI[nCnt]:CCodigoTrm%></a></td>
+				<td><%=STOD(OLISTA2:OWSTRMSL:OWSTREISOLICI[nCnt]:CDataTrm)%></td>
+				<td><%=IIF(VAL(OLISTA2:OWSTRMSL:OWSTREISOLICI[nCnt]:CStatusTrm)==1,"Em processo de aprova&ccedil;&atilde;o",IIF(VAL(OLISTA2:OWSTRMSL:OWSTREISOLICI[nCnt]:CStatusTrm)==2,"Atendida",IIF(VAL(OLISTA2:OWSTRMSL:OWSTREISOLICI[nCnt]:CStatusTrm)==3,"Reprovada","Aguardando Efetiva&ccedil;&atilde;o do RH")))%></td>
+			</tr>
+			<% Next %>
+			<% Else %> 
+          <tr bgcolor="#F2F2F2" class="Texto">
+             <td align="center" colspan="6">Nao existem registros para exibicao</td>
+             <!--Nao existem registros para exibicao-->
+          </tr>
+		   <% EndIf %>  
+		<% Else %> 
+          <tr bgcolor="#F2F2F2" class="Texto">
+             <td align="center" colspan="6">Nao existem registros para exibicao</td>
+             <!--Nao existem registros para exibicao-->
+          </tr>
+		<% EndIf %>  
+		<tr>
+			<td class="info-cent" colspan="6">
+			</td>
+		</tr>
+	</table>
+</div>

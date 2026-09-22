@@ -1,0 +1,96 @@
+#INCLUDE "tlpp-core.th"
+#INCLUDE "TOTVS.ch"
+
+/*/{Protheus.doc} xKPTOutExc
+Rotina realiza o processamento das rotinas responsaveis pelas exportação de dados para o TaxFy.
+@type function
+@version 1.0  
+@author Joalisson Laurentino | Skype: jslaurentino | 1198975-3610
+@since 24/09/2021
+/*/
+User Function xKPTOutExc(aparam) 			
+    Local cTitulo	 := "Integração Protheus x TaxFy"
+    Local cDescricao := "Realiza processo Outbound"
+    Local lEnd		 := .F.
+	Local oGrid	 	 := Nil
+    
+	Private lLogado  := Type('cEmpAnt') == 'C'
+    
+    Default aparam  := {cEmpAnt,cFilAnt}
+	
+	U_xKPTLogMsg("INICIO INTEGRAÇÃO TaxFy - xKPTOutExc.prw")
+			
+	If !lLogado
+		RPCSetType(3) 
+		
+		If RPCSetEnv(aparam[1],aparam[2])
+			U_xKPTLogMsg("VIA JOB RPCSetEnv Iniciado Emp: "+aparam[1]+" Fil: "+aparam[2])
+			cEmpAnt := aparam[1] 
+			cFilAnt := aparam[2]	
+			
+			xExecOut(oGrid,lEnd,lLogado)
+		Else
+			U_xKPTLogMsg("Não foi possivel conectar no ambiente VIA JOB RPCSetEnv - xKPTOutExc.prw")
+		Endif 
+    Else
+        U_xKPTLogMsg("VIA INTERFACE - xKPTOutExc.prw")
+		oGrid := FWGridProcess():New("xKPTOutExc",cTitulo,cDescricao,{|lEnd| xExecOut(oGrid,lEnd,lLogado)},/*cPergunta*/,/*cGrid*/,/*lSaveLog*/)
+
+		oGrid:SetMeters(2)                     
+		oGrid:Activate()
+		oGrid:IsFinished()
+		oGrid:DeActivate()
+		FwFreeObj(oGrid)
+    EndIf
+
+	U_xKPTLogMsg("FIM INTEGRAÇÃO TaxFy - xKPTOutExc.prw")
+
+	If !lLogado
+		RpcClearEnv()
+	EndIf
+Return
+
+Static Function xExecOut(oGrid,lEnd,lLogado)
+    Local nY      := 0
+	Local nCargas := 0
+    Local aCargas := {}
+	Local lGeral  := .T.
+	Local oSay	  := Nil
+	
+	//+---------------------------------------------------------------------------+
+	//| aCargas[nX, 1] => Função chamada para processar 		                  |
+	//| aCargas[nX, 2] => Total de Registros processados                          |
+	//| aCargas[nX, 3] => Descrição do processo                                   |
+	//+---------------------------------------------------------------------
+	
+	aAdd(aCargas, {{|| U_xKPTOKT0(,oGrid,lLogado,oSay,lGeral)},"KT0 - Perfil de Acesso x Usuarios..."})
+	aAdd(aCargas, {{|| U_xKPTOSM0(,oGrid,lLogado,oSay,lGeral)},"SM0 - Empresas/Filiais"})
+	aAdd(aCargas, {{|| U_xKPTOSF4(,oGrid,lLogado,oSay,lGeral)},"SF4 - TES / Tipos de Entrada e Saida"})
+	//aAdd(aCargas, {{|| U_xKPTOSC7(cParm01,cParm02,oGrid,lLogado,oSay,lGeral)},"SC7 - Pedidos de Compras"})
+	aAdd(aCargas, {{|| U_xKPTOSED(,oGrid,lLogado,oSay,lGeral)},"SED - Cadastro de Naturezas..."})
+	aAdd(aCargas, {{|| U_xKPTOSE4(,oGrid,lLogado,oSay,lGeral)},"SE4 - Cadastro de Condição de Pagamentos"})
+	aAdd(aCargas, {{|| U_xKPTOSB1(,oGrid,lLogado,oSay,lGeral)},"SB1 - Casdastro de Produtos"})
+  //aAdd(aCargas, {{|| U_xKPTOSA5(,oGrid,lLogado,oSay,lGeral)},"SA5 - Cadastros de Produtos x Fornecedores"})	
+	aAdd(aCargas, {{|| U_xKPTOCTT(,oGrid,lLogado,oSay,lGeral)},"CTT - Cadastro Centro de Custo"})
+	aAdd(aCargas, {{|| U_xKPTOP02(,oGrid,lLogado,oSay,lGeral)},"P02 - Cadastro de Tipo de Requisição"})
+	aAdd(aCargas, {{|| U_xKPTOP11(,oGrid,lLogado,oSay,lGeral)},"P11 - Cadastro de Setores"})
+	aAdd(aCargas, {{|| U_xKPTOP13(,oGrid,lLogado,oSay,lGeral)},"P13 - Cadastro de Fabricantes"})
+	aAdd(aCargas, {{|| U_xKPTOSD1(,oGrid,lLogado,oSay,lGeral)},"SD1 - Historico de TES..."})
+	
+	nCargas := Len(aCargas)
+	
+	If lLogado
+		oGrid:SetMaxMeter(nCargas,1)
+	EndIf
+	
+	For nY := 1 To nCargas
+		cMsg := "Integração de [ "+aCargas[nY,2]+" ] - Total: "+cValtoChar(nY)+" / "+cValtoChar(nCargas)
+		If lLogado
+            oGrid:SetIncMeter(1,cMsg)
+        Else 
+			U_xKPTLogMsg(cMsg)
+		EndIf
+		
+		Eval(aCargas[nY,1])
+	Next nY
+Return .T.

@@ -1,0 +1,2563 @@
+<%
+   Local nCnt := 0   
+   Local cDiasFe      := HttpSession->cPdiasFe
+   Local cDataPerm    := DtoC( DaySum( MsDate(), 30 ) )
+   Local cFimProg1    := ""
+   Local cFimProg2    := ""
+   Local cIniProg1    := ""
+   Local cIniProg2    := ""
+   Local cIniSol      := ""
+   Local cFimSol      := ""
+   Local lAprova      := .F.
+   Local lBtAprova    := .T.
+   Local lEdit        := .T.
+   Local lPontoRH 	 := .F.
+   Local nIdade       := 0
+   Local nIndice      := Val(HttpGet->nIndice)
+   Local nIndiceSolic := 0
+   Local nReg         := 0
+   Local nTotDias     := 0
+   Local HttpSession->cTypeRequest := ""
+   If HttpGet->nOperacao == "1"
+      For nReg := 1 To Len(HttpGet->aFerProg)
+      		If nReg == 1
+      			cIniProg1	:= CtoD( HttpGet->aFerProg[nReg]:cStartVacDate )
+      			cFimProg1	:= DtoC( ( CtoD( HttpGet->aFerProg[nReg]:cStartVacDate ) + HttpGet->aFerProg[nReg]:nVacationDays + HttpGet->aFerProg[nReg]:nAllowDays ) - 1 )
+      		ElseIf nReg == 2
+      			cIniProg2	:= CtoD( HttpGet->aFerProg[nReg]:cStartVacDate )
+      			cFimProg2	:= DtoC( ( CtoD( HttpGet->aFerProg[nReg]:cStartVacDate ) + HttpGet->aFerProg[nReg]:nVacationDays + HttpGet->aFerProg[nReg]:nAllowDays ) - 1 )
+	   		Else 
+	   			exit
+      		EndIf
+      Next nReg
+	
+	lEdit := !HttpSession->aStructure[nIndice]:lPossuiSolic
+
+   EndIf
+	
+	If HttpGet->nOperacao == "4"
+   		lBtAprova := .F.
+   	EndIf
+%>
+    <?xml version="1.0" encoding="iso-8859-1"?>
+    <!doctype html >
+    <html xmlns="http://www.w3.org/1999/xhtml">
+
+    <head>
+        <title></title>
+        <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+        <link href="styles/consulta.css" rel="stylesheet" type="text/css">
+        <link href="styles/estilo.css" rel="stylesheet" type="text/css">
+        <link href="styles/interseccao.css" rel="stylesheet" type="text/css">
+        <script src="scripts/ajax.js" language="JavaScript" type="text/javascript"></script>
+        <script src="scripts/prototype.js" language="JavaScript" type="text/javascript"></script>
+        <script src="scripts/scriptaculous.js" language="JavaScript" type="text/javascript"></script>
+        <style>
+            #SELECT {
+                font-size: 8pt;
+                font-family: verdana, arial, helvetica;
+            }
+            
+            .dia {
+                font-family: helvetica, arial;
+                font-size: 6pt;
+                color: #43595E
+            }
+            
+            .data {
+                font-family: helvetica, arial;
+                font-size: 7pt;
+                text-decoration: none;
+                color: #191970
+            }
+            
+            .mes {
+                font-family: helvetica, arial;
+                font-size: 6pt
+            }
+            
+            .Cabecalho_Calendario {
+                font-family: helvetica, arial;
+                font-size: 8pt;
+                color: #000000;
+                text-decoration: none;
+                font-weight: bold
+            }
+        </style>
+        <script language=JavaScript type="text/javascript" charset="utf-8">
+            function convertTagsHTMLCaracteres(htmlString) {
+
+                htmlString = htmlString.replace(/&Agrave;/g, "À")
+                htmlString = htmlString.replace(/&Aacute;/g, "Á")
+                htmlString = htmlString.replace(/&Acirc;/g, "Â")
+                htmlString = htmlString.replace(/&Atilde;/g, "Ã")
+                htmlString = htmlString.replace(/&agrave;/g, "à")
+                htmlString = htmlString.replace(/&aacute;/g, "á")
+                htmlString = htmlString.replace(/&acirc;/g, "â")
+                htmlString = htmlString.replace(/&atilde;/g, "ã")
+                htmlString = htmlString.replace(/&Ograve;/g, "Ò")
+                htmlString = htmlString.replace(/&Oacute;/g, "Ó")
+                htmlString = htmlString.replace(/&Ocirc;/g, "Ô")
+                htmlString = htmlString.replace(/&Otilde;/g, "Õ")
+                htmlString = htmlString.replace(/&ograve;/g, "ò")
+                htmlString = htmlString.replace(/&oacute;/g, "ó")
+                htmlString = htmlString.replace(/&ocirc;/g, "ô")
+                htmlString = htmlString.replace(/&otilde;/g, "õ")
+                htmlString = htmlString.replace(/&Egrave;/g, "È")
+                htmlString = htmlString.replace(/&Eacute;/g, "É")
+                htmlString = htmlString.replace(/&Ecirc;/g, "Ê")
+                htmlString = htmlString.replace(/&egrave;/g, "è")
+                htmlString = htmlString.replace(/&eacute;/g, "é")
+                htmlString = htmlString.replace(/&ecirc;/g, "ê")
+                htmlString = htmlString.replace(/&Igrave;/g, "Ì")
+                htmlString = htmlString.replace(/&Iacute;/g, "Í")
+                htmlString = htmlString.replace(/&igrave;/g, "ì")
+                htmlString = htmlString.replace(/&iacute;/g, "í")
+                htmlString = htmlString.replace(/&Ugrave;/g, "Ù")
+                htmlString = htmlString.replace(/&Uacute;/g, "Ú")
+                htmlString = htmlString.replace(/&ugrave;/g, "ù")
+                htmlString = htmlString.replace(/&uacute;/g, "ú")
+                htmlString = htmlString.replace(/&Ccedil;/g, "Ç")
+                htmlString = htmlString.replace(/&ccedil;/g, "ç")
+                htmlString = htmlString.replace(/&circ;/g, "^")
+                htmlString = htmlString.replace(/&tilde;/g, "~")
+                htmlString = htmlString.replace(/&167;/g, "º")
+                htmlString = htmlString.replace(/&166;/g, "ª");
+                htmlString = htmlString
+                return htmlString;
+
+            }
+
+      		function fAprova() {
+				var r = confirm("Solicitação será aprovada, continuar?");
+				if(r == true){
+					document.getElementById('button3').disabled=true
+					document.forms[0].action = "U_F0500312.APW?cAceita=1&cSolic=<%=cCodigo%>";
+					document.forms[0].submit();
+				}
+			}
+		
+	  		function fReprova() {
+				var r = confirm("Solicitação será reprovada, continuar?");
+				if(r == true){
+					document.getElementById('button2').disabled=true
+					document.forms[0].action = "U_F0500312.APW?cAceita=2&cSolic=<%=cCodigo%>";
+					document.forms[0].submit();
+				}
+			}
+
+			function fCancela() {
+				var cvalor = document.getElementById('cObsCan').value.replace(" ","");  	
+				if( cvalor == "") {
+					alert("É Obrigatório o preenchimento do motivo do cancelamento");
+					return false;
+				}
+				var r = confirm("Solicitação será cancelada, continuar?");
+				if(r == true){
+					document.getElementById('button1').disabled=true;
+       				document.forms[0].action = "U_F1302501.APW?cSolic=<%=cCodigo%>&cFilil=<%=cFilFun%>&cTipSol=<%='008'%>";
+		       		document.forms[0].submit();
+    	     	}
+			}
+
+            function fSubmitSalvar() {
+				var r = confirm("Solicitação será cadastrada, continuar?");
+				if(r == true){
+					document.getElementById('button').disabled=true;
+				
+               		if (document.getElementById('chkAbono').checked) {
+                    	cAbono = '.T.'
+                	} else {
+                    	cAbono = '.F.'
+                	}
+                	if (document.getElementById('chk1Parc13Sal').checked) {
+                    	cParc13 = '.T.'
+                	} else {
+                    	cParc13 = '.F.'
+                	}
+               		document.forms[0].action = "U_F0801105.APW?cAprova=1&cFilFun=<%=cFilFun%>&NomeSol=<%=cNome1%>&Matri=<%=cMatricu1%>&cAbono=" + cAbono + "&cParc13=" + cParc13 + "";
+                	document.forms[0].submit();
+				}
+            }
+
+
+function convertTagsHTMLCaracteres(htmlString){
+
+htmlString = htmlString.replace( /&Agrave;/g , "À")
+htmlString = htmlString.replace( /&Aacute;/g , "Á")
+htmlString = htmlString.replace( /&Acirc;/g , "Â")
+htmlString = htmlString.replace( /&Atilde;/g , "Ã")
+htmlString = htmlString.replace( /&agrave;/g , "à")
+htmlString = htmlString.replace( /&aacute;/g , "á")
+htmlString = htmlString.replace( /&acirc;/g , "â")
+htmlString = htmlString.replace( /&atilde;/g , "ã")
+htmlString = htmlString.replace( /&Ograve;/g , "Ò")
+htmlString = htmlString.replace( /&Oacute;/g , "Ó")
+htmlString = htmlString.replace( /&Ocirc;/g , "Ô")
+htmlString = htmlString.replace( /&Otilde;/g , "Õ")
+htmlString = htmlString.replace( /&ograve;/g , "ò")
+htmlString = htmlString.replace( /&oacute;/g , "ó")
+htmlString = htmlString.replace( /&ocirc;/g , "ô")
+htmlString = htmlString.replace( /&otilde;/g , "õ")
+htmlString = htmlString.replace( /&Egrave;/g , "È")
+htmlString = htmlString.replace( /&Eacute;/g , "É")
+htmlString = htmlString.replace( /&Ecirc;/g , "Ê")
+htmlString = htmlString.replace( /&egrave;/g , "è")
+htmlString = htmlString.replace( /&eacute;/g , "é")
+htmlString = htmlString.replace( /&ecirc;/g , "ê")
+htmlString = htmlString.replace( /&Igrave;/g , "Ì")
+htmlString = htmlString.replace( /&Iacute;/g , "Í")
+htmlString = htmlString.replace( /&igrave;/g , "ì")
+htmlString = htmlString.replace( /&iacute;/g , "í")
+htmlString = htmlString.replace( /&Ugrave;/g , "Ù")
+htmlString = htmlString.replace( /&Uacute;/g , "Ú")
+htmlString = htmlString.replace( /&ugrave;/g , "ù")
+htmlString = htmlString.replace( /&uacute;/g , "ú")
+htmlString = htmlString.replace( /&Ccedil;/g , "Ç")
+htmlString = htmlString.replace( /&ccedil;/g , "ç")
+htmlString = htmlString.replace( /&circ;/g , "^")
+htmlString = htmlString.replace( /&tilde;/g , "~")
+htmlString = htmlString.replace( /&167;/g , "º")
+htmlString = htmlString.replace( /&166;/g , "ª");
+htmlString = htmlString
+return htmlString;
+
+}
+
+        function clickBtnDireito() {
+           oncontextmenu='return false';
+        }
+
+        document.onmousedown=clickBtnDireito
+        document.oncontextmenu = new Function("return false;")
+
+
+        // Variaveis globais de substituicao do Portal Vida Funcional
+        var glbMatPrinc = "";
+        var glbMatSubst = ".F.";
+        var glbDiaSubst = "9999";
+
+		function DateMask(inputData, e){
+
+			if(document.all)
+		   	   var tecla = event.keyCode;    // Internet Explorer
+			else 			
+		 	   var tecla = e.which; 		 // Outros Browsers
+
+
+			if(tecla >= 47&&tecla < 58){     // números de 0 a 9 e "/"
+		       var data = inputData.value;
+			
+			if (data.length == 2 || data.length == 5){
+				data += '/';
+				inputData.value = data;}
+			}else  
+		        // Backspace, Delete e setas direcionais
+		        //(para mover o cursor, apenas para FF)
+		        if(tecla == 8 || tecla == 0) 
+		           return true;
+			    else
+				   return false;
+		   
+		}
+
+
+		function DateValid(campo,valor,tipoComp,tipoReq,valor2,valor3,valor4,valor5,valor6,valor7,valor8) {
+			var dataval=valor;
+			
+			if (dataval=='' || dataval=='dd/mm/aaaa'){
+			   return true;
+			}
+
+			var ardt   = new Array;
+			var ExpReg = new RegExp("(0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[012])/[12][0-9]{3}");
+			ardt       = dataval.split("/");
+			erro       = false;
+					
+			if (dataval.search(ExpReg)==-1){
+				erro = true;
+			} else {
+			     if (((ardt[1]==4)||(ardt[1]==6)||(ardt[1]==9)||(ardt[1]==11))&&(ardt[0]>30)) {
+						erro = true;
+				 } else 
+				   if (ardt[1]==2) {
+						if ((ardt[0]>28)&&((ardt[2]%4)!=0))
+							erro = true;
+						if ((ardt[0]>29)&&((ardt[2]%4)==0))
+							erro = true;
+					}
+					//Seta a variavel ddata para o formato de data, converte o inicio das férias para data.
+					var ddata = new Date
+					var ddia = (dataval.substring(0,2)); 
+					var dmes = (dataval.substring(3,5) - 1); 
+					var dano = (dataval.substring(6,10)); 					
+					
+					ddata.setFullYear(dano,dmes,ddia); 
+					
+					//Verifica se a data é um Sábado
+					if (ddata.getDay () == 6) {
+						alert("As ferias do funcionario irao iniciar em um Sabado"); //As ferias do funcionario irao iniciar em um Sabado.
+					} else
+					{
+						//Verifica se a data é um Domingo
+						if (ddata.getDay () == 0 )
+							alert("As ferias do funcionario irao iniciar em um Domingo."); //As ferias do funcionario irao iniciar em um Domingo.
+					}
+			}
+		   
+			if (erro) {
+				alert("\"" + valor + "\" "+ convertTagsHTMLCaracteres('Data invalida!')); <!-- Data invalida! -->
+				campo.focus();
+				campo.value = "";
+				return false;
+			}
+
+			if (tipoComp!=''){
+				var today = new Date();
+				var dd 	  = today.getDate();
+				var mm 	  = today.getMonth()+1;
+				var yyyy  = today.getFullYear();
+		
+				if (dd < 10){
+					dd = "0" +dd;
+				}
+				if (mm < 10){
+					mm = "0" +mm;
+				}
+				var data2 = dd +"/" +mm +"/" +yyyy; 
+				var data1 = valor;
+		
+				if (tipoComp=='=')
+				{
+					if ( parseInt( data2.split( "/" )[2].toString() + data2.split( "/" )[1].toString() + data2.split( "/" )[0].toString() ) == parseInt( data1.split( "/" )[2].toString() + data1.split( "/" )[1].toString() + data1.split( "/" )[0].toString() ) )
+					{
+						alert(convertTagsHTMLCaracteres('Data deve ser igual a data de hoje!')); <!-- Data deve ser igual a data de hoje! -->
+						campo.focus();
+						campo.value = "";
+			        	return false;
+					}
+				}
+				
+				if (tipoComp=='>')
+				{
+
+					if ( parseInt( data2.split( "/" )[2].toString() + data2.split( "/" )[1].toString() + data2.split( "/" )[0].toString() ) >= parseInt( data1.split( "/" )[2].toString() + data1.split( "/" )[1].toString() + data1.split( "/" )[0].toString() ) )
+					{
+                        if (tipoReq=='P') {
+  					         alert(convertTagsHTMLCaracteres('A data deve ser maior que a data de hoje!')); <!-- A data deve ser maior que a data de hoje!  -->
+                        }
+                     //   else { - NAIRAN - Alteração solicitada pelo Rodrigo
+                     //        alert(convertTagsHTMLCaracteres('Solicitacao devera ser feita com 30 dias de Antecedencia e a data de solicitacao devera ser maior ou igual a esta data!')); <!-- Solicitacao devera ser feita com 30 dias de Antecedencia e a data de solicitacao devera ser maior ou igual a esta data!  -->
+                     //   }						
+
+                        campo.focus();
+						campo.value = "";
+			        	return false;
+					}
+
+                    if (tipoReq=='P') {
+                        // validando as datas iniciais dos periodos via ajax, em virtude
+                        // de variavel de sessao nao possuir valores no momento da criação desse programa
+                        new Ajax.Request(   "W_PWSA536.APW",
+                            {
+                                method: 'get',
+                                parameters: {tipoVal: '1', dtPer: data1},
+                                onFailure: function() { alert('Erro ao validar data!'); return; },
+                                onSuccess: function(transport) 
+                                      { 
+                                          var response = transport.responseText || "";
+                                          if (response == '*1') {
+                                              alert(convertTagsHTMLCaracteres('A data deve ser superior a data fim periodo aquisito!')); <!-- A data deve ser superior a data fim periodo aquisito!  -->
+                                              campo.focus();
+                                              campo.value = "";
+                                              return false;
+                                          } 
+                                      }
+                             }
+                         );
+                    }    
+
+				}
+		
+				if (tipoComp=='<' && tipoReq != "8")
+				{
+					if ( parseInt( data2.split( "/" )[2].toString() + data2.split( "/" )[1].toString() + data2.split( "/" )[0].toString() ) < parseInt( data1.split( "/" )[2].toString() + data1.split( "/" )[1].toString() + data1.split( "/" )[0].toString() ) )
+					{
+						alert(convertTagsHTMLCaracteres('Data deve ser menor que a data de hoje!')); <!--Data deve ser menor que a data de hoje! -->
+						campo.focus();
+						campo.value = "";
+			        	return false;
+					}
+				}
+
+                if (tipoComp=='>=')
+                {
+                    if (tipoReq=='Q' || tipoReq=='R') {
+                        if ( parseInt( data2.split( "/" )[2].toString() + data2.split( "/" )[1].toString() + data2.split( "/" )[0].toString() ) > parseInt( data1.split( "/" )[2].toString() + data1.split( "/" )[1].toString() + data1.split( "/" )[0].toString() ) )
+                        {
+                            alert(convertTagsHTMLCaracteres('Data nao pode menor que a data de hoje!')); <!--Data nao pode menor que a data de hoje! -->
+                            campo.focus();
+                            campo.value = "";
+                            return false;
+                        }
+                    }
+                }
+
+			}
+			if (tipoReq!=''){
+				if (tipoReq=='B')
+				{
+					if (valor3 != '') {
+						if ( parseInt( data1.split( "/" )[2].toString() + data1.split( "/" )[1].toString() + data1.split( "/" )[0].toString() ) < parseInt( valor3.split( "/" )[2].toString() + valor3.split( "/" )[1].toString() + valor3.split( "/" )[0].toString() ) || parseInt( data1.split( "/" )[2].toString() + data1.split( "/" )[1].toString() + data1.split( "/" )[0].toString() ) > parseInt( valor4.split( "/" )[2].toString() + valor4.split( "/" )[1].toString() + valor4.split( "/" )[0].toString() ) )
+						{
+							alert(convertTagsHTMLCaracteres('A data de início das férias deve estar compreendida entre ') + valor3 + convertTagsHTMLCaracteres('-') + valor4); <!--A data de início das férias deve estar compreendida entre dd/mm/aaaa e dd/mm/aaaa-->
+							campo.focus();
+							campo.value = "";
+				        	return false;
+						}					
+					}
+					/* Nairan - Alteração solciitada pelo Rodrigo
+					if ( parseInt( data1.split( "/" )[2].toString() + data1.split( "/" )[1].toString() + data1.split( "/" )[0].toString() ) < parseInt( valor2.split( "/" )[2].toString() + valor2.split( "/" )[1].toString() + valor2.split( "/" )[0].toString() ) )
+					{
+						alert(convertTagsHTMLCaracteres('As férias devem ser solicitadas com pelo menos 30 dias de antecedência. Desta forma, a data de início deve ser maior ou igual a dd/mm/aaaa') + valor2); <!--As férias devem ser solicitadas com pelo menos 30 dias de antecedência. Desta forma, a data de início deve ser maior ou igual a dd/mm/aaaa-->
+						campo.focus();
+						campo.value = "";
+			        	return false;
+					}
+					*/
+					if (valor5 != '') {
+						if ( parseInt( data1.split( "/" )[2].toString() + data1.split( "/" )[1].toString() + data1.split( "/" )[0].toString() ) <= parseInt( valor5.split( "/" )[2].toString() + valor5.split( "/" )[1].toString() + valor5.split( "/" )[0].toString() ) )
+						{
+							alert('A data inicial não pode ser igual ou inferior ao da primeira programação: dd/mm/aaaa' + valor5); <!--A data inicial não pode ser igual ou inferior ao da primeira programação: dd/mm/aaaa-->
+							campo.focus();
+							campo.value = "";
+				        	return false;
+						}					
+						if ( parseInt( data1.split( "/" )[2].toString() + data1.split( "/" )[1].toString() + data1.split( "/" )[0].toString() ) <= parseInt( valor6.split( "/" )[2].toString() + valor6.split( "/" )[1].toString() + valor6.split( "/" )[0].toString() ) )
+						{
+							alert('A data inicial deve ser superior ao final da primeira programação: dd/mm/aaaa' + valor6 ); <!--A data inicial deve ser superior ao final da primeira programação: dd/mm/aaaa-->
+							campo.focus();
+							campo.value = "";
+				        	return false;
+						}	
+					}
+					if (valor7 != '') {
+						if ( parseInt( data1.split( "/" )[2].toString() + data1.split( "/" )[1].toString() + data1.split( "/" )[0].toString() ) <= parseInt( valor8.split( "/" )[2].toString() + valor8.split( "/" )[1].toString() + valor8.split( "/" )[0].toString() ) )
+						{
+							alert('A data inicial deve ser superior ao final da segunda programação: dd/mm/aaaa' + valor8 ); <!--A data inicial deve ser superior ao final da segunda programação: dd/mm/aaaa-->
+							campo.focus();
+							campo.value = "";
+				        	return false;
+						}					
+					}
+				}
+				if (tipoReq=='8')
+				{
+					if ( parseInt( data1.split( "/" )[2].toString() + data1.split( "/" )[1].toString() + data1.split( "/" )[0].toString() ) < parseInt( valor2.split( "/" )[2].toString() + valor2.split( "/" )[1].toString() + valor2.split( "/" )[0].toString() ) )
+					{
+						alert(convertTagsHTMLCaracteres('Data inicial refere-se a um período de apontamento que já foi encerrado. Data deve ser maior ou igual a') + valor2); <!--Data inicial refere-se a um período de apontamento que já foi encerrado. Data deve ser maior ou igual a -->
+						campo.focus();
+						campo.value = "";
+			        	return false;
+					}
+				}
+			}
+
+ 
+			return true;
+		}
+
+
+	   function dataComp(dt1,dt2,regra,foco) {
+            if (dt1 == '' || dt2 == '' || regra == '') {
+	            return;
+	        }
+            
+			var data1 = parseInt(dt1.split("/")[2].toString() + dt1.split("/")[1].toString() + dt1.split("/")[0].toString());
+			var data2 = parseInt(dt2.split("/")[2].toString() + dt2.split("/")[1].toString() + dt2.split("/")[0].toString());
+ 
+            if (regra == 'A<B') {
+				if (data1 > data2) {
+		            alert(convertTagsHTMLCaracteres('Data final deve ser maior ou igual que a data inicial! ')); <!-- Data final deve ser maior ou igual que a data inicial! -->
+					document.getElementById(foco).focus();
+			        return;
+				}            
+            }
+            if (regra == 'A>B') {
+				if (data1 < data2) {
+		            alert(convertTagsHTMLCaracteres('Data final deve ser menor ou igual que a data inicial!')); <!-- Data final deve ser menor ou igual que a data inicial! -->
+					document.getElementById(foco).focus();
+			        return;
+				}            
+            }
+            if (regra == 'A=B') {
+				if (data1 != data2) {
+		            alert(convertTagsHTMLCaracteres('As datas devem ser iguais!')); <!-- As datas devem ser iguais! -->
+					document.getElementById(foco).focus();
+			        return;
+				}            
+            }
+            return;
+
+	    }
+	
+
+        function NumberValid(campo,valor,tipoComp,valorComp,tipoSolic) {
+            var d            = document;
+            var trSubst1     = d.getElementById('Subst1');
+            var matSubst     = glbMatSubst;
+            var diaSubst     = parseInt(glbDiaSubst);
+
+            <!-- Licenca e Afastamento -->
+            if (tipoSolic=='R') {
+                 diaSubst = parseInt(document.formLicences.txtDiasSubst.value); 
+                 licSubst = document.formLicences.lLicSubst.value
+
+                 if (matSubst == '.T.' && licSubst == '.F.') {
+                    matSubst = '.F.'
+                 }
+            } 
+            <!-- Fim -->
+
+            if (parseInt(valor) == 0)
+            {
+               alert(convertTagsHTMLCaracteres('Quantidade de dias invalido')); <!-- Quantidade de dias invalido -->
+               campo.focus();
+               campo.value = "";
+               return false;
+            }
+
+            if (tipoComp=='>')
+            {
+               if (parseInt(valor) > parseInt(valorComp)  ){
+                    alert(convertTagsHTMLCaracteres('Esse valor não pode ser superior a:') +' (' +valorComp +')' ); <!-- Esse valor não pode ser superior a: -->
+                    campo.focus();
+                    campo.value = "";
+                    return false;
+               } 
+            }
+
+            if (tipoComp=='<')
+            {
+               if (parseInt(valor) < parseInt(valorComp)  ){
+                    alert(convertTagsHTMLCaracteres('Esse valor não pode ser inferior a') +' (' +valorComp +')' ); <!-- Esse valor não pode ser inferior a: -->
+                    campo.focus();
+                    campo.value = "";
+                    return false;
+               } 
+            }
+
+
+            try{
+                if (matSubst == '.T.' && valor >= diaSubst) {
+                    trSubst1.style.display = '';
+                } else {       
+                    trSubst1.style.display = 'none';
+                }
+            } catch (ex) { }
+        }
+
+
+		function numdias(mes,ano) {
+		    if((mes<8 && mes%2==1) || (mes>7 && mes%2==0)) return 31;
+			   if(mes!=2)   return 30;
+			   if(ano%4==0) return 29;
+			   return 28;
+		}
+
+        function somaDiasGSP(data, dias, origem, diasmenos, tipoSolic, tipoCalcDia) {
+            var d            = document;
+            var btnVld1      = d.getElementById('btnVld1');
+            var btnVld2      = d.getElementById('btnVld2');
+            var matSubst1    = d.getElementById('txtMatSubst1');
+            var matSubst2    = d.getElementById('txtMatSubst2');
+            var matSubst     = glbMatSubst;
+            var diaSubst     = parseInt(glbDiaSubst);
+
+            if (data=='' || data=='dd/mm/aaaa') {
+                return false;
+            }
+            if (dias=='') {
+                return false;
+            }
+
+            if (diasmenos=='') {
+                var menosDias = 0;
+            } else {
+                var menosDias = parseInt(diasmenos);
+            }
+
+
+            if (matSubst == '.T.') {  
+                if (origem=='1') {
+                    matSubst1.value       = '';
+                    matSubst1.disabled    = 'true';
+                    btnVld1.style.display = '';
+                }
+                else {
+                    matSubst2.value       = '';
+                    matSubst2.disabled    = 'true';
+                    btnVld2.style.display = '';
+                }
+            }
+
+            data=data.split('/');
+
+            diafuturo=parseInt(data[0])+parseInt(dias)-menosDias;
+            mes=parseInt(data[1]);
+            ano=parseInt(data[2]);
+
+            while(diafuturo>numdias(mes,ano)) {
+                  diafuturo-=numdias(mes,ano);
+                  mes++;
+                if(mes>12) {
+                   mes=1;
+                   ano++;
+                }
+            }
+
+            if(diafuturo<10) diafuturo='0'+diafuturo;
+            if(mes<10) mes='0'+mes;
+
+            if (origem=='1') {
+
+                if (tipoSolic=='R') {
+                    document.formLicences.txtDtFim01.value = diafuturo+"/"+mes+"/"+ano;
+                } 
+                else {
+                    document.formFerias.txtDtFim01.value   = diafuturo+"/"+mes+"/"+ano;
+                }
+
+                 if (matSubst == '.T.') {  
+                    matSubst1.disabled = '';
+                    btnVld1.disabled   = '';
+                 }
+             }
+             else {
+
+                if (tipoSolic=='R') {
+                    document.formLicences.txtDtFim02.value = diafuturo+"/"+mes+"/"+ano;
+                } 
+                else {
+                    document.formFerias.txtDtFim02.value   = diafuturo+"/"+mes+"/"+ano;
+                }
+
+
+                 if (matSubst == '.T.') {  
+                    matSubst2.disabled = '';
+                    btnVld2.disabled   = '';
+                 }
+             }
+
+            return;
+        }
+
+	
+        function somaDias(campo, txtData, diasQtd, diasTot, tipoCalcDia, cDiasFe, nIdade) {
+            if (diasQtd==''){
+                return;
+            }
+            else {
+                if ( isNaN(diasQtd) ) {
+                    alert(convertTagsHTMLCaracteres('Informe apenas números!')); 
+                    campo.focus();
+                    campo.value = "";
+                    return false;
+                }
+                if (parseInt(diasQtd) > 20) {
+                    document.formFerias.chkAbono.checked  = false;
+                    document.formFerias.chkAbono.disabled = true;
+                }
+                if (parseInt(diasQtd) <= 20) {
+					document.formFerias.chkAbono.disabled = false;
+                }
+                if ( parseInt(diasQtd) > parseInt(diasTot) || parseInt(diasQtd) <= 0 || parseInt(diasQtd) > 30 ) {
+					alert(convertTagsHTMLCaracteres('Quantidade de dias superior ao dias de direito!')); 
+                    campo.focus();
+                    campo.value = "";
+                    return false;
+                }
+				if ( ( parseInt(nIdade) < 18 || parseInt(nIdade) > 50 ) && parseInt(diasQtd) < parseInt(diasTot)  ) {
+					alert(convertTagsHTMLCaracteres('Funcionário(a) menor de 18 anos ou maior que 50 anos deve tirar férias em período único')); 
+                }
+				if ( parseInt(diasQtd) < parseInt(cDiasFe) ) {
+					alert(convertTagsHTMLCaracteres('Numero de dias de férias deve ser maior ou igual a 10.')+parseInt(cDiasFe)); 
+                    campo.focus();
+                    campo.value = "";
+                    return false;
+                }
+            }   
+            if (document.formFerias.txtdtInicial.value == '' || document.formFerias.txtdtInicial.value == 'dd/mm/aaaa') {
+                document.formFerias.txtdtFinal.value = '';
+                return;
+            }
+          
+                var DataFinal;
+                var d = new Date();
+                
+                d.setTime(Date.parse(txtData.split("/").reverse().join("/")))		
+				d.setDate(d.getDate() + (parseInt(diasQtd)-1))		
+    
+                if(d.getDate() < 10) {
+                   DataFinal = "0"+d.getDate().toString();
+                }
+                else {    
+                   DataFinal = d.getDate().toString();    
+                }
+            
+                if((d.getMonth()+1) < 10){
+                    DataFinal += "/0"+(d.getMonth()+1).toString()+"/"+d.getFullYear().toString();
+                }
+                else {
+                    DataFinal += "/"+((d.getMonth()+1).toString())+"/"+d.getFullYear().toString();
+                }
+            
+                document.formFerias.txtdtFinal.value = DataFinal;
+                return;    
+        }
+		
+		function HoraMask(inputHora, e){
+			if(document.all)
+		   	   var tecla = event.keyCode;    // Internet Explorer
+			else 			
+		 	   var tecla = e.which; 		 // Outros Browsers
+
+			if(tecla >= 47&&tecla < 58){     // números de 0 a 9 e "/"
+		       var hora = inputHora.value;
+			
+			if (hora.length == 2){
+				hora += ':';
+				inputHora.value = hora;}
+			}else  
+		        // Backspace, Delete e setas direcionais
+		        //(para mover o cursor, apenas para FF)
+		        if(tecla == 8 || tecla == 0) 
+		           return true;
+			    else
+				   return false;
+		}
+		
+		function HoraValid(HoraMinuto)
+		{ 
+			if (HoraMinuto == "") { 
+				return;
+			}
+
+			hrs = (HoraMinuto.value.substring(0,2)); 
+			min = (HoraMinuto.value.substring(3,5)); 
+               
+			if ((hrs < 00 ) || (hrs > 23) || ( min < 00) ||( min > 59)){ 
+				alert(convertTagsHTMLCaracteres('Hora Invalida!')); <!-- Hora Invalida! -->
+				HoraMinuto.focus();
+			} 
+		} 
+
+		// construindo o calendário
+		function popdate(obj,div,tam,ddd) {
+
+		if (ddd=="dd/mm/aaaa"){ddd=""}	
+
+		if (ddd) {
+           day = ""
+           mmonth = ""
+           ano = ""
+           c = 1
+           char = ""
+             for (s=0;s<parseInt(ddd.length);s++)
+              {
+                 char = ddd.substr(s,1)
+                 if (char == "/") 
+                 {
+                     c++; 
+                     s++; 
+                     char = ddd.substr(s,1);
+                 }
+                 if (c==1) day    += char
+                 if (c==2) mmonth += char
+                 if (c==3) ano    += char
+             }
+             ddd = mmonth + "/" + day + "/" + ano
+          }
+
+  
+    if(!ddd) {today = new Date()} else {today = new Date(ddd)}
+    date_Form = eval (obj)
+    if (date_Form.value == "") { date_Form = new Date()} else {date_Form = new Date(date_Form.value)}
+  
+    ano = today.getFullYear();
+    mmonth = today.getMonth ();
+    day = today.toString ().substr (8,2)
+  
+    umonth = new Array ("Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro")
+    days_Feb = (!(ano % 4) ? 29 : 28)
+    days = new Array (31, days_Feb, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
+
+
+    if ((mmonth < 0) || (mmonth > 11))  alert(mmonth)
+    if ((mmonth - 1) == -1) {month_prior = 11; year_prior = ano - 1} else {month_prior = mmonth - 1; year_prior = ano}
+    if ((mmonth + 1) == 12) {month_next  = 0;  year_next  = ano + 1} else {month_next  = mmonth + 1; year_next  = ano}
+    txt  = "<table bgcolor='#efefff' style='border:solid #A0BFD3; border-width:2' cellspacing='0' cellpadding='3' border='0' width='"+tam+"' height='"+tam*1.1 +"'>"
+    txt += "<tr bgcolor='#FFFFFF'><td colspan='7' align='center'><table border='0' cellpadding='0' width='100%' bgcolor='#FFFFFF'><tr>"
+    txt += "<td width=20% align=center><a href=javascript:popdate('"+obj+"','"+div+"','"+tam+"','"+((mmonth+1).toString() +"/01/"+(ano-1).toString())+"') class='Cabecalho_Calendario' title='Ano Anterior'><<</a></td>"
+    txt += "<td width=20% align=center><a href=javascript:popdate('"+obj+"','"+div+"','"+tam+"','"+( "01/" + (month_prior+1).toString() + "/" + year_prior.toString())+"') class='Cabecalho_Calendario' title='Mês Anterior'><</a></td>"
+    txt += "<td width=20% align=center><a href=javascript:popdate('"+obj+"','"+div+"','"+tam+"','"+( "01/" + (month_next+1).toString()  + "/" + year_next.toString())+"') class='Cabecalho_Calendario' title='Próximo Mês'>></a></td>"
+    txt += "<td width=20% align=center><a href=javascript:popdate('"+obj+"','"+div+"','"+tam+"','"+((mmonth+1).toString() +"/01/"+(ano+1).toString())+"') class='Cabecalho_Calendario' title='Próximo Ano'>>></a></td>"
+    txt += "<td width=20% align=right><a href=javascript:force_close('"+div+"') class='Cabecalho_Calendario' title='Fechar Calendário'><b>X</b></a></td></tr></table></td></tr>"
+    txt += "<tr><td colspan='7' align='right' bgcolor='#ccccff' class='mes'><a href=javascript:pop_year('"+obj+"','"+div+"','"+tam+"','" + (mmonth+1) + "') class='mes'>" + ano.toString() + "</a>"
+    txt += " <a href=javascript:pop_month('"+obj+"','"+div+"','"+tam+"','" + ano + "') class='mes'>" + umonth[mmonth] + "</a> <div id='popd' style='position:absolute'></div></td></tr>"
+    txt += "<tr bgcolor='#A7C4D6'><td width='14%' class='dia' align=center><b>Dom</b></td><td width='14%' class='dia' align=center><b>Seg</b></td><td width='14%' class='dia' align=center><b>Ter</b></td><td width='14%' class='dia' align=center><b>Qua</b></td><td width='14%' class='dia' align=center><b>Qui</b></td><td width='14%' class='dia' align=center><b>Sex<b></td><td width='14%' class='dia' align=center><b>Sab</b></td></tr>"
+    today1 = new Date((mmonth+1).toString() +"/01/"+ano.toString());
+    diainicio = today1.getDay () + 1;
+    week = d = 1
+    start = false;
+
+    for (n=1;n<= 42;n++) 
+    {
+        if (week == 1)  txt += "<tr bgcolor='#efefff' align=center>"
+        if (week==diainicio) {start = true}
+        if (d > days[mmonth]) {start=false}
+        if (start) 
+        {
+            dat = new Date((mmonth+1).toString() + "/" + d + "/" + ano.toString())
+            day_dat   = dat.toString().substr(0,10)
+            day_today  = date_Form.toString().substr(0,10)
+            year_dat  = dat.getFullYear ()
+            year_today = date_Form.getFullYear ()
+            colorcell = ((day_dat == day_today) && (year_dat == year_today) ? " bgcolor='#FFCC00' " : "" )
+            txt += "<td"+colorcell+" align=center><a href=javascript:block('"+  d + "/" + (mmonth+1).toString() + "/" + ano.toString() +"','"+ obj +"','" + div +"') class='data'>"+ d.toString() + "</a></td>"
+            d ++ 
+        } 
+        else 
+        { 
+            txt += "<td class='data' align=center> </td>"
+        }
+        week ++
+        if (week == 8) 
+        { 
+            week = 1; txt += "</tr>"} 
+        }
+        txt += "</table>"
+        div2 = eval (div)
+        div2.innerHTML = txt 
+		}
+  
+
+		// função para exibir a janela com os meses
+		function pop_month(obj, div, tam, ano)
+		{
+     		txt  = "<table bgcolor='#CCCCFF' border='0' width=80>"
+  	    	for (n = 0; n < 12; n++) { txt += "<tr><td align=center><a href=javascript:popdate('"+obj+"','"+div+"','"+tam+"','"+("01/" + (n+1).toString() + "/" + ano.toString())+"')>" + umonth[n] +"</a></td></tr>" }
+    		txt += "</table>"
+    		popd.innerHTML = txt
+		}
+
+		// função para exibir a janela com os anos
+		function pop_year(obj, div, tam, umonth)
+		{
+	        txt  = "<table bgcolor='#CCCCFF' border='0' width=160>"
+    		l = 1
+		    for (n=2000; n<2021; n++)
+    		  {  if (l == 1) txt += "<tr>"
+        		 txt += "<td align=center><a href=javascript:popdate('"+obj+"','"+div+"','"+tam+"','"+(umonth.toString () +"/01/" + n) +"')>" + n + "</a></td>"
+		         l++
+        		 if (l == 4) 
+            		{txt += "</tr>"; l = 1 } 
+     		  }
+    		txt += "</tr></table>"
+	        popd.innerHTML = txt 
+	   }
+
+
+		// função para fechar o calendário
+		function force_close(div) 
+    		{ div2 = eval (div); div2.innerHTML = ''}
+    
+		// funcao para fechar o calendário e setar a data no campo de data associado
+		function block(data, obj, div)
+		{ 
+         force_close (div);
+
+		 var data_quebrada = data.split('/');
+         obj2 = eval(obj);
+
+    	dia = (data_quebrada[0] < 10) ? '0' + data_quebrada[0] : data_quebrada[0];
+	    mes = (data_quebrada[1] < 10) ? '0' + data_quebrada[1] : data_quebrada[1];
+
+		//Focus no objeto não se comporta adequadamente para IE
+        //obj2.focus(); 
+        //setTimeout(function() { obj2.focus(); }, 100);
+
+		obj2.value = dia+'/'+mes+'/'+data_quebrada[2];
+                
+		}
+		
+		function SugereSalario(that,parSal)
+		{
+			var percentual = that.value.replace(',','.');
+		    var salario = String(parSal);
+
+			percentual = parseFloat(percentual); 
+			salario    = parseFloat(salario);
+			
+			var calculo = ((percentual/100) * salario);
+			
+			//calculo = calculo.replace(',','.');
+			calculo = calculo + salario;
+			document.formSal.txtsalario.value = float2moeda(roundNumber(calculo));
+			
+			if(isNaN(percentual))
+				document.formSal.txtsalario.value = 0;
+		 }
+
+		function VerificaSalario(that,parSal)
+		{
+			var salNovo  = that.value.replace('.','');
+			var salNovo  = salNovo.replace(',','.');
+		    var salAtual = String(parSal);
+
+			salNovo  = parseFloat(salNovo); 
+			salAtual = parseFloat(salAtual);
+                                    
+			if (salNovo > 0) {
+				if (salAtual >= salNovo) {
+					alert(convertTagsHTMLCaracteres('O novo salario deve ser maior que o Atual!')); <!-- O novo salario deve ser maior que o Atual! -->
+					that.focus();
+					return false;
+				}
+			}	
+
+			document.formSal.txtobs.focus();
+			
+		 }
+
+		function roundNumber (rnum) 
+		{
+		   return Math.round(rnum*Math.pow(10,2))/Math.pow(10,2);
+		}
+					 
+		function float2moeda(num) {
+		   x = 0;
+		
+		   if(num<0) {
+		      num = Math.abs(num);
+		      x = 1;
+		   }
+		   if(isNaN(num)) num = "0";
+		      cents = Math.floor((num*100+0.5)%100);
+		
+		   num = Math.floor((num*100+0.5)/100).toString();
+		
+		   if(cents < 10) cents = "0" + cents;
+		      for (var i = 0; i < Math.floor((num.length-(1+i))/3); i++)
+		         num = num.substring(0,num.length-(4*i+3))+'.'
+		               +num.substring(num.length-(4*i+3));
+		   ret = num + ',' + cents;
+		   if (x == 1) ret = ' - ' + ret;return ret;
+		
+		}
+		
+		function formataMoeda(campo, separador_milhar, separador_decimal, tecla) {
+			var sep = 0;
+			var key = '';
+			var i = j = 0;
+			var len = len2 = 0;
+			var strCheck = '0123456789';
+			var aux = aux2 = '';
+			var whichCode = (window.Event) ? tecla.which : tecla.keyCode;
+		
+			if (whichCode == 13) return true; // Tecla Enter
+			if (whichCode == 8) return true; // Tecla Delete
+			key = String.fromCharCode(whichCode); // Pegando o valor digitado
+			if (strCheck.indexOf(key) == -1) return false; // Valor inválido (não inteiro)
+			len = campo.value.length;
+			for(i = 0; i < len; i++)
+			if ((campo.value.charAt(i) != '0') && (campo.value.charAt(i) != separador_decimal)) break;
+			aux = '';
+			for(; i < len; i++)
+			if (strCheck.indexOf(campo.value.charAt(i))!=-1) aux += campo.value.charAt(i);
+			aux += key;
+			len = aux.length;
+			if (len == 0) campo.value = '';
+			if (len == 1) campo.value = '0'+ separador_decimal + '0' + aux;
+			if (len == 2) campo.value = '0'+ separador_decimal + aux;
+		
+			if (len > 2) {
+				aux2 = '';
+		
+				for (j = 0, i = len - 3; i >= 0; i--) {
+					if (j == 3) {
+						aux2 += separador_milhar;
+						j = 0;
+					}
+					aux2 += aux.charAt(i);
+					j++;
+				}
+		
+				campo.value = '';
+				len2 = aux2.length;
+				for (i = len2 - 1; i >= 0; i--)
+				campo.value += aux2.charAt(i);
+				campo.value += separador_decimal + aux.substr(len - 2, len);
+			}
+		
+			return false;
+		}
+
+        function SomenteNumero(e){
+            var tecla=(window.event)?event.keyCode:e.which;
+            if((tecla>47 && tecla<58)) return true;
+            else{
+                 if (tecla==8 || tecla==0) return true;
+                 else  return false;
+             }
+        }
+				
+		function CheckOut(f){
+			var nOperacao;
+			nOperacao = '<%=HttpGet->nOperacao%>';
+		  
+			var cTypeRequest;
+			cTypeRequest = '<%=HttpSession->cTypeRequest%>';
+
+			// Avalia requisicoes para solicitacao de ferias
+			if (cTypeRequest == "B")
+			{
+				if (nOperacao == '1')
+				{
+
+					if (f.txtdtInicial.value == "") {
+						alert(convertTagsHTMLCaracteres('Informe a data inicial de ferias!')); <!-- Informe a data inicial de ferias! -->
+						f.txtdtInicial.focus();
+						return false;
+					}                
+					if (f.txtdtInicial.value == "dd/mm/aaaa") {
+						alert(convertTagsHTMLCaracteres('Informe a data inicial de ferias!')); <!-- Informe a data inicial de ferias! --> 
+						f.txtdtInicial.focus();
+						return false;
+					}                
+	
+					if (f.txtdtFinal.value == "") {
+						alert(convertTagsHTMLCaracteres('Data final de ferias nao calculada!')); <!-- Data final de ferias nao calculada! -->
+						f.txtdias.focus();
+						return false;
+					}                
+			
+				   if (f.txtdias.value == ""){
+						alert(convertTagsHTMLCaracteres('Informe a quantidade de dias de ferias!')); <!-- Informe a quantidade de dias de ferias! -->
+						f.txtdias.focus();
+						return false;
+					}              
+				}	
+				
+				if (f.txtobs.value == ""){
+					alert(convertTagsHTMLCaracteres('Digite as observacoes da solicitacao!')); <!-- Digite as observacoes da solicitacao! -->
+					f.txtobs.focus();
+					return false;
+				}
+				else
+				{                              
+				  return true;
+				 }  
+			}
+			
+			// Avalia requisicoes para solicitacao de transferencia
+			if (cTypeRequest == "4")
+			{
+				// Observacao obrigatorio
+				if (f.txtobs.value == ""){
+					alert(convertTagsHTMLCaracteres("Digite as observacoes da solicitacao!")); <!--Digite as observacoes da solicitacao! -->
+					f.txtobs.focus();
+					return false;
+				}
+				if (nOperacao == '1')
+				{
+					// Algum desses campos devem estar preenchidos para
+					// efetivar o registro da solicitacao de transferencia
+	                var cOrgCfg = "<%=HttpSession->cOrgCfg%>";
+	                var lCorp	= "<%=HttpSession->lGestaoCorp%>";
+									
+					if (lCorp == ".T.") {
+						if (f.txtgrpemp.value != "") {
+							return true;
+						}
+					}	
+					if (f.txtfilial.value != "") {
+						return true;
+					}
+					if (f.txtcc.value != "") {
+						return true;
+					}
+	
+					
+					if (f.txtdepto.value != "")	{
+						return true;
+					}  
+					if (f.txtprocesso.value != "")	{
+						return true;
+					}
+					
+	
+					if (cOrgCfg == "1") {
+						if (f.txtposto.value != "")	{
+							return true;
+						}
+					}	
+				}
+			}
+
+			// Avalia requisicoes para solicitacao de desligamento
+			if (cTypeRequest == "6")
+			{
+				if (nOperacao == '1')
+				{
+					if (f.txttipo.value == ""){
+						alert(convertTagsHTMLCaracteres("Selecione o tipo!"));  <!--Selecione o tipo!-->
+						f.txttipo.focus();
+						return false;
+					}
+				}			
+
+				if (f.txtobs.value == ""){
+					alert(convertTagsHTMLCaracteres("Digite as observacoes da solicitacao!")); <!--Digite as observacoes da solicitacao! -->
+					f.txtobs.focus();
+					return false;
+				}					
+			}			
+
+			// Avalia requisicoes para solicitacao de acao salarial
+			if (cTypeRequest == "7")
+			{
+				if (nOperacao == '1')
+				{
+					if (f.txtalteracao.value == ""){
+						alert(convertTagsHTMLCaracteres("Informe o tipo de alteracao")); <!--Informe o tipo de alteracao -->
+						return false;
+					}
+					if ((f.txtpctaumento.value == "" && f.txtfuncao.value == "" && f.txtcargo.value == "") || f.txtpctaumento.value == "" && f.txtfuncao.value != "" && f.txtcargo.value != ""){
+						alert(convertTagsHTMLCaracteres("Informe o percentual de ajuste")); <!--Informe o percentual de ajuste -->
+						f.txtpctaumento.focus();
+						return false;
+					}
+					if (f.txtsalario.value == "" && f.txtfuncao.value == "" && f.txtcargo.value == ""){
+						alert(convertTagsHTMLCaracteres("Informe o novo salario")); <!--Informe o novo salario -->
+						f.txtsalario.focus();
+						return false;
+					} 
+				}			
+				if (f.txtobs.value == ""){
+					alert(convertTagsHTMLCaracteres("Digite as observacoes da solicitacao ")); <!--Digite as observacoes da solicitacao -->
+					f.txtobs.focus();
+					return false;
+				}					
+			}
+
+			// Avalia requisicoes para solicitacao de justificacao
+			if (cTypeRequest == "8")
+			{
+				if (nOperacao == '1')
+				{
+					if (f.txtdataini.value == "" || f.txtdataini.value == "dd/mm/aaaa"){
+						alert(convertTagsHTMLCaracteres("Data inicial nao informada!"));  <!--Data inicial nao informada!-->
+						f.txtdataini.focus();
+						return false;
+					}
+					if (f.txtdatafim.value == "" || f.txtdatafim.value == "dd/mm/aaaa"){
+						alert(convertTagsHTMLCaracteres("Data final nao informada!"));  <!--Data final nao informada!-->
+						f.txtdatafim.focus();
+						return false;
+					}
+
+					if (f.txthorarioi.value != ""){
+						if (f.txthorariof.value == ""){
+							alert(convertTagsHTMLCaracteres("Hona final nao informada!"));  <!--Hona final nao informada!-->
+							f.txthorariof.focus();
+							return false;
+						}	
+					}
+					if (f.txthorariof.value != ""){
+						if (f.txthorarioi.value == ""){
+							alert(convertTagsHTMLCaracteres("Hona inicial nao informada!"));  <!--Hona inicial nao informada!-->
+							f.txthorarioi.focus();
+							return false;
+						}	
+					}
+					
+					if (f.txthorarioi.value == "" && f.txthorariof.value == ""){					
+						lDecisao = confirm(convertTagsHTMLCaracteres(" "));
+						if (!lDecisao){
+							f.txthorarioi.focus();
+							return false;
+						}
+					}	
+					
+
+					if (f.txtmotivo.value == ""){
+						alert(convertTagsHTMLCaracteres("Motivo nao informado!"));  <!--Motivo nao informado!-->
+						f.txtmotivo.focus();
+						return false;
+					}
+
+					if(f.txtdataini.value == f.txtdatafim.value && f.txthorariof.value <= f.txthorarioi.value)
+					{
+					 	alert(convertTagsHTMLCaracteres('Hora final deve ser maior que a hora inicial!'));  <!--Hora final deve ser maior que a hora inicial!--> 
+					 	f.txthorariof.focus();
+					 	return false;
+					}
+				}
+			}
+
+
+            // Vida Funcional - Avalia requisicoes para solicitacao de diarias
+            if (cTypeRequest == "Q")
+            {
+                if (nOperacao == '1')
+                {
+                    if (f.txtdataini.value == "" || f.txtdataini.value == "dd/mm/aaaa"){
+                        alert(convertTagsHTMLCaracteres("Data inicial nao informada!"));  <!--Data inicial nao informada!-->
+                        f.txtdataini.focus();
+                        return false;
+                    }
+                    if (f.txtdatafim.value == "" || f.txtdatafim.value == "dd/mm/aaaa"){
+                        alert(convertTagsHTMLCaracteres("Data final nao informada!"));  <!--Data final nao informada!-->
+                        f.txtdatafim.focus();
+                        return false;
+                    }
+
+      				if (f.txtobs.value == ""){
+		     			alert(convertTagsHTMLCaracteres("Digite as observacoes da solicitacao!")); <!--Digite as observacoes da solicitacao! -->
+			    		f.txtobs.focus();
+				    	return false;
+     				}
+				}	
+			}			
+
+
+            // Vida Funcional - Avalia requisicoes para solicitacao de dias de ferias
+            if (cTypeRequest == "O")
+            {
+                if (nOperacao == '1')
+                {
+                    var qtdeCheck = parseInt("<%=HttpSession->nQtdeProg%>"); 
+                    if (qtdeCheck == 0) {
+                        alert("Nao existe opcao disponivel para solicitar cancelamento!");
+                        return false;
+                    }
+                    else {                              
+                        var radios      = f.opProg;
+                        var radioResult = "";
+
+                        for (var i = 0, length = radios.length; i < length; i++) {
+                          if (radios[i].checked) {
+                              radioResult = radios[i].value;  
+                              //alert(radios[i].value);
+                              //somente um radio pode ser marcado nao precisamos avaliar outros
+                              break;
+                           }
+                        }
+
+                        if (radioResult == "") {
+                           alert("Nenhuma opcao foi selecionada para solicitar cancelamento!");
+                           return false;
+                        }
+                    }  
+
+
+                    if (f.txtobs.value == ""){
+                        alert(convertTagsHTMLCaracteres("Digite as observacoes da solicitacao!")); <!--Digite as observacoes da solicitacao! -->
+                        f.txtobs.focus();
+                        return false;
+                    }
+
+                }   
+            }           
+            
+
+            // Vida Funcional - Avalia requisicoes para solicitacao de ferias
+            if (cTypeRequest == 'P')
+            {
+
+                if (nOperacao == '1')
+                {
+                    var opSel        = f.opcaoS107.value;
+                    var dias1        = opSel.substr(0,2);
+                    var dias2        = opSel.substr(2,2);
+
+                    if (opSel == "") {
+                        alert(convertTagsHTMLCaracteres("Opcao de programacao nao selecionada!"));  <!--Opcao de programacao nao selecionada!-->
+                        f.opcaoS107.focus();
+                        return false;
+                    }
+
+                    if (dias1 > 0) {
+                        if (f.txtDtIni01.value == "" || f.txtDtIni01.value == "dd/mm/aaaa"){
+                            alert(convertTagsHTMLCaracteres("Data inicial do primeiro periodo nao informado!"));  <!--Data inicial do primeiro periodo nao informado!-->
+                            f.txtDtIni01.focus();
+                            return false;
+                        }
+                        if (f.txtDtFim01.value == "" || f.txtDtFim01.value == "calculada..."){
+                            alert(convertTagsHTMLCaracteres("Data final do primeiro periodo nao informado!"));  <!--Data final do primeiro periodo nao informado!-->
+                            f.txtDtIni01.focus();
+                            return false;
+                        }
+                    }
+
+                    if (dias2 > 0) {
+                        if (f.txtDtIni02.value == "" || f.txtDtIni02.value == "dd/mm/aaaa"){
+                            alert(convertTagsHTMLCaracteres("Data inicial do segundo periodo nao informado!"));  <!--Data inicial do segundo periodo nao informado!-->
+                            f.txtDtIni02.focus();
+                            return false;
+                        }
+                        if (f.txtDtFim02.value == "" || f.txtDtFim02.value == "calculada..."){
+                            alert(convertTagsHTMLCaracteres("Data final do segundo periodo nao informado!"));  <!--Data final do segundo periodo nao informado!-->
+                            f.txtDtIni02.focus();
+                            return false;
+                        }
+                    }
+
+                    var data1        = f.txtDtFim01.value;
+                    var data2        = f.txtDtIni02.value;
+                    var matSubst     = glbMatSubst;
+                    var diaSubst     = parseInt(glbDiaSubst);
+
+                    if ((dias1 > 0) && (dias2 > 0)) {
+                        if ( parseInt( data2.split( "/" )[2].toString() + data2.split( "/" )[1].toString() + data2.split( "/" )[0].toString() ) <= parseInt( data1.split( "/" )[2].toString() + data1.split( "/" )[1].toString() + data1.split( "/" )[0].toString() ) )
+                        {
+                            alert(convertTagsHTMLCaracteres('Periodo de datas incoerente!')); <!-- Periodo de datas incoerente!  -->
+                            return false;
+                        }
+                    }
+
+                    if (matSubst == '.T.') {
+                        if (dias1 > 0) {
+                            if (dias1 >= diaSubst) {
+                                if (f.txtMatSubst1.value == ""){
+                                    alert(convertTagsHTMLCaracteres("Substituto do primeiro periodo nao informado!"));  <!--Substituto do primeiro periodo nao informado!-->
+                                    f.txtMatSubst1.focus();
+                                    return false;
+                                }
+                            }    
+                        }
+
+                        if (dias2 > 0) {
+                            if (dias2 >= diaSubst) {
+                                if (f.txtMatSubst2.value == ""){
+                                    alert(convertTagsHTMLCaracteres("Substituto do segundo periodo nao informado!"));  <!--Substituto do segundo periodo nao informado!-->
+                                    f.txtMatSubst2.focus();
+                                    return false;
+                                }
+                            }
+                        }
+                    }
+
+
+                    if (f.txtobs.value == ""){
+                        alert(convertTagsHTMLCaracteres("Digite as observacoes da solicitacao!")); <!--Digite as observacoes da solicitacao! -->
+                        f.txtobs.focus();
+                        return false;
+                    }
+                }   
+            }           
+
+
+            // Vida Funcional - Avalia requisicoes para solicitacao de licencas e afastamentos
+            if (cTypeRequest == "R")
+            {
+                if (nOperacao == '1')
+                {
+
+                    if (f.txtDtIni01.value == "" || f.txtDtIni01.value == "dd/mm/aaaa"){
+                        alert(convertTagsHTMLCaracteres("Data inicial nao informado!"));  <!--Data inicial nao informado!-->
+                        f.txtDtIni01.focus();
+                        return false;
+                    }
+
+                    if ((glbMatSubst == '.T.') && (f.lLicSubst.value == '.T.')) {
+                        if (f.txtDias01.value == '' || f.txtDias01.value == '0') {
+                           alert(convertTagsHTMLCaracteres("Qtde de dias nao informado!"));  <!--Qtde de dias nao informado!-->
+                           f.txtDias01.focus();
+                           return false;
+                        }
+
+                        var diaSubstInfo = parseInt(f.txtDias01.value);
+                        var diaSubstLic  = parseInt(f.txtDiasSubst.value);
+
+                        if (diaSubstInfo >= diaSubstLic){
+                           if (f.txtMatSubst1.value == ""){
+                               alert(convertTagsHTMLCaracteres("Substituto nao informado!"));  <!--Substituto nao informado!-->
+                               f.txtMatSubst1.focus();
+                               return false;
+                           }
+                        }
+
+                    }
+
+                    if (f.txtobs.value == ""){
+                        alert(convertTagsHTMLCaracteres("Digite as observacoes da solicitacao!")); <!--Digite as observacoes da solicitacao! -->
+                        f.txtobs.focus();
+                        return false;
+                    }
+                }   
+            }           
+
+
+            // Vida Funcional - Avalia requisicoes para solicitacao de certidao
+            if (cTypeRequest == "S")
+            {
+                if (nOperacao == '1')
+                {
+                    if (f.chkDocto.checked  == false){
+                        alert(convertTagsHTMLCaracteres("Documento nao selecionado!"));  <!--Documento nao selecionado!-->
+                        f.chkDocto.focus();
+                        return false;
+                    }
+
+                    if (f.txtobs.value == ""){
+                        alert(convertTagsHTMLCaracteres("Digite as observacoes da solicitacao!")); <!--Digite as observacoes da solicitacao! -->
+                        f.txtobs.focus();
+                        return false;
+                    }
+                }   
+            }           
+
+			// Vida Funcional - Avalia requisicoes para solicitacao de certidao
+            if (cTypeRequest == "V")
+            {
+                if (nOperacao == '1')
+                {                    
+                    if (f.cCurseName.value == ""){
+                        alert(convertTagsHTMLCaracteres("Digite o nome do curso!")); <!--Digite o nome do curso! -->
+                        f.cCurseName.focus();
+                        return false;
+                    }   
+                
+                    if (f.cInstituteName.value == ""){
+                        alert(convertTagsHTMLCaracteres("Digite o nome da instituição responsável pelo curso!")); <!--Digite o nome da instituição responsável pelo curso! -->
+                        f.cInstituteName.focus();
+                        return false;
+                    }
+
+					if (f.cContact.value == ""){
+                        alert(convertTagsHTMLCaracteres("Digite o nome do contato!")); <!--Digite o nome do contato! -->
+                        f.cContact.focus();
+                        return false;
+                    }                   
+                    if (f.cPhone.value == ""){
+                        alert(convertTagsHTMLCaracteres("Digite o telefone de contato da instituição!")); <!--Digite o telefone de contato da instituição! -->
+                        f.cPhone.focus();
+                        return false;
+                    }   
+                
+                    if (f.cStartDate.value == ""){
+                        alert(convertTagsHTMLCaracteres("Digite a data inicial do curso!")); <!--Digite a data inicial do curso! -->
+                        f.cStartDate.focus();
+                        return false;
+                    }
+
+					if (f.cEndDate.value == ""){
+                        alert(convertTagsHTMLCaracteres("Digite a data final do curso!")); <!--Digite a data final do curso! -->
+                        f.cEndDate.focus();
+                        return false;
+                    }                   
+                    if (f.cMonthlyPayment.value == ""){
+                        alert("Digite o valor da mensalidade!"); <!--Digite o valor da mensalidade! -->
+                        f.cMonthlyPayment.focus();
+                        return false;
+                    }   
+                
+                    if (f.cInstallmentAmount.value == ""){
+                        alert("Digite a quantidade de parcelas relativo a todo período do curso!"); <!--Digite a quantidade de parcelas relativo a todo período do curso! -->
+                        f.cInstallmentAmount.focus();
+                        return false;
+                    }
+
+					if (f.txtobs.value == ""){
+                        alert(convertTagsHTMLCaracteres("Digite as observacoes da solicitacao!")); <!--Digite as observacoes da solicitacao! -->
+                        f.txtobs.focus();
+                        return false;
+                    }
+                }   
+            }    
+
+            // Vida Funcional - Avalia requisicoes para solicitacao de dias de folga
+            if (cTypeRequest == "T")
+            {
+                if (nOperacao == '1')
+                {
+                    var valorSelec = '';
+
+                    for(var i=0;i<f.tipoSolic.length;i++) {
+                        if(f.tipoSolic[i].checked) {
+                            valorSelec = f.tipoSolic[i].value;
+                        }
+                    }
+
+
+                    if (valorSelec=='') {
+                        alert(convertTagsHTMLCaracteres("Opcao de solicitacao nao selecionada!"));  <!--Opcao de solicitacao nao selecionada!-->
+                        return false;
+                    }
+
+                    if (valorSelec == "Programado") {
+                        if (f.txtDtIni01.value == "" || f.txtDtIni01.value == "dd/mm/aaaa"){
+                            alert(convertTagsHTMLCaracteres("Data inicial nao informado!"));  <!--Data inicial nao informado!-->
+                            f.txtDtIni01.focus();
+                            return false;
+                        }
+                        if (f.txtDtFim01.value == "" || f.txtDtFim01.value == "calculada..."){
+                            alert(convertTagsHTMLCaracteres("Data final nao informado!"));  <!--Data final nao informado!-->
+                            f.txtDtIni01.focus();
+                            return false;
+                        }
+
+                        var dias1        = f.txtDias01.value;
+                        var matSubst     = glbMatSubst;
+                        var diaSubst     = parseInt(glbDiaSubst);
+
+                        if (matSubst == '.T.') {
+                            if (dias1 > 0) {
+                                if (dias1 >= diaSubst) {
+                                    if (f.txtMatSubst1.value == ""){
+                                        alert(convertTagsHTMLCaracteres("Substituto do primeiro periodo nao informado!"));  <!--Substituto do primeiro periodo nao informado!-->
+                                        f.txtMatSubst1.focus();
+                                        return false;
+                                    }
+                                }    
+                            }
+                        }
+
+                    }
+
+                    if (f.txtobs.value == ""){
+                        alert(convertTagsHTMLCaracteres("Digite as observacoes da solicitacao!")); <!--Digite as observacoes da solicitacao! -->
+                        f.txtobs.focus();
+                        return false;
+                    }
+                }   
+            }
+
+			// Marcação de Ponto
+            if (cTypeRequest == "Z")
+            {
+                if (nOperacao == '1')
+                {
+                    if (f.txtHora.value == ""){
+                        alert("Digite o horário da marcação!"); <!--Digite o horário da marcação! -->
+                        f.txtHora.focus();
+                        return false;
+                    }   
+                
+                    if (f.cNatureza.value == ""){
+                        alert("Informe se a marcação corresponde a entrada ou saída!"); <!--Informe se a marcação corresponde a entrada ou saída! -->
+                        f.cNatureza.focus();
+                        return false;
+                    }
+
+					if (f.txtJust.value == ""){
+                        alert("Informe uma justificativa para a marcação! "); <!--Informe uma justificativa para a marcação! -->
+                        f.txtJust.focus();
+                        return false;
+                    }
+                }   
+            }           
+
+			return true;
+		}
+
+		function fCheckAprove(diasQtd, diasTot, nIdade) {
+		if ( ( parseInt(nIdade) < 18 || parseInt(nIdade) > 50 ) && parseInt(diasQtd) < parseInt(diasTot)  ) {
+			if ( !confirm(convertTagsHTMLCaracteres('STR0132')) ) {
+				return false;
+			}  
+		}
+			return fSubmitAprove();
+		}
+
+		function fSubmitAprove()
+		{
+			var cTypeRequest;
+			cTypeRequest = '<%=HttpSession->cTypeRequest%>';
+
+			if (cTypeRequest == "B")
+			{
+			    if(CheckOut(document.forms[0]))
+			    {
+					document.forms[0].action = "W_PWSA116.APW";
+					document.forms[0].submit();
+			    }
+			}
+			
+			if (cTypeRequest == "4")
+			{
+			    if(CheckOut(document.forms[0]))
+			    {
+					document.forms[0].action = "W_PWSA143.APW";
+					document.forms[0].submit();
+			    }
+			}
+			
+			if (cTypeRequest == "6")
+			{
+			    if(CheckOut(document.forms[0]))
+			    {
+					document.forms[0].action = "W_PWSA116.APW";
+					document.forms[0].submit();
+			    }
+			}			
+
+			if (cTypeRequest == "7")
+			{
+			    if(CheckOut(document.forms[0]))
+			    {
+					document.forms[0].action = "W_PWSA123.APW";
+					document.forms[0].submit();
+			    }
+			}
+
+			if (cTypeRequest == "8")
+			{
+			    if(CheckOut(document.forms[0]))
+			    {
+					document.forms[0].action = "W_PWSA163.APW";
+					document.forms[0].submit();
+			    }
+			}			
+
+            if (cTypeRequest == "N")
+            {
+                if(CheckOut(document.forms[0]))
+                {
+                    document.forms[0].action = "W_PWSA513.APW";
+                    document.forms[0].submit();
+                }
+            }           
+
+            if (cTypeRequest == "O")
+            {
+                if(CheckOut(document.forms[0]))
+                {
+                    document.forms[0].action = "W_PWSA523.APW";
+                    document.forms[0].submit();
+                }
+            }           
+
+            if (cTypeRequest == "P")
+            {
+                if(CheckOut(document.forms[0]))
+                {
+                    document.forms[0].action = "W_PWSA533.APW";
+                    document.forms[0].submit();
+                }
+            }           
+
+            if (cTypeRequest == "Q")
+            {
+                if(CheckOut(document.forms[0]))
+                {
+                    document.forms[0].action = "W_PWSA543.APW";
+                    document.forms[0].submit();
+                }
+            }           
+
+            if (cTypeRequest == "R")
+            {
+                if(CheckOut(document.forms[0]))
+                {
+                    document.forms[0].action = "W_PWSA553.APW";
+                    document.forms[0].submit();
+                }
+            }           
+
+            if (cTypeRequest == "S")
+            {
+                if(CheckOut(document.forms[0]))
+                {
+                    document.forms[0].action = "W_PWSA563.APW";
+                    document.forms[0].submit();
+                }
+            }           
+
+            if (cTypeRequest == "T")
+            {
+                if(CheckOut(document.forms[0]))
+                {
+                    document.forms[0].action = "W_PWSA573.APW";
+                    document.forms[0].submit();
+                }
+            }
+
+			if (cTypeRequest == "V")
+            {
+                if(CheckOut(document.forms[0]))
+                {
+                    document.forms[0].action = "W_PWSA383.APW";
+                    document.forms[0].submit();
+                }
+            }
+            
+            if (cTypeRequest == "Z")
+            {
+                if(CheckOut(document.forms[0]))
+                {
+                    document.forms[0].action = "W_PWSA404.APW";
+                    document.forms[0].submit();
+                }
+            }
+
+		}
+		
+		function fSubmitReprove()
+		{
+			var cTypeRequest;
+			cTypeRequest = '<%=HttpSession->cTypeRequest%>';
+
+			if (cTypeRequest == "B")
+			{
+			   if(CheckOut(document.forms[0]))
+			    {
+					document.forms[0].action = "W_PWSA117.APW";
+					document.forms[0].submit();
+			    }
+			}			    
+
+			if (cTypeRequest == "4")
+			{
+			   if(CheckOut(document.forms[0]))
+			    {
+					document.forms[0].action = "W_PWSA144.APW";
+					document.forms[0].submit();
+			    }
+			}
+			
+			if (cTypeRequest == "6")
+			{
+			   if(CheckOut(document.forms[0]))
+			    {
+					document.forms[0].action = "W_PWSA117.APW";
+					document.forms[0].submit();
+			    }
+			}			
+
+			if (cTypeRequest == "7")
+			{
+			   if(CheckOut(document.forms[0]))
+			    {
+					document.forms[0].action = "W_PWSA124.APW";
+					document.forms[0].submit();
+			    }
+			}
+
+			if (cTypeRequest == "8")
+			{
+			   if(CheckOut(document.forms[0]))
+			    {
+					document.forms[0].action = "W_PWSA164.APW";
+					document.forms[0].submit();
+			    }
+			}
+
+            if (cTypeRequest == "N")
+            {
+               if(CheckOut(document.forms[0]))
+                {
+                    document.forms[0].action = "W_PWSA514.APW";
+                    document.forms[0].submit();
+                }
+            }
+
+            if (cTypeRequest == "O")
+            {
+                if(CheckOut(document.forms[0]))
+                {
+                    document.forms[0].action = "W_PWSA524.APW";
+                    document.forms[0].submit();
+                }
+            }           
+
+            if (cTypeRequest == "P")
+            {
+                if(CheckOut(document.forms[0]))
+                {
+                    document.forms[0].action = "W_PWSA534.APW";
+                    document.forms[0].submit();
+                }
+            }           
+
+            if (cTypeRequest == "Q")
+            {
+               if(CheckOut(document.forms[0]))
+                {
+                    document.forms[0].action = "W_PWSA544.APW";
+                    document.forms[0].submit();
+                }
+            }
+
+            if (cTypeRequest == "R")
+            {
+                if(CheckOut(document.forms[0]))
+                {
+                    document.forms[0].action = "W_PWSA554.APW";
+                    document.forms[0].submit();
+                }
+            }           
+
+            if (cTypeRequest == "S")
+            {
+                if(CheckOut(document.forms[0]))
+                {
+                    document.forms[0].action = "W_PWSA564.APW";
+                    document.forms[0].submit();
+                }
+            }           
+
+            if (cTypeRequest == "T")
+            {
+               if(CheckOut(document.forms[0]))
+                {
+                    document.forms[0].action = "W_PWSA574.APW";
+                    document.forms[0].submit();
+                }
+            }           
+
+            if (cTypeRequest == "V")
+            {
+               if(CheckOut(document.forms[0]))
+                {
+                    document.forms[0].action = "W_PWSA384.APW";
+                    document.forms[0].submit();
+                }
+            }
+            
+            if (cTypeRequest == "Z")
+            {
+                if(CheckOut(document.forms[0]))
+                {
+                    document.forms[0].action = "W_PWSA405.APW";
+                    document.forms[0].submit();
+                }
+            } 
+
+		}
+
+
+        function fPrint(){
+            var nOperacao;
+            var cTypeRequest;
+
+            nOperacao    = '<%=HttpGet->nOperacao%>';
+            cTypeRequest = '<%=HttpSession->cTypeRequest%>';
+
+            if (cTypeRequest == "O")
+            {
+               document.getElementById('linhaInfo').style.visibility = 'hidden';
+               document.getElementById('linhaObs').style.visibility  = 'hidden';
+               document.getElementById('btnVoltar').style.visibility = 'hidden';
+               document.getElementById('btnImp').style.visibility    = 'hidden';
+               document.getElementById('Submit').style.visibility    = 'hidden';
+
+               self.print();
+
+               document.getElementById('linhaInfo').style.visibility = 'visible';
+               document.getElementById('linhaObs').style.visibility  = 'visible';
+               document.getElementById('btnVoltar').style.visibility = 'visible';
+               document.getElementById('btnImp').style.visibility    = 'visible';
+               document.getElementById('Submit').style.visibility    = 'visible';
+            }
+
+        }
+
+
+        function mostraDiv(obj,idImg) {
+            var divObj = document.getElementById(obj);
+            var imgObj = document.getElementById(idImg);
+
+            if ( divObj.style.display != 'none' ) {
+                divObj.style.display = 'none';
+                imgObj.src='imagens-rh/mais.bmp';     
+            }
+            else {
+                divObj.style.display = '';
+                imgObj.src='imagens-rh/menos.bmp';
+            }
+        }
+
+        //Avalia opcao de programacao de ferias - PWSA531
+        function avaliaOpTAB(progID) {              
+             var d            = document;
+             var divParte01a  = d.getElementById('divPer1a');
+             var divParte01b  = d.getElementById('divPer1b');
+             var img1         = d.getElementById('imgPer1');
+             var trSubst1     = d.getElementById('Subst1');
+
+             var divParte02a  = d.getElementById('divPer2a');
+             var divParte02b  = d.getElementById('divPer2b');
+             var img2         = d.getElementById('imgPer2');
+             var trSubst2     = d.getElementById('Subst2');
+             
+             var dias1        = progID.substr(0,2);  //Primeiro periodo
+             var dias2        = progID.substr(2,2);  //Segundo periodo
+             var dias3        = progID.substr(4,2);  //Dias de Abono
+             var dias4        = progID.substr(6,2);  //Dias Oportuno
+             var chave1       = progID.substr(8,1);  //Tipo de programacao
+             var chave2       = progID.substr(9,1);  //Codigo da opcao
+             var sequencia    = progID.substr(10,3); //Sequencia
+
+             var diasDir1     = d.getElementById('txtDias01');
+             var diasDir2     = d.getElementById('txtDias02');
+
+             var matSubst     = glbMatSubst;
+             var diaSubst     = parseInt(glbDiaSubst);
+
+             //alert('prog: ' + progID);
+             //alert('dias1: ' + dias1);
+             //alert('dias2: ' + dias2);
+             //alert('abono: ' + dias3);
+             //alert('oportuno: ' + dias4);
+             //alert('Tp Program: ' + chave1);
+             //alert('Cod Opcao: ' + chave2);
+             //alert('Sequencia: ' + sequencia);
+
+             if (dias1 > 0) {
+                 divParte01a.style.display = '';
+                 diasDir1.value = dias1
+
+                 try{
+                   if (matSubst == '.T.' && dias1 >= diaSubst) {
+                      trSubst1.style.display = '';
+                   } else {       
+                      trSubst1.style.display = 'none';
+                   }
+                 } catch (ex) { }
+             }
+             else {
+                 divParte01a.style.display = 'none';
+                 divParte01b.style.display = 'none';
+                 img1.src='imagens-rh/mais.bmp';     
+                 diasDir1.value = '...'
+             }
+
+
+             if (dias2 > 0) {
+                 divParte02a.style.display = '';
+                 diasDir2.value = dias2
+
+                 try{
+                    if (matSubst == '.T.' && dias2 >= diaSubst) {
+                        trSubst2.style.display = '';
+                    } else {       
+                        trSubst2.style.display = 'none';
+                    }
+                 } catch (ex) { }
+             }
+             else {
+                 divParte02a.style.display = 'none';
+                 divParte02b.style.display = 'none';
+                 img2.src='imagens-rh/mais.bmp';     
+                 diasDir2.value = '...'
+             }
+   
+             inicPeriodo('1');   
+             inicPeriodo('2');
+
+        }   
+
+        function inicPeriodo(periodo) {
+           var d2           = document;
+           var dtFim01      = d2.getElementById('txtDtFim01');
+           var dtFim02      = d2.getElementById('txtDtFim02');
+
+           var matSubst1    = d2.getElementById('txtMatSubst1');
+           var btnSubst1    = d2.getElementById('btnVld1');
+           var nomSubst1    = d2.getElementById('txtNomeSubst1');
+
+           var matSubst2    = d2.getElementById('txtMatSubst2');
+           var btnSubst2    = d2.getElementById('btnVld2');
+           var nomSubst2    = d2.getElementById('txtNomeSubst2');
+
+           var matSubst     = glbMatSubst;
+           var diaSubst     = parseInt(glbDiaSubst);
+
+           if (periodo == '1') {
+              dtFim01.value = 'calculada...';
+
+              try{
+                  if (matSubst == '.T.') {  
+                      if (btnSubst1.disabled == '') {
+                          nomSubst1.value         = '';
+                          matSubst1.value         = '';
+                          matSubst1.disabled      = 'true';
+                          btnSubst1.style.display = 'none';
+                       }
+                  } 
+              } catch (ex) { }
+
+           }    
+
+           if (periodo == '2') {
+              dtFim02.value='calculada...';
+
+              try{
+                  if (matSubst == '.T.') {  
+                      if (btnSubst2.disabled == '') {
+                          nomSubst2.value         = '';
+                          matSubst2.value         = '';
+                          matSubst2.disabled      = 'true';
+                          btnSubst2.style.display = 'none';
+                      }
+                  } 
+              } catch (ex) { }
+
+           }    
+
+        }   
+
+        function validaSubst(txtFilial, txtMatSubst, txtDataIni, txtDataFim, subst) {
+           var d            = document;
+           var matSubst1    = d.getElementById('txtMatSubst1');
+           var nomeSubst1   = d.getElementById('txtNomeSubst1');
+           var matSubst2    = d.getElementById('txtMatSubst2');
+           var nomeSubst2   = d.getElementById('txtNomeSubst2');
+           var matPrincipal = glbMatPrinc;
+           var notOK        = false; 
+
+           if (txtMatSubst == '') {
+              return true;
+           } 
+
+           if (subst == '1') {
+               nomeSubst1.value = 'avaliando...';
+
+               if (matSubst1.value == matPrincipal){
+                   alert(convertTagsHTMLCaracteres("O substituto nao pode ser o proprio!")); <!--O substituto nao pode ser o proprio! -->
+                   nomeSubst1.value = '' 
+                   matSubst1.focus();
+                   return false;
+                }
+           }
+           if (subst == '2') {
+               nomeSubst2.value = 'avaliando...';
+
+               if (matSubst2.value == matPrincipal){
+                   alert(convertTagsHTMLCaracteres("O substituto nao pode ser o proprio!")); <!--O substituto nao pode ser o proprio! -->
+                   nomeSubst2.value = '' 
+                   matSubst2.focus();
+                   return false;
+               }
+           }    
+
+           var cURL = "W_PWSA535.APW";
+           new Ajax.Request(   cURL,
+                               {
+                                method: 'get',
+                                parameters: {filial:txtFilial, matricula: txtMatSubst, dtini: txtDataIni, dtfim: txtDataFim},
+                                onFailure: function() { 
+                                                if (subst == '1') {
+                                                   matSubst1.value  = ''
+                                                   nomeSubst1.value = ''
+                                                   matSubst1.focus();
+                                                }    
+                                                else {
+                                                   matSubst2.value  = ''
+                                                   nomeSubst2.value = '' 
+                                                   matSubst2.focus();
+                                                }    
+                                                            
+                                                alert('Erro ao avaliar substituto!'); 
+                                                return false; 
+                                           },
+                                onSuccess: function(transport) { 
+                                                var response = transport.responseText || "";
+
+                                                if (response == '*1') {
+                                                   alert(convertTagsHTMLCaracteres("Problemas na avaliação do substituto!")); <!--Problemas na avaliação do substituto! --> 
+                                                   notOK = true; 
+                                                } 
+                                                if (response == '*2') {
+                                                   alert(convertTagsHTMLCaracteres("Matricula informada nao localizada!")); <!--Matricula informada nao localizada! --> 
+                                                   notOK = true; 
+                                                } 
+                                                if (response == '*3') {
+                                                   alert(convertTagsHTMLCaracteres("Substituto nao disponivel no periodo informado!")); <!--Substituto nao disponivel no periodo informado! --> 
+                                                   notOK = true; 
+                                                } 
+
+                                                if (notOK){
+                                                   if (subst == '1') {
+                                                      nomeSubst1.value = '' 
+                                                      matSubst1.value  = ''
+                                                      matSubst1.focus();
+                                                   }    
+                                                   else {
+                                                      nomeSubst2.value = '' 
+                                                      matSubst2.value  = ''
+                                                      matSubst2.focus();
+                                                   }
+
+                                                   return false; 
+                                                }    
+
+
+                                                if (subst == '1') {
+                                                    if (matSubst1.value != '') {
+                                                       nomeSubst1.value = response
+                                                    }
+                                                    else {
+                                                       nomeSubst1.value = ''
+                                                    }        
+                                                }    
+                                                else {
+                                                    if (matSubst2.value != '') {
+                                                       nomeSubst2.value = response
+                                                    }
+                                                    else {
+                                                       nomeSubst2.value = ''
+                                                    }        
+                                                }
+
+                                           }
+                                }
+                            );
+           return;    
+        }
+
+
+		//function CalcDateFinal(cDestination, cStandardQuery, cRecNo) {
+		function calcDateFinal() {
+			var cURL = "W_PWSA104.APW";
+
+			new Ajax.Request(	cURL,
+												{
+													method: 'get',
+													onFailure: function() {
+														alert('Erro ao carregar a pagina!');
+													},
+													onSuccess: function(oTransport) {
+														AjaxHandleConfirmSearch(cDestination, oTransport);
+													}
+												}
+											);
+		}
+
+		function Mascara(o,f){
+                v_obj=o
+                v_fun=f
+                setTimeout("execmascara()",1)
+        }
+                
+        function execmascara(){
+                v_obj.value=v_fun(v_obj.value)
+        }
+
+		function Integer(v){
+        	return v.replace(/\D/g,"")
+        }
+
+		function Data(v){
+                v=v.replace(/\D/g,"") 
+                v=v.replace(/(\d{2})(\d)/,"$1/$2") 
+                v=v.replace(/(\d{2})(\d)/,"$1/$2") 
+                return v
+        }
+		
+		function Valor(v){
+                v=v.replace(/\D/g,"") //Remove tudo o que não é dígito
+                v=v.replace(/^([0-9]{3}\.?){3}-[0-9]{2}$/,"$1.$2");
+                //v=v.replace(/(\d{3})(\d)/g,"$1,$2")
+                v=v.replace(/(\d)(\d{2})$/,"$1.$2") //Coloca ponto antes dos 2 últimos digitos
+                return v
+        }
+
+		function validaDat(campo,valor) {
+			var date=valor;
+			var ardt=new Array;
+			var ExpReg=new RegExp("(0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[012])/[12][0-9]{3}");
+			ardt=date.split("/");
+			erro=false;
+			if ( valor == ""){
+				return true;
+			}
+			if ( date.search(ExpReg)==-1){
+				erro = true;
+			}
+			else if (((ardt[1]==4)||(ardt[1]==6)||(ardt[1]==9)||(ardt[1]==11))&&(ardt[0]>30))
+				erro = true;
+			else if ( ardt[1]==2) {
+				if ((ardt[0]>28)&&((ardt[2]%4)!=0))
+					erro = true;
+				if ((ardt[0]>29)&&((ardt[2]%4)==0))
+					erro = true;
+			}
+			if (erro) {
+				alert("A data informada "+ valor + " não é uma data válida!" + "\n" + "Informe uma data correta no formato DD/MM/AAAA");//"A data informada "  ## " não é uma data válida!" ## Informe uma data correta no formato DD/MM/AAAA"
+				form76.campo.focus();
+				form76.campo.value = "";
+				return false;
+			}
+			return true;
+		}
+
+
+			//Fim Script Padrão
+
+
+			<%	If(Type("cMsg") != "U".AND. !(Empty(cMsg))) %>
+                alert('<%=cMsg%>');
+            <%	EndIf %>
+        </script>
+    </head>
+    <h3>Solicitação de Férias</h3>
+    <div id="divCabecalho" name="divCabecalho">
+    	<%If (HttpGet->nOperacao $ "1") %>
+        <fieldset>
+            <div class="container-cabec">
+                <div class="div-titulo">Filial: </div>
+                <div class="div-conteudo">
+                    <%=cFilFun%>
+                </div>
+            </div>
+            <div class="container-cabec">
+                <div class="div-titulo">Nome Filial: </div>
+                <div class="div-conteudo">
+                    <%=cNomeFil1%>
+                </div>
+            </div>            
+            <div class="container-cabec">
+                <div class="div-titulo">Matrícula: </div>
+                <div class="div-conteudo">
+                    <%=cMatricu1%>
+                </div>
+            </div>
+            <div class="container-cabec">
+                <div class="div-titulo">Nome: </div>
+                <div class="div-conteudo">
+                    <%=cNome1%>
+                </div>
+            </div>
+            <div class="container-cabec">
+                <div class="div-titulo">Admissão: </div>
+                <div class="div-conteudo">
+                    <%=cAdmissao1%>
+                </div>
+            </div>
+            <div class="container-cabec">
+                <div class="div-titulo">Cargo: </div>
+                <div class="div-conteudo">
+                    <%=cCargo1 + ' - ' + cNmCarg1%>
+                </div>
+            </div>
+            <div class="container-cabec">
+                <div class="div-titulo">Departamento:</div>
+                <div class="div-conteudo">
+                    <%=cDepartam1 + ' - ' + cNmDepa1%>
+                </div>
+            </div>
+            <div class="container-cabec">
+                <div class="div-titulo">Centro de custo: </div>
+                <div class="div-conteudo">
+                    <%=cCenCusto1 + ' - ' + cNmCeCu1 %>
+                </div>
+            </div>
+            <hr>
+            <p>&nbsp;</p>
+        </fieldset>
+        <% ElseIf (HttpGet->nOperacao $ '3*4') %>
+         <fieldset>
+            <div class="container-cabec">
+               <div class="div-titulo">Codigo Solicitação</div>
+               <div class="div-conteudo"><%=cCodigo%></div>
+            </div>
+            <div class="container-cabec">
+               <div class="div-titulo">Tipo Solicitação</div>
+               <div class="div-conteudo"><%=cDesc%></div>
+            </div>
+            <div class="container-cabec">
+               <div class="div-titulo">Filial solicitação - descrição</div>
+               <div class="div-conteudo"><%=cFilSoli + " - " + cDescFil%></div>
+            </div>
+            <% If !(cTipo $ "002|003") %>
+	            <div class="container-cabec">
+	               <div class="div-titulo">Filial Funcionario</div>
+	               <div class="div-conteudo"><%=cFilSltd + " - " + cDecSltd%></div>
+	            </div>
+	            <div class="container-cabec">
+	               <div class="div-titulo">Matricula Funcionario - Nome</div>
+	               <div class="div-conteudo"><%=cMatSltd + " - " + cNomSltd%></div>
+	            </div>
+	            <div class="container-cabec">
+	               <div class="div-titulo">cargo do funcionário</div>
+	               <div class="div-conteudo"><%=cCARSLTD%></div>
+	            </div>
+            <% EndIf %>
+            <div class="container-cabec">
+               <div class="div-titulo">Filial solicitante - descrição</div>
+               <div class="div-conteudo"><%=cFilIniS + " - " + cDescFlS%></div>
+            </div>
+            <div class="container-cabec">
+               <div class="div-titulo">Matricula solicitante - Nome</div>
+               <div class="div-conteudo"><%=cMatrFlS + " - " + cNomeFlS%></div>
+            </div>
+            <div class="container-cabec">
+               <div class="div-titulo">cargo do solicitante</div>
+               <div class="div-conteudo"><%=cDescCar%></div>
+            </div>
+            <div class="container-cabec">
+               <div class="div-titulo">centro de custo solicitante</div>
+               <div class="div-conteudo"><%=cDescCtt%></div>
+            </div>
+         </fieldset>
+        
+        <% EndIf %>
+    </div>
+    <% If !lEdit %>
+        <fieldset>
+            <p class="alerta">Existem solicitacoes de ferias pendentes para este funcionário.</p>
+            <!-- Existem solicitacoes de ferias pendentes para este funcionário. -->
+            <p class="alerta">Aguarde a efetivacao da solicitacao.</p>
+            <!-- Aguarde a efetivacao da solicitacao. -->
+        </fieldset>
+        <br>
+        <input name="Button" type="button" class="botoes" value="VOLTAR" onClick="javascript:history.go(-1)" />
+        <!--VOLTAR-->
+    <% Else %>
+        <body>
+            <fieldset>
+                <form name="formFerias" id="formFerias" onSubmit="return CheckOut(this)" action="U_F0801105.APW" method="post">
+                    <input name="cLogin" type="hidden" id="cLogin" value="<%=HttpSession->_cUsuario%>">
+                    <input name="nIndice" type="hidden" id="nIndice" value="<%=nIndice%>">
+                    <input name="nIndiceSolic" type="hidden" id="nIndiceSolic" value="<%=nIndiceSolic%>">
+                    <input name="lPontoRH" type="hidden" id="lPontoRH" value="<%=lPontoRH%>">
+                    <input name="nOperacao" type="hidden" id="nOperacao" value="<%=HttpGet->nOperacao%>">
+                    <input name="cTypeRequest" type="hidden" id="cTypeRequest" value="<%=HttpSession->cTypeRequest%>">
+                    <%If (HttpGet->nOperacao $ "1") %>
+                        <h3> Periodos Aquisitivos Abertos</h3>
+                            <!-- Periodos Aquisitivos Abertos -->
+                        <table width="800">
+                            <tr>
+                                <th>Data Inicial</th>
+                                <!-- Data Inicial -->
+                                <th>Data Final</th>
+                                <!-- Data Final -->
+                                <th>Dias de Direito</th>
+                                <!-- Dias de Direito -->
+                                <th>Dias Proporcionais</th>
+                                <!-- Dias Proporcionais -->
+                            </tr>
+                        <% If Empty(HttpGet->aPeriodos) %>
+                            <tr>
+                                <td Colspan='4'>
+                                    <center>N&atilde;o h&aacute; per&iacute;odos de f&eacute;rias dispon&iacute;vel</center>
+                                </td>
+                                <!--  N&atilde;o h&aacute; per&iacute;odos de f&eacute;rias dispon&iacute;vel -->
+                            </tr>
+                        <% Else%>
+                            <% For nReg := 1 to Len(HttpGet->aPeriodos) %>
+                                <tr>
+                                    <td class="info-cent">
+                                        <%=HttpGet->aPeriodos[nReg]:cInitialDate%>
+                                    </td>
+                                    <td class="info-cent">
+                                        <%=HttpGet->aPeriodos[nReg]:cFinalDate%>
+                                    </td>
+                                    <td class="info-cent">
+                                        <%=HttpGet->aPeriodos[nReg]:nDays%>
+                                    </td>
+                                    <td class="info-cent">
+                                        <%=HttpGet->aPeriodos[nReg]:nProportionalDays%>
+                                    </td>
+                                </tr>
+                                <% nTotDias += HttpGet->aPeriodos[nReg]:nDays %>
+                            <%	Next nReg %>
+                            <% If nTotDias == 0 .And. Len(HttpGet->aPeriodos) == 1
+                                  cIniSol  := DtoC( YearSum( CtoD(HttpGet->aPeriodos[1]:cInitialDate), 1 ) )
+                                  cFimSol  := DtoC( DaySub( YearSum( CtoD(HttpGet->aPeriodos[1]:cInitialDate), 2 ), 30 ) )
+                                  nTotDias := 30
+                            	EndIf %>
+                            <tr>
+                                <td class="info-cent" colspan="4">
+                                    Total dias direito:&nbsp;
+                                    <%=nTotDias%>
+                                        <!-- Total dias direito: -->
+                                </td>
+                            </tr>
+                        <% EndIf %>
+                        <%If (HttpGet->nDiasProg > 0) %>
+                            <tr>
+                                <td class="info-cent" colspan="2">
+                                    <p class="info-cent"> Total de dias programados:&nbsp;
+                                        <%=HttpGet->nDiasProg%>
+                                    </p>
+                                    <!-- Total de dias programados: -->
+                                </td>
+                                <td class="info-cent" colspan="2">
+                                    <p class="info-cent"> Total de dias de abono programados:&nbsp;
+                                        <%=HttpGet->nDiasAbo%>
+                                    </p>
+                                    <!-- Total de dias de abono programados: -->
+                                </td>
+                            </tr>
+                        <% EndIf %>
+                        </table>
+                        </br>
+                    <% Else%>
+                        <% If !Empty(HttpGet->aPeriodos) %>
+                            <% For nReg := 1 to Len(HttpGet->aPeriodos) %>
+                                <% nTotDias += HttpGet->aPeriodos[nReg]:nDays %>
+                            <%	Next nReg %>
+                        <% If nTotDias == 0 .And. Len(HttpGet->aPeriodos) == 1
+                            nTotDias := 30
+                            EndIf %>
+                        <% EndIf %>
+                    <% EndIf %>
+                    <% If lEdit %>
+                        <% If (HttpGet->nOperacao $ '3*4') %>
+                            
+                            <div class="container-cabec">
+                                <div class="div-titulo">Data Inicial:</div>
+                                <!-- Data Inicial -->
+                                <div class="div-conteudo">
+                                    <%=cInitialDate%>
+                                </div>
+                            </div>
+                            <div class="container-cabec">
+                                <div class="div-titulo">Dias:</div>
+                                <div class="div-conteudo">
+                                    <%=cDays%>
+                                </div>
+                            </div>
+                            <div class="container-cabec">
+                                <div class="div-titulo">Data Final:</div>
+                                <!-- Data Final -->
+                                <div class="div-conteudo">
+                                    <%=cFinalDate%>
+                                </div>
+                            </div>
+                            <div class="container-cabec">
+                                <div class="div-titulo">Abono Pecuniario:</div>
+                                <!-- Abono Pecuniario: -->
+                                <div class="div-conteudo">
+                                    <input type="checkbox" name="chkAbono" id="chkAbono" value="1" <%=IIf((HttpGet->nOperacao $ '3*4'), IIf(cPecuniaryAllowance== ".T.", 'disabled checked', 'disabled'), '')%> >
+                                </div>
+                            </div>
+                            <div class="container-cabec">
+                                <div class="div-titulo">1a Parcela 13o Salario:</div>
+                                <!-- 1a Parcela 13o Salario: -->
+                                <div class="div-conteudo">
+                                    <input type="checkbox" name="chk1Parc13Sal" id="chk1Parc13Sal" value="2" <%=IIf((HttpGet->nOperacao $ '3*4'), IIf(cThirteenthSalary1stInstall== ".T.", 'disabled checked', 'disabled'), '')%>>
+                                </div>
+                            </div>
+                            <div class="container-cabec">
+                                <div class="div-titulo">Observação:</div>
+                                <textarea name="cObservacao" cols="90" rows="10" id="cObservacao" disabled ><%=cObservacao%></textarea>
+                               
+                            </div>
+                            <br>
+                        <% Else %>
+                            <label>Data Inicial:</label>
+                            <!-- Data Inicial -->
+                            <input name="txtdtInicial" type="text" id="txtdtInicial" size="11" maxlength="10" onkeypress="return DateMask(this, event);"
+                                onfocus="value=''" onblur="return DateValid(this, this.value, '>', 'B', '<%=cDataPerm%>', '<%=cIniSol%>', '<%=cFimSol%>', '<%=cIniProg1%>', '<%=cFimProg1%>', '<%=cIniProg2%>', '<%=cFimProg2%>');"
+                                <%=IIf((HttpGet->nOperacao $ '3*4'), 'readonly', '')%> value="<%=IIf(HttpGet->nOperacao $ '3*4', HttpPost->Ferias:cInitialDate, 'dd/mm/aaaa')%>"/>
+                                <input style="margin:00px 0px 0px 00px;" type="button" class="botoes" NAME="btnData1" VALUE="..." Onclick="javascript:popdate('document.formFerias.txtdtInicial', 'pop1', '150', document.formFerias.txtdtInicial.value)">
+                                <span id="pop1" style="position:absolute"></span>
+                                <br>
+                            <% If (HttpSession->cTipoCalcDia == '1') %>
+                                <label>Dias Uteis:</label>
+                                <!-- Dias Uteis -->
+                            <% Else %>
+                                <label>Dias Corridos:</label>
+                                <!-- Dias Corridos -->
+                            <% EndIf %>
+                            <input onclick="return DateValid(txtdtInicial, txtdtInicial.value, '>', 'B', '<%=cDataPerm%>', '<%=cIniSol%>', '<%=cFimSol%>', '<%=cIniProg1%>', '<%=cFimProg1%>', '<%=cIniProg2%>', '<%=cFimProg2%>');"
+                                onblur="somaDias(this, txtdtInicial.value, this.value, '<%=(nTotDias-HttpGet->nDiasProg-HttpGet->nDiasAbo)%>', '<%=HttpSession->cTipoCalcDia%>', '<%=cDiasFe%>', '<%=nIdade%>');"
+                                name="txtdias" type="text"
+                                id="txtdias" size="3" maxlength="3"
+                                <%=IIf((HttpGet->nOperacao$ '3*4'), 'readonly', '')%>
+                                value="<%=IIf(HttpGet->nOperacao $ '3*4', HttpPost->Ferias:nDays, '')%>">
+                            <br>
+                            <label>Data Final:</label>
+                            <!-- Data Final -->
+                            <input name="txtdtFinal" type="text" id="txtdtFinal" size="11" maxlength="10" readonly value="calculada...">
+                            <br>
+                                <label>Abono Pecuniario:</label>
+                                <!-- Abono Pecuniario: -->
+                                <input type="checkbox" name="chkAbono" id="chkAbono" value="1" <%=IIf((HttpGet->nOperacao $ '3*4'), IIf(HttpPost->Ferias:cPecuniaryAllowance == ".T.", 'disabled checked', 'disabled'), '')%> >
+                                <br>
+                                <label>1a Parcela 13o Salario:</label>
+                                <!-- 1a Parcela 13o Salario: -->
+                                <input type="checkbox" name="chk1Parc13Sal" id="chk1Parc13Sal" value="2" <%=IIf((HttpGet->nOperacao $ '3*4'), IIf(HttpPost->Ferias:cThirteenthSalary1stInstall == ".T.", 'disabled checked', 'disabled'), '')%>>
+                        <% EndIf %>
+                        <br>
+                        <% If cObsApr == 'S' %>
+                        	<%If oLista2 != NIL%>
+				           		<% If OLISTA2:OWSREGISTRO:OWSINFHIS[1]:lLRET != .F. %>
+					           		<p class="Titulo">
+										<h3>	
+											Histórico de Aprovações
+										</h3>	
+									</p>
+								
+						           	<% For nCnt := 1 to Len(OLISTA2:OWSREGISTRO:OWSINFHIS)%>						            
+							            <label><%="Nome Aprovador: "%></label>
+													<input type="text" name="cPAENOMEAP" class="Texto" size="35" disabled="true" value="<%=OLISTA2:OWSREGISTRO:OWSINFHIS[nCnt]:cPAENOMEAP%>">
+													<br> 
+										 <label><%="Função Aprovador: "%></label>
+													<input type="text" name="cPAEFUNAPR" class="Texto" size="35" disabled="true" value="<%=OLISTA2:OWSREGISTRO:OWSINFHIS[nCnt]:cPAEFUNAPR%>">
+													<br> 
+										 <label><%="Desc C.C. Aprovador: "%></label>
+													<input type="text" name="cPAEDCCAPR" class="Texto" size="35" disabled="true" value="<%=OLISTA2:OWSREGISTRO:OWSINFHIS[nCnt]:cPAEDCCAPR%>">
+													<br> 
+										 <label><%="Observacao da Aprovação/Reprovação:"%></label>
+							            <textarea name="cPAEOBS" cols="80" rows="5" id="cPAEOBS" disabled="true"><%=OLISTA2:OWSREGISTRO:OWSINFHIS[nCnt]:cPAEOBS%></textarea>
+							            <br> 
+							            <hr>
+							            <br>
+						           <% Next %>
+				        		<%EndIf%>
+	            			<%EndIf%>
+							<label><%="Observacao da Aprovação/Reprovação:"%></label>
+					       	<textarea name="cObs" cols="80" rows="5" id="cObs"> </textarea>
+					       	<br>  
+					   	<%EndIf%>
+                    	<% If (HttpGet->nOperacao == '1') .or. lAprova .or. lPontoRH %>
+                            <br>
+                            <label>Observacao:</label>
+                            <!-- Observacao: -->
+                            <textarea name="txtobs" cols="80" rows="5" id="txtobs"></textarea>
+                        <% EndIf %>
+                        <br>
+                        <% If HttpGet->nOperacao == '4' %>
+                        	 <%	If cStatus == '1' .OR. cStatus == '4' %>
+								<br>
+								<label><%="Motivo Cancelamento:"%></label>
+	          					<textarea name="cObsCan" cols="80" rows="5" id="cObsCan"> </textarea>
+	         					<br>
+	         				<% EndIf %> 
+                            <input name="Button" type="button" class="botoes" value="VOLTAR" onClick="window.open('U_F0801101.APW', '_self')" />
+                        	<%	If cStatus == '1' .OR. cStatus == '4' %>
+								<input name="Button1" id="button1" type="button" class="botoes" value="Cancelar" onClick="javascript:fCancela()" />
+                       		<% EndIf %> 
+                        <% Else %>
+                            <input name="Button" type="button" class="botoes" value="VOLTAR" onClick="window.open('U_F0801101.APW', '_self')" />
+                            <!-- VOLTAR -->
+                        <% EndIf %>
+                        <% If (HttpGet->nOperacao == '1') %>
+                        <input name="Submit" id="button" type="button" class="botoes" value="SALVAR" onClick="javascript:fSubmitSalvar()">
+                        <!-- SALVAR -->
+                        <% ElseIf lBtAprova %>
+                        		<input name="cLocal" type="hidden" id="cLocal" value="008">
+								<input name="cFilRh3" type="hidden" id="cFilRh3" value="<%=cFilFun%>">
+								<input name="cInitialDate" type="hidden" id="cInitialDate" value="<%=cInitialDate%>">
+                            <input type="button" id="button2" value="REPROVAR" name="button2" class="botoes" onClick="javascript:fReprova()">
+                            <!-- REPROVAR -->
+                            <input type="button" id="button3" value="APROVAR" name="button3" class="botoes" onClick="javascript:fAprova()">
+                            <!-- APROVAR -->
+                        <% EndIf %>
+                    <% Else %>
+         				<br>			
+						<input name="Button" type="button" class="botoes" value="VOLTAR" onClick="window.open('U_F0801101.APW', '_self')" />
+                    <% EndIf %>
+                </form>
+            </fieldset>
+        </body>
+    <% EndIf %>
+
+    </html>

@@ -1,0 +1,169 @@
+<%
+   /*
+   {Protheus.doc} F0200310()
+   listagem dos funcionários subordinados e seus subordinados(se tiver)
+   @Author     Henrique Madureira
+   @Since      
+   @Version    P12.7
+   @Project    MAN00000463301_EF_003
+   @Return	 
+   */	
+   	Local nReg          	:= 0
+   	Local nInicio       	:= 2
+   	Local cEmployeeFilial 	:= Iif(Valtype(HttpGet->EmployeeFilial) == "U", "", HttpGet->EmployeeFilial)
+   	Local cRegistration  	:= Iif(Valtype(HttpGet->Registration) == "U", "", HttpGet->Registration)
+   	Local cTitulo			:= ''
+   	Local cEmployeeEmp 	:= Iif(Valtype(HttpGet->EmployeeEmp) == "U", "", HttpGet->EmployeeEmp)
+   	Local nCnt      := 1
+   	Local nCont     := 1
+   	Local nProx     := 1
+   	Local cSpace    := "&nbsp;&nbsp;&nbsp;"
+   Local aLegenda  := {	"br_amarelo_ocean.png",;
+   				"br_verde_ocean.png",;
+   		 		"br_vermelho_ocean.png",;
+   				"br_azul_ocean.png"}
+   %>
+<html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <title></title>
+      <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+      <link href="styles/consulta.css" rel="stylesheet" type="text/css">
+      <link href="styles/estilo.css" rel="stylesheet" type="text/css">
+      <script src="scripts/ajax.js" language="JavaScript" type="text/javascript"></script>
+      <script src="scripts/prototype.js" language="JavaScript" type="text/javascript"></script>
+      <script src="scripts/scriptaculous.js" language="JavaScript" type="text/javascript"></script>
+   <body>
+      <h2>Solicitação de Incentivo Acadêmico</h2>
+      <div id="divFuncionarios" name="divFuncionarios">
+         <p>&nbsp;</p>
+         <h3>Minha Equipe </h3>
+         <!-- Equipe -->
+         <p></p>
+         <%If Len(aAuxPag) > 1 %>
+         <% For nProx := 1 to Len(aAuxPag)%>
+         <ul style="list-style-type: none;">
+            <% IF (aAuxPag[nProx]:lPossuiEquipe) .OR. cMat = aAuxPag[nProx]:cRegistration %>
+            <% IF nProx == 1 %>
+            <li name="superior"value="<%=aAuxPag[nProx]:cRegistration%> ">
+               <a href="U_F0200301.APW" class="links" onclick="">
+               <%=nProx%> . <%=aAuxPag[nProx]:cName%>
+               </a>
+            </li>
+            <% ELSE %>
+            <li name="superior" id="superior" value="<%=aAuxPag[nProx]:cRegistration%> ">
+               <a href="U_F0200321.APW?EmployeeFilial=<%=aAuxPag[nProx]:cEmployeeFilial%>&codsubfun=<%=aAuxPag[nProx]:cRegistration%>&depsubfun=<%=aAuxPag[nProx]:cDepartment%>&nmsuper=<%=aAuxPag[nProx]:cName%>" class="links" onclick="">
+               <%=nProx%> . <%=aAuxPag[nProx]:cName%>
+               </a>
+            </li>
+            <% ENDIF %>
+            <% ENDIF %>
+            <% Next nProx %>
+            <% FOR nProx := 1 to Len(aAuxPag) %>
+         </ul>
+         <% Next nProx %>
+         <% Else %>
+         <p align="center" colspan="6">Nao existem registros para exibicao</p>
+         <% EndIf %>		
+         <p></p>
+         <br>
+         <table width="800">
+            <tbody>
+               <tr>
+                  <th>Cód. </th>
+                  <!-- Matricula -->
+                  <th>Nome </th>
+                  <!-- Nome -->
+                  <th>Admissão</th>
+                  <!-- Admissao -->
+                  <th>Departamento</th>
+                  <!-- Departamento -->
+                  <th>Situação </th>
+                  <!-- Situação -->
+                  <th></th>
+               </tr>
+               <%If Len(HttpSession->aStructure) > 1 %>
+               <% For nReg := nInicio to Len(HttpSession->aStructure)%>
+               <tr height="21" bgcolor="#F2F2F2">
+                  <% IF !(HttpSession->aStructure[nReg]:cSituacao ==" ") %>
+                  <td  class="info-cent"> <%=HttpSession->aStructure[nReg]:cRegistration%></td>
+                  <% Else %>	    			
+                  <td  class="info-cent">
+                     <a href="U_F0200317.APW?EmployeeFilial=<%=HttpSession->aStructure[1]:cEmployeeFilial%>&Registration=<%=HttpSession->aStructure[1]:cRegistration%>&nReg=<%=nReg%>" class="links"><%=HttpSession->aStructure[nReg]:cRegistration%> </a>
+                  </td>
+                  <% EndIf %>	    			
+                  <td class="TituloMenor"><%=HttpSession->aStructure[nReg]:cName%></td>
+                  <td class="TituloMenor"><%=HttpSession->aStructure[nReg]:cAdmissionDate%></td>
+                  <td class="TituloMenor"><%=HttpSession->aStructure[nReg]:cDepartment%></td>
+                  <td class="TituloMenor"><%=Iif(Empty(HttpSession->aStructure[nReg]:cDescSituacao),HttpSession->aStructure[nReg]:cSituacao,HttpSession->aStructure[nReg]:cDescSituacao)%></td>
+                  <% IF (HttpSession->aStructure[nReg]:lPossuiEquipe) %>
+                  <td class="TituloMenor">
+                     <a href="U_F0200321.APW?EmployeeFilial=<%=HttpSession->aStructure[nReg]:cEmployeeFilial%>&codsubfun=<%=HttpSession->aStructure[nReg]:cRegistration%>&depsubfun=<%=HttpSession->aStructure[nReg]:cDepartment%>&nmsuper=<%=HttpSession->aStructure[nReg]:cName%>" >
+                     <img id="img_equipe" name="img_equipe" src="imagens-rh/icone_equipe.gif" title="Visualizar equipe do funcionário: <%=HttpSession->aStructure[nReg]:cRegistration%>">
+                     </a>
+                  </td>
+                  <% Else %>
+                  <td></td>
+                  <% EndIf  %>	    			
+               </tr>
+               <% Next nReg %>
+               <% Else %> 
+               <tr bgcolor="#F2F2F2" class="Texto">
+                  <td align="center" colspan="6">Nao existem registros para exibicao</td>
+                  <!--Nao existem registros para exibicao-->
+               </tr>
+               <% EndIf %>
+               <tr>
+                  <td class="info-cent" colspan="6">
+                  </td>
+               </tr>
+            </tbody>
+         </table>
+      </div>
+      <h3>Minhas solicitações</h3>
+      <!--Minhas solicitacoes-->
+      <div id="divSolicitacoes" name="divSolicitacoes">
+         <div id="divMinhasSolic" name="divMinhasSolic">
+            <table width="800">
+               <tbody>
+                  <tr>
+                     <th>&nbsp;</th>
+                     <th>C&oacute;d</th>
+                     <th>Matricula</th>
+                     <th>Nome</th>
+                     <th>Status</th>
+                  </tr>
+                  <tr>
+                     <% If OLISTA2 != NIL %>
+                     <% If !(EMPTY(OLISTA2:OWSREGISTRO:OWSSOLICITACAO[1]:CCOD)) %>
+                     <% For nCnt := 1 to Len(OLISTA2:OWSREGISTRO:OWSSOLICITACAO)%>
+                  <tr>
+                     <td><img src="imagens-rh/<%=aLegenda[VAL(OLISTA2:OWSREGISTRO:OWSSOLICITACAO[nCnt]:CSTATUS)]%>" title="<%=ALLTRIM(OLISTA2:OWSREGISTRO:OWSSOLICITACAO[nCnt]:CSTATUS)%>"></td>
+                     <td><a href="U_F0200319.APW?cSolic=<%=OLISTA2:OWSREGISTRO:OWSSOLICITACAO[nCnt]:CCOD%>&cFuncod=<%=OLISTA2:OWSREGISTRO:OWSSOLICITACAO[nCnt]:CMATRICULA%>&cStatus=<%=OLISTA2:OWSREGISTRO:OWSSOLICITACAO[nCnt]:CSTATUS%>&CFILIALS=<%=OLISTA2:OWSREGISTRO:OWSSOLICITACAO[nCnt]:CFILIALS%>&Ccodpa3=<%=OLISTA2:OWSREGISTRO:OWSSOLICITACAO[nCnt]:Ccodpa3%>&Cfilpa3=<%=OLISTA2:OWSREGISTRO:OWSSOLICITACAO[nCnt]:Cfilpa3%>" class="links">
+                        <%=OLISTA2:OWSREGISTRO:OWSSOLICITACAO[nCnt]:CCOD%></a>
+                     </td>
+                     <td><%=OLISTA2:OWSREGISTRO:OWSSOLICITACAO[nCnt]:CMATRICULA%></td>
+                     <td><%=OLISTA2:OWSREGISTRO:OWSSOLICITACAO[nCnt]:CNOME%></td>
+                     <td><%=IIF(VAL(OLISTA2:OWSREGISTRO:OWSSOLICITACAO[nCnt]:CSTATUS)==1,"Aprovado",IIF(VAL(OLISTA2:OWSREGISTRO:OWSSOLICITACAO[nCnt]:CSTATUS)==2,"Reprovado","Aguardando Aprova&ccedil;&atilde;o"))%></td>
+                  </tr>
+                  <% Next %>
+                  <% Else %>
+                  <tr bgcolor="#F2F2F2" class="Texto">
+                     <td align="center" colspan="6">Nao existem registros para exibicao</td>
+                  </tr>
+                  <% EndIf %>  
+                  <% Else %> 
+                  <tr bgcolor="#F2F2F2" class="Texto">
+                     <td align="center" colspan="6">Nao existem registros para exibicao</td>
+                  </tr>
+                  <% EndIf %>  
+                  <tr>
+                     <td class="info-cent" colspan="6">
+                     </td>
+                  </tr>
+               </tbody>
+            </table>
+            <input name="Button" type="button" class="botoes" value="VOLTAR" onClick="javascript:history.go(-1);" /> <!--VOLTAR-->
+         </div>
+      </div>
+   </body>
+</html>

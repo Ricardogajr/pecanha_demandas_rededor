@@ -1,0 +1,66 @@
+<%
+/*
+{Protheus.doc} F0200303()
+solicitações de incentivo a educação
+@Author     Henrique Madureira
+@Since      
+@Version    P12.7
+@Project    MAN00000463301_EF_003
+@Return	 
+*/
+	Local nTotal    := 0
+	Local nI        := 0
+	Local nPos      := 0
+	Local nX        := 0
+	Local nCnt		:= 0
+	Local nQtdItens := 0
+	Local NPAGETOTAL := 0
+	Local nCodSts   := 0
+	Local aLegenda  := {	"br_amarelo_ocean.png",;
+							"br_verde_ocean.png",;
+					 		"br_vermelho_ocean.png",;
+							"br_azul_ocean.png"}
+
+%>
+<div id="divMinhasSolic" name="divMinhasSolic">	
+		
+	<table  width="800">
+		<tr>
+			<th>&nbsp;</th>
+			<th>C&oacute;d</th>
+			<th>Matricula</th>
+			<th>Nome</th>
+			<th>Status</th>
+			
+		</tr>
+		<% If OLISTA2 != NIL %>
+			<% If !(EMPTY(OLISTA2:OWSREGISTRO:OWSSOLICITACAO[1]:CCOD)) %>
+			<% For nCnt := 1 to Len(OLISTA2:OWSREGISTRO:OWSSOLICITACAO)%>
+			<tr>
+				<td><img src="imagens-rh/<%=aLegenda[VAL(OLISTA2:OWSREGISTRO:OWSSOLICITACAO[nCnt]:CSTATUS)]%>" title="<%=ALLTRIM(OLISTA2:OWSREGISTRO:OWSSOLICITACAO[nCnt]:CSTATUS)%>"></td>
+				<td>
+				<a href="U_F0200319.APW?cSolic=<%=OLISTA2:OWSREGISTRO:OWSSOLICITACAO[nCnt]:CCOD%>&cFuncod=<%=OLISTA2:OWSREGISTRO:OWSSOLICITACAO[nCnt]:CMATRICULA%>&cStatus=<%=OLISTA2:OWSREGISTRO:OWSSOLICITACAO[nCnt]:CSTATUS%>&CFILIALS=<%=OLISTA2:OWSREGISTRO:OWSSOLICITACAO[nCnt]:CFILIALS%>&Ccodpa3=<%=OLISTA2:OWSREGISTRO:OWSSOLICITACAO[nCnt]:Ccodpa3%>&Cfilpa3=<%=OLISTA2:OWSREGISTRO:OWSSOLICITACAO[nCnt]:Cfilpa3%>" class="links">
+				<%=OLISTA2:OWSREGISTRO:OWSSOLICITACAO[nCnt]:CCOD%>
+				</a>
+				</td>
+				<td><%=OLISTA2:OWSREGISTRO:OWSSOLICITACAO[nCnt]:CMATRICULA%></td>
+				<td><%=OLISTA2:OWSREGISTRO:OWSSOLICITACAO[nCnt]:CNOME%></td>
+				<td><%=IIF(VAL(OLISTA2:OWSREGISTRO:OWSSOLICITACAO[nCnt]:CSTATUS)==1,"Em processo de aprova&ccedil;&atilde;o",IIF(VAL(OLISTA2:OWSREGISTRO:OWSSOLICITACAO[nCnt]:CSTATUS)==2,"Atendida",IIF(VAL(OLISTA2:OWSREGISTRO:OWSSOLICITACAO[nCnt]:CSTATUS)==3,"Reprovada","Aguardando Efetiva&ccedil;&atilde;o do RH")))%></td>
+			</tr>
+			<% Next %>
+			<% Else %> 
+                  <tr bgcolor="#F2F2F2" class="Texto">
+                     <td align="center" colspan="6">Nao existem registros para exibicao</td>
+               </tr>
+			<% EndIf %>  
+		<% Else %> 
+                  <tr bgcolor="#F2F2F2" class="Texto">
+                     <td align="center" colspan="6">Nao existem registros para exibicao</td>
+                  </tr>
+		<% EndIf %>  
+		<tr>
+			<td class="info-cent" colspan="6">
+			</td>
+		</tr>
+	</table>
+</div>

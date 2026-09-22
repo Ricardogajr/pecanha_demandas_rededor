@@ -1,0 +1,167 @@
+#INCLUDE "Protheus.ch"
+#INCLUDE "tlpp-core.th"
+/*/{Protheus.doc} xKPTOSM0
+Rotina realiza a exportação de dados 
+@type function
+@version 1.0  
+@author 
+@since 05/12/2023
+
+{
+    "log": {
+        "Ambiente": {
+            "EmpFil": "10/0101",
+            "Empresa": "Captalys Companhia de Credito",
+            "Filial": "Companhia de Credito",
+            "Environment": "CMCGX2_HOM",
+            "StartPath": "/system/",
+            "RootPath": "d:\\outsourcing\\totvs\\protheus_data",
+            "Versao": "TOTVS ServiÃ§os MSSQL Cmcgx2_hom",
+            "User": "000110 SSO1",
+            "Computer": "DESKTOP-0G1ITDJ"
+        }
+    },
+    "cEmpAnt": "10",
+    "id": "SM001",
+    "rotina": "xKPTOSM0",
+    "data_env": "2023-12-05T00:00:00-03:00",
+    "data": [
+        {
+            "M0_CODIGO": "10",
+            "M0_CODFIL": "0101",
+            "M0_NOME": "CAPTALYS CREDITO",
+            "M0_FILIAL": "COMPANHIA DE CREDITO",
+            "M0_CGC": "23361030000129",
+            "M0_TEL": "55-11-20702810"
+        },
+        {
+            "M0_CODIGO": "11",
+            "M0_CODFIL": "0101",
+            "M0_NOME": "CAPTALYS SERVICOS",
+            "M0_FILIAL": "SERVICOS",
+            "M0_CGC": "13198591000103",
+            "M0_TEL": "55-11-33306355"
+        },
+        {
+            "M0_CODIGO": "75",
+            "M0_CODFIL": "0124",
+            "M0_NOME": "EAF",
+            "M0_FILIAL": "FILIAL PE",
+            "M0_CGC": "45282870002182",
+            "M0_TEL": "55-11-99999999"
+        }
+    ]
+}
+
+/*/
+User Function xKPTOSM0() 
+	Local cIDNew    := ""
+	Local aArea 	:= FWGetArea()
+	Local cQuery	:= ""
+	Local cAliasQry	:= ""
+	Local cPostJson	:= ""
+	Local oData     := Nil 
+	Local oLog 		:= Nil 
+	Local oItem		:= Nil
+	Local oRetorno	:= Nil 
+	Local aRetorno	:= {} 
+	Local lRet      := .F.
+
+	// ---------------------------------------------------------------
+	// RECUPERA O CONTEUDO DE CADA CAMPO DO ALIAS FILHO
+	oData := JsonObject():New()
+	oData["log"] 	  := JsonObject():New()
+	
+	oLog := JsonObject():New()
+	oLog["EmpFil"]      := cEmpAnt + "/" + cFilAnt 
+	oLog["Empresa"]     := Capital(AllTrim(GetAdvFVal("SM0","M0_NOMECOM",cEmpAnt + cFilAnt,1,""))) 
+	oLog["Filial"]      := Capital(AllTrim(GetAdvFVal("SM0","M0_FILIAL" ,cEmpAnt + cFilAnt,1,""))) 
+	oLog["Environment"] := GetEnvServer()  
+	oLog["StartPath"]   := GetSrvProfString("StartPath","")
+	oLog["RootPath"]    := GetSrvProfString("RootPath" ,"") 
+	oLog["Versao"]      := GetVersao(.T.) 
+	oLog["User"]        := __cUserId + " " +  cUserName 
+	oLog["Computer"]    := GetComputerName() 
+
+	oData["log"]["Ambiente"] := oLog
+
+	oData["cEmpAnt"]  := cEmpAnt
+	oData["id"]		  := "SM001"
+	oData["rotina"]	  := "KPTOSM0"
+	oData["data_env"] := FwTimeStamp(5,Date(),"00:00:00") 
+	oData["data"]	  := {} 
+
+	cQuery := " SELECT" 
+	cQuery += "   M0_CODIGO  ,"
+	cQuery += "   M0_CODFIL  ,"
+	cQuery += "   M0_NOME    ,"
+	cQuery += "   M0_FILIAL  ,"
+	cQuery += "   M0_CGC     ,"
+	cQuery += "   M0_TEL     "
+	cQuery += " FROM SYS_COMPANY" 
+	cQuery += " WHERE D_E_L_E_T_ =  ''"
+	
+	cAliasQry := MPSysOpenQuery(ChangeQuery(cQuery))
+
+	While (cAliasQry)->(!Eof())
+	
+		oItem	:= Nil 
+		oItem 	:= JsonObject():New()
+
+		oItem["M0_CODIGO"]	:= AllTrim((cAliasQry)->M0_CODIGO) 	// "01",
+		oItem["M0_CODFIL"]	:= AllTrim((cAliasQry)->M0_CODFIL) 	// "0101",
+		oItem["M0_NOME"]	:= AllTrim((cAliasQry)->M0_NOME) 	// "CAPTALYS CREDITO"",
+		oItem["M0_FILIAL"]	:= AllTrim((cAliasQry)->M0_FILIAL) 	// "COMPANHIA DE CREDITO",
+		oItem["M0_CGC"]		:= AllTrim((cAliasQry)->M0_CGC) 	// "23361030000129",
+		oItem["M0_TEL"]		:= AllTrim((cAliasQry)->M0_TEL)		// "(48) 3463-8600"		
+			
+		aAdd( oData["data"], oItem )
+	
+		(cAliasQry)->( DbSkip() )
+	
+	EndDo
+
+
+	cPostJson := EncodeUTF8(oData:ToJson())
+	
+			
+	If cPostJson <> Nil
+		aRetorno := U_xKPTFWRest("POST",/*cUrl*/,/*cSetPath*/,cPostJson,/*aHeader*/,/*lCallBack*/,/*cOnergy*/)
+		If aRetorno[1]
+			U_xKPTLogMsg("Extração realizada com SUCESSO: "+aRetorno[3])
+
+			oRetorno := JsonObject():New()
+			cJson := oRetorno:FromJson(aRetorno[3])
+		
+			If ValType(cJson) == "U"
+				cIDNew := Alltrim(aRetorno[2])
+				lRet  := oRetorno["Status"]
+			Else
+				aRetorno[3] := "Falha ao popular JsonObject. Erro: " + cJson
+			EndIf
+			
+
+		Else				
+			If Empty(aRetorno[2])
+				aRetorno[2] := "Falha na requisição."
+				U_xKPTLogMsg("Error: "+aRetorno[3])
+			EndIf
+
+			lRet	  := .F.
+			lErro     := .F.
+			cResponse := "Erro ao realizar a extração de: SYS_COMPANY ERROR: "+aRetorno[3]
+			cUrl      := aRetorno[4]
+		EndIf
+	Else 
+		U_xKPTLogMsg("ERROR NIL oData:ToJson : SYS_COMPANY")
+	EndIf
+		
+	lActiveLog 	:= SuperGetMv("KPT_MNTLOG",,.T.)
+
+	U_xKPTGrvLog(lActiveLog,cFilAnt,"SM001","KPTSM0",cIDNew,"PROTHEUS","TAXFY",cPostJson,Alltrim(aRetorno[3]),IIf(lRet,"2","3"),dDatabase,Substr(Time(),1,5))
+
+	(cAliasQry)->(DBCloseArea())
+
+FwRestArea(aArea)
+
+Return( lRet )

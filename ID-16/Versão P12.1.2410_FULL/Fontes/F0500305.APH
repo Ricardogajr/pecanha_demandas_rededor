@@ -1,0 +1,69 @@
+<%
+
+/*/{Protheus.doc} F0500305()
+Tela inicial das solicitações
+@Author     Henrique Madureira
+@Since      
+@Version    P12.7
+@Project    MAN0000007423039_EF_003
+@Return	 
+/*/
+
+%>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title></title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link href="styles/consulta.css" rel="stylesheet" type="text/css">
+<link href="styles/estilo.css" rel="stylesheet" type="text/css">
+<script src="scripts/ajax.js" language="JavaScript" type="text/javascript"></script>
+<script src="scripts/prototype.js" language="JavaScript" type="text/javascript"></script>
+<script src="scripts/scriptaculous.js" language="JavaScript" type="text/javascript"></script>
+<script language="Javascript">
+
+	
+function GoToPage(nPageType) {
+
+	if (nPageType == 1) {
+		cURL = 'U_F0500306.APW';
+		cDestination = 'divSolicitacoes';
+	}			
+		
+	new Ajax.Updater(	cDestination, cURL);
+	return false;
+}
+
+
+function FiltroSelec() {
+	
+	var pos = document.getElementById("ddlFiltroSolicitacao");
+	
+	var campo = pos.options[pos.selectedIndex].value;
+	
+	var valor = document.getElementById("txtFiltroSolicitacao").value;
+	alert(valor);
+	document.forms[0].action = "U_F0500306.APW?cFiltro='2'&cCampo=" + campo + "&cValor=" + valor +"";
+	document.forms[0].submit();
+	
+}
+<%	If(valtype(cmsg) != "U" .OR. cmsg != NIL) %>
+		alert('<%=cmsg%>');
+<%	EndIf %>
+</script>
+		
+	<body>
+		
+		<div id="divSolicitacoes" name="divSolicitacoes">
+			<div style="text-align: center; vertical-align: middle; width: 600px;">
+				<img src="imagens-rh/ajax-loader.gif"><br>
+				<span class="TituloMenor">Aguarde</span>
+			</div>
+			<script language="Javascript">
+	
+				GoToPage(1);
+
+			</script>
+		</div>
+	</body>
+</html>

@@ -1,0 +1,185 @@
+<%
+#INCLUDE "PROTHEUS.CH"
+#INCLUDE "APWEBEX.CH" 
+
+/*
+{Protheus.doc} F0100301.aph
+Página principal da solicitação de vaga
+@Author     Bruno de Oliveira
+@Since      07/10/2016
+@Version    P12.1.07
+@Project    MAN00000462901_EF_003
+*/
+%>
+
+<?xml version="1.0" encoding="iso-8859-1"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<script src="scripts/prototype.js" language="JavaScript" type="text/javascript"></script>
+<script src="scripts/scriptaculous.js" language="JavaScript" type="text/javascript"></script>
+<link href="styles/consulta.css" rel="stylesheet" type="text/css">
+<link href="styles/estilo.css" rel="stylesheet" type="text/css">
+<title>Solicitação de Vagas</title>
+<script language="JavaScript" >
+
+	function formatar(mascara, documento){
+		var i = documento.value.length;
+		var saida = mascara.substring(0,1);
+		var texto = mascara.substring(i);
+	    if (texto.substring(0,1) != saida){
+			documento.value += texto.substring(0,1);
+  		}
+	}
+
+	/* Máscaras ER */
+	function mascara(o,f){
+    	v_obj=o
+   	 	v_fun=f
+    	setTimeout("execmascara()",1)
+	}
+	function execmascara(){
+    	v_obj.value=v_fun(v_obj.value)
+	}
+
+	function mnumero(v){
+    	v=v.replace(/\D/g,"");                    //Remove tudo o que não é dígito
+    	return v;
+	}
+	function mvalor(v){
+    	v=v.replace(/\D/g,"");//Remove tudo o que não é dígito
+    	v=v.replace(/(\d)(\d{8})$/,"$1.$2");//coloca o ponto dos milhões
+    	v=v.replace(/(\d)(\d{5})$/,"$1.$2");//coloca o ponto dos milhares
+	
+    	v=v.replace(/(\d)(\d{2})$/,"$1,$2");//coloca a virgula antes dos 2 últimos dígitos
+    	return v;
+	}
+	
+function validaData(stringData)
+{
+    /******** VALIDA DATA NO FORMATO DD/MM/AAAA *******/
+    var regExpCaracter = /[^\d]/;     //Expressão regular para procurar caracter não-numérico.
+    var regExpEspaco = /^\s+|\s+$/g;  //Expressão regular para retirar espaços em branco.
+    
+    if(stringData.length != 10)
+    {
+        alert('Data fora do padrão DD/MM/AAAA');
+        return false;
+    }
+    
+    splitData = stringData.split('/');
+    
+    if(splitData.length != 3)
+    {
+        alert('Data fora do padrão DD/MM/AAAA');
+        return false;
+    }
+    
+    /* Retira os espaços em branco do início e fim de cada string. */
+    splitData[0] = splitData[0].replace(regExpEspaco, '');
+    splitData[1] = splitData[1].replace(regExpEspaco, '');
+    splitData[2] = splitData[2].replace(regExpEspaco, '');
+    
+    if ((splitData[0].length != 2) || (splitData[1].length != 2) || (splitData[2].length != 4))
+    {
+        alert('Data fora do padrão DD/MM/AAAA');
+        return false;
+    }
+    
+    /* Procura por caracter não-numérico. EX.: o "x" em "28/09/2x11" */
+    if (regExpCaracter.test(splitData[0]) || regExpCaracter.test(splitData[1]) || regExpCaracter.test(splitData[2]))
+    {
+        alert('Caracter inválido encontrado!');
+        return false;
+    }
+    
+    dia = parseInt(splitData[0],10);
+    mes = parseInt(splitData[1],10)-1; //O JavaScript representa o mês de 0 a 11 (0->janeiro, 1->fevereiro... 11->dezembro)
+    ano = parseInt(splitData[2],10);
+    
+    var novaData = new Date(ano, mes, dia);
+    
+    if ((novaData.getDate() != dia) || (novaData.getMonth() != mes) || (novaData.getFullYear() != ano))
+    {
+        alert('Data Inválida!');
+        return false;
+    }
+
+	var dGetDtIni = new Date(document.getElementById("dAbertura").value);
+	var dGetDtFim = new Date(document.getElementById("dFech").value);
+
+	if(dGetDtIni > dGetDtFim){
+		alert("Data Final Invalida!");
+		return false;
+	}
+
+    return true;
+}
+function GoToPage(nPageType) {
+
+	if (nPageType == 1) {
+		cURL = 'U_F0100302.APW';
+		cDestination = 'divDepartamentos';
+	}
+	else if (nPageType == 2) {
+		cURL = 'U_F0100307.APW';
+		cDestination = 'divSolicitacoes';
+	}
+
+	new Ajax.Updater(	cDestination, cURL);
+	return false;
+}
+
+function fNextPage(nPTotal,nCurrentPage){
+	alert('U_F0100304.APW?nPTotal=' + nPTotal + '&nCurrentPage=' + nCurrentPage + '1')
+
+	document.forms[0].action = 'U_F0100304.APW?nPTotal=' + nPTotal + '&nCurrentPage=' + nCurrentPage + '';
+    document.forms[0].submit();
+
+}
+
+function fNextDept(nCurrentPage,nPTotal){
+	cURL = 'U_F0100302.APW?nPTotal=' + nPTotal + '&nCurrentPage=' + nCurrentPage + '';
+	cDestination = 'divDept';    
+	new Ajax.Updater(	cDestination, cURL);
+	return false;
+}
+<%	If(valtype(cMsg) != "U" .OR. cMsg != NIL) %>
+		alert('<%=cMsg%>');
+<%	EndIf %>
+
+</script>
+</head>
+<body>
+<h2>Solicitação de Vagas</h2>
+<h3>Departamentos</h3>
+
+<div id="divDepartamentos" name="divDepartamentos">
+	<div style="text-align: center; vertical-align: middle; width: 600px;">
+		<img src="imagens-rh/ajax-loader.gif"><br>
+		<span class="TituloMenor">Aguarde</span>
+	</div>
+	<script language="Javascript">
+
+			GoToPage(1);
+
+		</script>
+</div>
+
+
+<h3>Minhas solicitações</h3>
+
+<div id="divSolicitacoes" name="divSolicitacoes">
+	<div style="text-align: center; vertical-align: middle; width: 600px;">
+		<img src="imagens-rh/ajax-loader.gif"><br>
+		<span class="TituloMenor">Aguarde</span>
+	</div>
+	<script language="Javascript">
+
+			GoToPage(2);
+
+		</script>
+</div>
+
+</body>
+</html>

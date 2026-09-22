@@ -1,0 +1,360 @@
+<%
+   #Include 'Protheus.ch'
+   #INCLUDE "APWEBEX.CH"
+
+	Local nCnt := 0   
+   %>
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!doctype html public "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <title></title>
+      <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+      <link href="styles/consulta.css" rel="stylesheet" type="text/css">
+      <link href="styles/estilo.css" rel="stylesheet" type="text/css">
+      <script src="pplanguage.js" type="text/javascript"></script>
+      <script src="criaobj.js" type="text/javascript"></script>
+      <script src="scripts/prototype.js" language="JavaScript" type="text/javascript"></script>
+      <script src="scripts/scriptaculous.js" language="JavaScript" type="text/javascript"></script>
+      <script src="scripts/ajax.js" language="JavaScript" type="text/javascript"></script>	
+      <script language="Javascript">
+         function fAprova() {
+         	var r = confirm("Solicitação será aprovada, continuar?");
+         	if(r == true){
+         		document.getElementById('button3').disabled=true; 
+         		document.forms[0].action = "U_F0500312.APW?cAceita=1&cSolic=<%=cCodigo%>";
+         		document.forms[0].submit();
+         	}
+         }
+         function fReprova() {
+         	var r = confirm("Solicitação será reprovada, continuar?");
+         	if(r == true){
+         		document.getElementById('button2').disabled=true;
+         		document.forms[0].action = "U_F0500312.APW?cAceita=2&cSolic=<%=cCodigo%>";
+         		document.forms[0].submit();
+         	}
+         }
+      </script>
+   </head>
+   <body>
+      <div id="divMinhasSolic" name="divMinhasSolic">
+      <p class="Titulo">
+      <H2>	
+         Aprovações
+      </H2>
+      </p>
+      <div id="divCabec" name="divCabec">
+         <fieldset>
+            <div class="container-cabec">
+               <div class="div-titulo">Codigo Solicitação</div>
+               <div class="div-conteudo"><%=cCodigo%></div>
+            </div>
+            <div class="container-cabec">
+               <div class="div-titulo">Tipo Solicitação</div>
+               <div class="div-conteudo"><%=cDesc%></div>
+            </div>
+            <div class="container-cabec">
+               <div class="div-titulo">Filial solicitação - descrição</div>
+               <div class="div-conteudo"><%=cFilSoli + " - " + cDescFil%></div>
+            </div>
+            <% If !(cTipo $ "002|003") %>
+	            <div class="container-cabec">
+	               <div class="div-titulo">Filial Funcionario</div>
+	               <div class="div-conteudo"><%=cFilSltd + " - " + cDecSltd%></div>
+	            </div>
+	            <div class="container-cabec">
+	               <div class="div-titulo">Matricula Funcionario - Nome</div>
+	               <div class="div-conteudo"><%=cMatSltd + " - " + cNomSltd%></div>
+	            </div>
+	            <div class="container-cabec">
+	               <div class="div-titulo">cargo do funcionário</div>
+	               <div class="div-conteudo"><%=cCARSLTD%></div>
+	            </div>
+            <% EndIf %>
+            <div class="container-cabec">
+               <div class="div-titulo">Filial solicitante - descrição</div>
+               <div class="div-conteudo"><%=cFilIniS + " - " + cDescFlS%></div>
+            </div>
+            <div class="container-cabec">
+               <div class="div-titulo">Matricula solicitante - Nome</div>
+               <div class="div-conteudo"><%=cMatrFlS + " - " + cNomeFlS%></div>
+            </div>
+            <div class="container-cabec">
+               <div class="div-titulo">cargo do solicitante</div>
+               <div class="div-conteudo"><%=cDescCar%></div>
+            </div>
+            <div class="container-cabec">
+               <div class="div-titulo">centro de custo solicitante</div>
+               <div class="div-conteudo"><%=cDescCtt%></div>
+            </div>
+         </fieldset>
+      </div>
+      <form name="formSolicVg" id="formSolicVg" onSubmit="return CheckOut(this)" action="U_F0100310.APW" method="post">
+         <div id="divSolicitvaga" name="divSolicitvaga">
+            <title></title>
+            <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+            <link href="styles/consulta.css" rel="stylesheet" type="text/css">
+            <link href="styles/estilo.css" rel="stylesheet" type="text/css">
+            <br>
+            <% If '1' $ cTMPTIPO %>
+            <hr>
+            <h3>Aumento Salarial</h3>
+            <br>
+            <label><%="Mérito"%></label>
+            <%If 'Sim' $ cTMPMETIRO   %>
+   	         	<input type="text" name="cTMPMETIRO" class="Texto" size="	6" disabled="true" value="<%=cTMPMETIRO%>">
+            <% Else %>
+	            <input type="text" name="cTMPMETIRO" class="Texto" size="	6" disabled="true" value="<%=cTMPMETIRO%>">
+            <% EndIf %>
+            <label><%="Codigo da Função Atual"%></label>
+            <input type="text" name="cTMPFUNCAO" class="Texto" size="	6" disabled="true" value="<%=cTMPFUNCAO%>">
+            <label><%="Nome da Função Atual"%></label>
+            <input type="text" name="cTMPD_FUNC" class="Texto" size="	50" disabled="true" value="<%=cTMPD_FUNC%>">
+            <br>
+            <% If !lSesmt %>
+            <label><%="Salário Atual"%></label>
+            <input type="text" name="cTMPSALATU" class="Texto" size="	14" disabled="true" value="<%=cTMPSALATU%>">
+            <br>
+            <% EndIf %>
+            <label><%="Códio da Tabela Atual"%></label>
+            <input type="text" name="cTMPTABELA" class="Texto" size="	6" disabled="true" value="<%=cTMPTABELA%>">
+            <label><%="Nivel da Tabela Atual"%></label>
+            <input type="text" name="cTMPNIVELT" class="Texto" size="	6" disabled="true" value="<%=cTMPNIVELT%>">
+            <label><%="Faixa Atual"%></label>
+            <input type="text" name="cTMPFAIXAT" class="Texto" size="	6" disabled="true" value="<%=cTMPFAIXAT%>">
+            <br>
+            <% If !lSesmt %>
+            <label><%="Salário Proposto"%></label>
+            <input type="text" name="cRASALARIO" class="Texto" size="	14" disabled="true" value="<%=cRASALARIO%>">
+            <br>
+            <% EndIf %>
+            <label><%="Motivo da Alteração Salarial"%></label>
+            <input type="text" name="cRATIPOALT" class="Texto" size="	6" disabled="true" value="<%=cRATIPOALT%>">
+            <label><%="Descrição do  Motivo"%></label>
+            <input type="text" name="cTMPD_MOT" class="Texto" size="	50" disabled="true" value="<%=cTMPD_MOT%>">
+            <br>
+            <% If !lSesmt %>
+            <label><%="Valor do aumento proposto"%></label>
+            <input type="text" name="cTMPVLSALA" class="Texto" size="	14" disabled="true" value="<%=cTMPVLSALA%>">
+            <br>
+            <label><%="Percentual do Aumento Proposto"%></label>
+            <input type="text" name="cTMPPERCSA" class="Texto" size="	6" disabled="true" value="<%=cTMPPERCSA%>">
+            <% EndIf %>
+            <% If !(EMPTY(cRACODFUNC)) %>
+            <br>
+            <label><%="Codigo da Função Proposta"%></label>
+            <input type="text" name="cRACODFUNC" class="Texto" size="	6" disabled="true" value="<%=cRACODFUNC%>">
+            <label><%="Nome da Função Proposta"%></label>
+            <input type="text" name="cTMPD_F_PP" class="Texto" size="	50" disabled="true" value="<%=cTMPD_F_PP%>">
+            <% EndIf %>
+            <br>
+            <% EndIf %>
+            <% If '2' $ cTMPTIPO %>
+            <hr>
+            <h3>Alteração de Cargo</h3>
+            <br>
+            <label><%="Codigo da Função Atual"%></label>
+            <input type="text" name="cTMPFUNCAO" class="Texto" size="	6" disabled="true" value="<%=cTMPFUNCAO%>">
+            <label><%="Nome da Função Atual"%></label>
+            <input type="text" name="cTMPD_FUNC" class="Texto" size="	50" disabled="true" value="<%=cTMPD_FUNC%>">
+            <% If !(EMPTY(cRACODFUNC)) %>
+            <br>
+            <label><%="Codigo da Função Proposta"%></label>
+            <input type="text" name="cRACODFUNC" class="Texto" size="	6" disabled="true" value="<%=cRACODFUNC%>">
+            <br>
+            <label><%="Nome da Função Proposta"%></label>
+            <input type="text" name="cTMPD_F_PP" class="Texto" size="	50" disabled="true" value="<%=cTMPD_F_PP%>">
+            <% EndIf %>
+            <br>
+            <label><%="Motivo da Alteração Salarial"%></label>
+            <input type="text" name="cRATIPOALT" class="Texto" size="	6" disabled="true" value="<%=cRATIPOALT%>">
+            <label><%="Descrição do  Motivo"%></label>
+            <input type="text" name="cTMPD_MOT" class="Texto" size="	50" disabled="true" value="<%=cTMPD_MOT%>">
+            <br>
+            <% EndIf %>
+            <% If '3' $ cTMPTIPO %>
+            <hr>
+            <h3>Alteração de Carga Horaria</h3>
+            <br>
+            <label><%="Horas Mês Atual"%></label>
+            <input type="text" name="cTMPH_M_AT" class="Texto" size="	8" disabled="true" value="<%=cTMPH_M_AT%>">
+            <label><%="Horas Semana Atual"%></label>
+            <input type="text" name="cTMPH_S_AT" class="Texto" size="	6" disabled="true" value="<%=cTMPH_S_AT%>">
+            <label><%="Horas Dia Atual"%></label>
+            <input type="text" name="cTMPH_D_AT" class="Texto" size="	7" disabled="true" value="<%=cTMPH_D_AT%>">
+            <br>
+            <% If !(EMPTY(cRAHRSMES)) %>
+            <label><%="Horas Mês Proposto"%></label>
+            <input type="text" name="cRAHRSMES" class="Texto" size="	8" disabled="true" value="<%=cRAHRSMES%>">
+            <% EndIf %>
+            <% If !(EMPTY(cRAHRSEMAN)) %>
+            <label><%="Horas Semana Proposto"%></label>
+            <input type="text" name="cRAHRSEMAN" class="Texto" size="	6" disabled="true" value="<%=cRAHRSEMAN%>">
+            <% EndIf %>
+            <% If !(EMPTY(cRAHRSDIA)) %>
+            <label><%="Horas Dia Proposto"%></label>
+            <input type="text" name="cRAHRSDIA" class="Texto" size="	7" disabled="true" value="<%=cRAHRSDIA%>">
+            <% EndIf %>
+            <br>
+            <% EndIf %>
+            <% If '4' $ cTMPTIPO %>
+            <hr>
+            <h3>Troca de Turno</h3>
+            <br>
+            <label><%="Turno de Trabalho Atual"%></label>
+            <input type="text" name="cTMPTURNAT" class="Texto" size="	6" disabled="true" value="<%=cTMPTURNAT%>">
+            <br>
+            <label><%="Nome do Turno Atual"%></label>
+            <input type="text" name="cTMPD_TURN" class="Texto" size="	120" disabled="true" value="<%=cTMPD_TURN%>">
+            <br>
+            <label><%="Seq.Ini.Turno Atual"%></label>
+            <input type="text" name="cTMPS_TURN" class="Texto" size="	6" disabled="true" value="<%=cTMPS_TURN%>">
+            <br>
+            <label><%="Regra Atual"%></label>
+            <input type="text" name="cTMPREGRA" class="Texto" size="	6" disabled="true" value="<%=cTMPREGRA%>">
+            <% If !(EMPTY(cRATNOTRAB)) %>
+            <br>
+            <label><%="Turno de Trabalho Proposto"%></label>
+            <input type="text" name="cRATNOTRAB" class="Texto" size="	6" disabled="true" value="<%=cRATNOTRAB%>">
+            <br>
+            <label><%="Nome do Turno Proposto"%></label>
+            <input type="text" name="cTMPDESCTU" class="Texto" size="	120" disabled="true" value="<%=cTMPDESCTU%>">
+            <% EndIf %>
+            <br>
+            <% If !(EMPTY(cRASEQTURN)) %>
+            <label><%="Seq.Ini. Turno Proposto"%></label>
+            <input type="text" name="cRASEQTURN" class="Texto" size="	6" disabled="true" value="<%=cRASEQTURN%>">
+            <% EndIf %>
+            <% If !(EMPTY(cRAREGRA)) %>
+            <label><%="Regra Proposta"%></label>
+            <input type="text" name="cRAREGRA" class="Texto" size="	6" disabled="true" value="<%=cRAREGRA%>">
+            <% EndIf %>
+            <br>
+            <% EndIf %>
+            <% If '5' $ cTMPTIPO %>
+            <hr>
+            <h3>Transferência	</h3>
+            <br>
+            <label><%="Filial Atual"%></label>
+            <input type="text" name="cTMPFILIAL" class="Texto" size="	6" disabled="true" value="<%=cTMPFILIAL%>">
+            <label><%="Nome da Filial Atual"%></label>
+            <input type="text" name="cTMPD_FILI" class="Texto" size="	50" disabled="true" value="<%=cTMPD_FILI%>">
+            <label><%="Centro de Custo Atual"%></label>
+            <input type="text" name="cTMPCCATU" class="Texto" size="	9" disabled="true" value="<%=cTMPCCATU%>">
+            <br>
+            <label><%="Descrição do Centro de Custo Atual"%></label>
+            <input type="text" name="cTMPD_CCAT" class="Texto" size="	50" disabled="true" value="<%=cTMPD_CCAT%>">
+            <label><%="Departamento Atual"%></label>
+            <input type="text" name="cTMPDEPTOA" class="Texto" size="	9" disabled="true" value="<%=cTMPDEPTOA%>">
+            <label><%="Nome do Departamento Atual"%></label>
+            <input type="text" name="cTMPD_DEPT" class="Texto" size="	50" disabled="true" value="<%=cTMPD_DEPT%>">
+            <br>
+            <% If !(EMPTY(cRAFILIAL)) %>
+            <label><%="Filial/Empresa proposta"%></label>
+            <input type="text" name="cRAFILIAL" class="Texto" size="	6" disabled="true" value="<%=cRAFILIAL%>">
+            <label><%="Nome da Filial/Empresa proposta"%></label>
+            <input type="text" name="cTMPN_F_D" class="Texto" size="	50" disabled="true" value="<%=cTMPN_F_D%>">
+            <% EndIf %>
+            <br>
+            <% If !(EMPTY(cRACC)) %>
+            <label><%="Centro de Custo proposto"%></label>
+            <input type="text" name="cRACC" class="Texto" size="	9" disabled="true" value="<%=cRACC%>">
+            <label><%="Descrição do Centro de Custo Proposto"%></label>
+            <input type="text" name="cTMPD_CC_D" class="Texto" size="	50" disabled="true" value="<%=cTMPD_CC_D%>">
+            <% EndIf %>
+            <br>
+            <% If !(EMPTY(cRADEPTO)) %>
+            <label><%="Departamento Proposto"%></label>
+            <input type="text" name="cRADEPTO" class="Texto" size="	9" disabled="true" value="<%=cRADEPTO%>">
+            <label><%="Nome do Departamento Proposto"%></label>
+            <input type="text" name="cTMPD_DEPD" class="Texto" size="	50" disabled="true" value="<%=cTMPD_DEPD%>">
+            <% EndIf %>
+            <br>
+            <label><%="Processo Atual"%></label>
+            <input type="text" name="cTMPPROCES" class="Texto" size="	6" disabled="true" value="<%=cTMPPROCES%>">
+            <% If !(EMPTY(cRAPROCES)) %>
+            <label><%="Processo Proposto"%></label>
+            <input type="text" name="cRAPROCES" class="Texto" size="	6" disabled="true" value="<%=cRAPROCES%>">
+            <% EndIf %>
+            <br>
+            <% If !(EMPTY(cTMPPOSTO)) %>
+            <label><%="Posto Atual"%></label>
+            <input type="text" name="cTMPPOSTO" class="Texto" size="	9" disabled="true" value="<%=cTMPPOSTO%>">
+            <% If !(EMPTY(cRAPOSTO)) %>
+            <label><%="Posto Proposto"%></label>
+            <input type="text" name="cRAPOSTO" class="Texto" size="	9" disabled="true" value="<%=cRAPOSTO%>">
+            <% EndIf %>
+            <% EndIf %>				
+            <br>
+            <% If !(EMPTY(cTMPCLVL)) %>				
+            <label><%="Classe Valor Atual"%></label>
+            <input type="text" name="cTMPCLVL" class="Texto" size="	9" disabled="true" value="<%=cTMPCLVL%>">
+            <% If !(EMPTY(cRACLVL)) %>
+            <label><%="Claase Valor Proposto"%></label>
+            <input type="text" name="cRACLVL" class="Texto" size="	9" disabled="true" value="<%=cRACLVL%>">
+            <% EndIf %>
+            <% EndIf %>	
+            <br>
+            <% If !(EMPTY(cTMPITEM)) %>	
+            <label><%="Item Contábil Atual"%></label>
+            <input type="text" name="cTMPITEM" class="Texto" size="	9" disabled="true" value="<%=cTMPITEM%>">
+            <% If !(EMPTY(cRAITEM)) %>
+            <label><%="Item Contábil Proposto"%></label>
+            <input type="text" name="cRAITEM" class="Texto" size="	9" disabled="true" value="<%=cRAITEM%>">
+            <% EndIf %>
+            <% EndIf %>				
+            <br>
+            <% EndIf %>
+            <br>
+            <% If !(EMPTY(cTMPOBSINC)) %>
+            <label><%="Observacao da inclusão:"%></label>
+            <textarea name="cObs" cols="80" rows="5" id="cObs" disabled="true"><%=cTMPOBSINC%></textarea>
+            <br> 
+            <%EndIf%>
+            <br>
+            <% If cObsApr == 'S' %>
+            <%If oLista2 != NIL%>
+            <% If OLISTA2:OWSREGISTRO:OWSINFHIS[1]:lLRET != .F. %>
+            <p class="Titulo">
+            <h3>	
+               Histórico de Aprovações
+            </h3>
+            </p>
+            <% For nCnt := 1 to Len(OLISTA2:OWSREGISTRO:OWSINFHIS)%>
+            <label><%="Nome Aprovador: "%></label>
+            <input type="text" name="cPAENOMEAP" class="Texto" size="35" disabled="true" value="<%=OLISTA2:OWSREGISTRO:OWSINFHIS[nCnt]:cPAENOMEAP%>">
+            <br> 
+            <label><%="Função Aprovador: "%></label>
+            <input type="text" name="cPAEFUNAPR" class="Texto" size="35" disabled="true" value="<%=OLISTA2:OWSREGISTRO:OWSINFHIS[nCnt]:cPAEFUNAPR%>">
+            <br> 
+            <label><%="Desc C.C. Aprovador: "%></label>
+            <input type="text" name="cPAEDCCAPR" class="Texto" size="35" disabled="true" value="<%=OLISTA2:OWSREGISTRO:OWSINFHIS[nCnt]:cPAEDCCAPR%>">
+            <br> 
+            <label><%="Observacao da Aprovação/Reprovação:"%></label>
+            <textarea name="cPAEOBS" cols="80" rows="5" id="cPAEOBS" disabled="true"><%=OLISTA2:OWSREGISTRO:OWSINFHIS[nCnt]:cPAEOBS%></textarea>
+            <br> 
+            <hr>
+            <br>
+            <% Next %>
+            <%EndIf%>
+            <%EndIf%>
+            <label><%="Observacao da Aprovação/Reprovação:"%></label>
+            <textarea name="cObs" cols="80" rows="5" id="cObs"> </textarea>
+            <br>  
+            <% EndIf %>
+            <% If lRet %>
+            <input name="cLocal" type="hidden" id="cLocal" value="006">
+            <input name="cFilRh3" type="hidden" id="cFilRh3" value="<%=cFilRh3%>">
+            <br>
+            <br>
+            <input name="button" type="button" class="botoes" value="VOLTAR" onClick="javascript:history.go(-1);" />
+            <input name="button3" id="button3" type="button" class="botoes" value="<%="Aprovar"%>" onClick="javascript:fAprova()">
+            <input name="button2" id="button2" type="button" class="botoes" value="<%="Rejeitar"%>" onClick="javascript:fReprova()">
+            <% Else %>
+            <br>
+            <input name="Button" type="button" class="botoes" value="VOLTAR" onClick="javascript:history.go(-1);" />
+            <% EndIf %>       	
+      </form>
+      </div>
+   </body>
+</html>

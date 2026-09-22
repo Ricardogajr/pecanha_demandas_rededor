@@ -1,0 +1,480 @@
+<% 
+   /*/{Protheus.doc} F0200304()
+   Tela de visualização das solicitações
+   @Author     Henrique Madureira
+   @Since      
+   @Version    P12.7
+   @Project    MAN0000007423039_EF_003
+   @Return	 
+   /*/
+            
+   
+   Local nCnt      := 0
+   %>
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!doctype html public "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <title></title>
+      <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+      <link href="styles/consulta.css" rel="stylesheet" type="text/css">
+      <link href="styles/estilo.css" rel="stylesheet" type="text/css">
+      <script src="scripts/prototype.js" language="JavaScript" type="text/javascript"></script>
+      <script src="scripts/scriptaculous.js" language="JavaScript" type="text/javascript"></script>
+      <script src="scripts/ajax.js" language="JavaScript" type="text/javascript"></script>
+      <script language="Javascript">
+         function fAprova() {
+         	var r = confirm("Solicitação será aprovada, continuar?");
+         	if(r == true){
+         		document.getElementById('button3').disabled=true
+         		document.forms[0].action = "U_F0200320.APW?cAprova=1&cSolic=<%=cSolic%>&cNome=<%=cNome1%>&CFILIALS=<%=CFILIALS%>";
+         		document.forms[0].submit();
+         	}
+         }
+         	
+         function fReprova() {
+         	var r = confirm("Solicitação será reprovada, continuar?");
+         	if(r == true){
+         		document.getElementById('button2').disabled=true
+         		document.forms[0].action = "U_F0200320.APW?cAprova=2&cSolic=<%=cSolic%>&cNome=<%=cNome1%>&CFILIALS=<%=CFILIALS%>";
+         		document.forms[0].submit();
+         	}
+         }
+         
+         function formatar(mascara, documento){
+         	var i = documento.value.length;
+         	var saida = mascara.substring(0,1);
+         	var texto = mascara.substring(i);
+             if (texto.substring(0,1) != saida){
+         		documento.value += texto.substring(0,1);
+          		}
+         }
+         
+         /* Máscaras ER */
+         function mascara(o,f){
+            	v_obj=o
+           	 	v_fun=f
+            	setTimeout("execmascara()",1)
+         }
+         function execmascara(){
+            	v_obj.value=v_fun(v_obj.value)
+         }
+         
+         function mramal(v){
+            	v=v.replace(/\D/g,"");                    //Remove tudo o que não é dígito
+            	return v;
+         }
+         function mvalor(v){
+            	v=v.replace(/\D/g,"");//Remove tudo o que não é dígito
+            	v=v.replace(/(\d)(\d{8})$/,"$1.$2");//coloca o ponto dos milhões
+            	v=v.replace(/(\d)(\d{5})$/,"$1.$2");//coloca o ponto dos milhares
+         
+            	v=v.replace(/(\d)(\d{2})$/,"$1,$2");//coloca a virgula antes dos 2 últimos dígitos
+            	return v;
+         }
+         function mtele(v){
+           	 	v=v.replace(/\D/g,"");                    //Remove tudo o que não é dígito
+           	 	v=v.replace(/^(d{2})(d)/g,"($1) $2"); //Coloca parênteses em volta dos dois primeiros dígitos
+            	v=v.replace(/(d)(d{4})$/,"$1-$2");    //Coloca hífen entre o quarto e o quinto dígitos
+            	return v;
+         }
+         
+         function validaIni(stringData, textoErro)
+                 {
+                    /******** VALIDA DATA NO FORMATO DD/MM/AAAA *******/
+                    var regExpCaracter = /[^\d]/;     //Expressão regular para procurar caracter não-numérico.
+                    var regExpEspaco = /^\s+|\s+$/g;  //Expressão regular para retirar espaços em branco.
+                    //cDtInicio cDtFim
+                    if(stringData.length != 10)
+                    {
+         			document.getElementById('cDtInicio').focus();
+                        //alert('Data fora do padrão DD/MM/AAAA');
+         			document.getElementById('cDtInicio').style.borderColor = "red";
+         			textoErro.innerHTML = 'Data fora do padrão DD/MM/AAAA';
+                        return false;
+                    }else{
+         			document.getElementById('cDtInicio').style.borderColor = "#e6e6e6";
+         		}
+                    
+                    splitData = stringData.split('/');
+                    
+                    if(splitData.length != 3)
+                    {
+                        //alert('Data fora do padrão DD/MM/AAAA');
+                 		document.getElementById('cDtInicio').focus();
+         			document.getElementById('cDtInicio').style.borderColor = "red";
+         			textoErro.innerHTML = 'Data fora do padrão DD/MM/AAAA';
+                        return false;
+                    }else{
+         			document.getElementById('cDtInicio').style.borderColor = "#e6e6e6";
+         		}
+                    
+                    /* Retira os espaços em branco do início e fim de cada string. */
+                    splitData[0] = splitData[0].replace(regExpEspaco, '');
+                    splitData[1] = splitData[1].replace(regExpEspaco, '');
+                    splitData[2] = splitData[2].replace(regExpEspaco, '');
+                    
+                    if ((splitData[0].length != 2) || (splitData[1].length != 2) || (splitData[2].length != 4))
+                    {
+                        //alert('Data fora do padrão DD/MM/AAAA');
+                 		document.getElementById('cDtInicio').focus();
+         			 document.getElementById('cDtInicio').style.borderColor = "red";
+         			textoErro.innerHTML = 'Data fora do padrão DD/MM/AAAA';
+                        return false;
+                    }else{
+         			document.getElementById('cDtInicio').style.borderColor = "#e6e6e6";
+         			textoErro.innerHTML = "";
+         		}
+                    
+                    /* Procura por caracter não-numérico. EX.: o "x" em "28/09/2x11" */
+                    if (regExpCaracter.test(splitData[0]) || regExpCaracter.test(splitData[1]) || regExpCaracter.test(splitData[2]))
+                    {
+                        //alert('Caracter inválido encontrado!');
+                 		document.getElementById('cDtInicio').focus();
+         			document.getElementById('cDtInicio').style.borderColor = "red";
+         			textoErro.innerHTML = 'Caracter inválido encontrado!';
+                      	return false;
+                    }else{
+         			document.getElementById('cDtInicio').style.borderColor = "#e6e6e6";
+         			textoErro.innerHTML = "";
+         		}
+                    
+                    dia = parseInt(splitData[0],10);
+                    mes = parseInt(splitData[1],10)-1; //O JavaScript representa o mês de 0 a 11 (0->janeiro, 1->fevereiro... 11->dezembro)
+                    ano = parseInt(splitData[2],10);
+                    
+                    var novaData = new Date(ano, mes, dia);
+                    
+                    if ((novaData.getDate() != dia) || (novaData.getMonth() != mes) || (novaData.getFullYear() != ano))
+                    {
+                        //alert('Data Inválida!');
+                 		document.getElementById('cDtInicio').focus();
+         			document.getElementById('cDtInicio').style.borderColor = "red";
+         			textoErro.innerHTML = 'Data Inválida!';
+         				
+                        return false;
+                    }else{
+         			textoErro.innerHTML = "";
+         			document.getElementById('cDtInicio').style.borderColor = "#e6e6e6";
+         		}
+                 
+                 
+                 	return true;
+         }
+                 
+                 function validaFim(stringData, textoErro)
+                 {
+                 		var regExpCaracter = /[^\d]/;     //Expressão regular para procurar caracter não-numérico.
+                            var regExpEspaco = /^\s+|\s+$/g;  //Expressão regular para retirar espaços em branco.
+                 		var dDataIni = document.getElementById("cDtInicio").value;
+                          
+                 		splitData = stringData.split('/');
+                 		splitDtIn = dDataIni.split('/');
+                            
+                            /* Retira os espaços em branco do início e fim de cada string. */
+                            splitData[0] = splitData[0].replace(regExpEspaco, '');
+                            splitData[1] = splitData[1].replace(regExpEspaco, '');
+                            splitData[2] = splitData[2].replace(regExpEspaco, '');
+                 
+                 		splitDtIn[0] = splitDtIn[0].replace(regExpEspaco, '');
+                            splitDtIn[1] = splitDtIn[1].replace(regExpEspaco, '');
+                            splitDtIn[2] = splitDtIn[2].replace(regExpEspaco, '');
+                            
+                            dia = parseInt(splitData[0],10);
+                            mes = parseInt(splitData[1],10)-1; //O JavaScript representa o mês de 0 a 11 (0->janeiro, 1->fevereiro... 11->dezembro)
+                            ano = parseInt(splitData[2],10);
+                 
+                            diaIn = parseInt(splitDtIn[0],10);
+                            mesIn = parseInt(splitDtIn[1],10)-1; //O JavaScript representa o mês de 0 a 11 (0->janeiro, 1->fevereiro... 11->dezembro)
+                            anoIn = parseInt(splitDtIn[2],10);			
+                 
+                            var dGetDtFim = new Date(ano, mes, dia);
+                 		var dGetDtIni = new Date(anoIn, mesIn, diaIn);
+                 
+                        	 if(dGetDtFim < dGetDtIni){
+                         		//alert("Data Final Invalida!");
+                        	 	document.getElementById('cDtFim').focus();
+                 			document.getElementById('cDtFim').style.borderColor = "red";
+                 			textoErro.innerHTML = "Data Final Invalida!";
+                        	 	return false;
+                        	 }
+                 		textoErro.innerHTML = "";
+                 		document.getElementById('cDtFim').style.borderColor = "#e6e6e6";
+                         	return true;
+                 }
+                 
+                 function fsubmit(){
+         
+                		document.forms[0].action = "U_F0200301.APW";
+                 		document.forms[0].submit();
+                 }
+         
+         	function fSValid() {
+         
+         		var r = confirm("Solicitação será cadastrada, continuar?");
+         		if(r == true){
+         			document.getElementById('button').disabled=true;
+         			
+         			document.forms[0].action = "U_F0200318.APW";
+         			document.forms[0].submit();
+         		}
+         	}
+                 
+             
+      </script>
+   </head>
+   <body>
+      <h3>Solicitação de Incentivo Acadêmico</h3>
+      <!--Solicitação de Subsídio Acadêmico-->	
+      <div id="divCabecalho" name="divCabecalho">
+         <% If cInclus != "N" %>
+         <fieldset>
+            <div class="container-cabec">
+               <div class="div-titulo">Codigo Solicitação</div>
+               <div class="div-conteudo"><%=cCodigo%></div>
+            </div>
+            <div class="container-cabec">
+               <div class="div-titulo">Tipo Solicitação</div>
+               <div class="div-conteudo"><%=cDesc%></div>
+            </div>
+            <div class="container-cabec">
+               <div class="div-titulo">Filial solicitação - descrição</div>
+               <div class="div-conteudo"><%=cFilSoli + " - " + cDescFil%></div>
+            </div>
+            <% If !(cTipo $ "002|003") %>
+            <div class="container-cabec">
+               <div class="div-titulo">Filial Funcionario</div>
+               <div class="div-conteudo"><%=cFilSltd + " - " + cDecSltd%></div>
+            </div>
+            <div class="container-cabec">
+               <div class="div-titulo">Matricula Funcionario - Nome</div>
+               <div class="div-conteudo"><%=cMatSltd + " - " + cNomSltd%></div>
+            </div>
+            <div class="container-cabec">
+               <div class="div-titulo">cargo do funcionário</div>
+               <div class="div-conteudo"><%=cCARSLTD%></div>
+            </div>
+            <% EndIf %>
+            <div class="container-cabec">
+               <div class="div-titulo">Filial solicitante - descrição</div>
+               <div class="div-conteudo"><%=cFilIniS + " - " + cDescFlS%></div>
+            </div>
+            <div class="container-cabec">
+               <div class="div-titulo">Matricula solicitante - Nome</div>
+               <div class="div-conteudo"><%=cMatrFlS + " - " + cNomeFlS%></div>
+            </div>
+            <div class="container-cabec">
+               <div class="div-titulo">cargo do solicitante</div>
+               <div class="div-conteudo"><%=cDescCar%></div>
+            </div>
+            <div class="container-cabec">
+               <div class="div-titulo">centro de custo solicitante</div>
+               <div class="div-conteudo"><%=cDescCtt%></div>
+            </div>
+         </fieldset>
+         <% Else %>	
+         <fieldset>
+            <div class="container-cabec">
+               <div class="div-titulo">Matrícula:  </div>
+               <div class="div-conteudo"><%=IIF(TYPE(cMatricu1)== "U","",cMatricu1)%></div>
+            </div>
+            <div class="container-cabec">
+               <div class="div-titulo">Nome: </div>
+               <div class="div-conteudo"><%=cNome1%></div>
+            </div>
+            <div class="container-cabec">
+               <div class="div-titulo">Admissão: </div>
+               <div class="div-conteudo"><%=IIF(TYPE(cAdmissao1)== "U","",cAdmissao1)%></div>
+            </div>
+            <div class="container-cabec">
+               <div class="div-titulo">Cargo: </div>
+               <div class="div-conteudo"><%=IIF(TYPE(cCargo1)== "U","",cCargo1) + ' - ' + cNmCarg1%></div>
+            </div>
+            <div class="container-cabec">
+               <div class="div-titulo">Departamento:</div>
+               <div class="div-conteudo"><%=IIF(TYPE(cDepartam1)== "U","",cDepartam1) + ' - ' + cNmDepa1%></div>
+            </div>
+            <div class="container-cabec">
+               <div class="div-titulo">Centro de custo: </div>
+               <div class="div-conteudo"><%=IIF(TYPE(cCenCusto1)== "U","",cCenCusto1) + ' - ' + cNmCeCu1 %></div>
+            </div>
+            <hr>
+            <p>&nbsp;</p>
+         </fieldset>
+         <% EndIf %> 
+      </div>
+      <form name="form76" onSubmit="return CheckOut(this)" action="U_F0200318.APW" method="post">
+         <div id="divSolicitacao" name="divSolicitacao">
+         <!--?xml version="1.0" encoding="iso-8859-1"?-->
+         <title></title>
+         <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+         <link href="styles/consulta.css" rel="stylesheet" type="text/css">
+         <link href="styles/estilo.css" rel="stylesheet" type="text/css">
+         <h3>Solicitação de Incentivo Acadêmico</h3>
+         <fieldset>
+            <input name="cFilFun" 		type="hidden" id="cFilFun" 		value="<%=IIF(TYPE(cFilFun)== 'U','',cFilFun)%>">
+            <input name="cLogin" 		type="hidden" id="cLogin" 		value="<%=IIF(TYPE(cMatricu1)== 'U','',cMatricu1)%>">
+            <input name="cNome" 		type="hidden" id="cNome" 		value="<%=cNome1%>">
+            <input name="cSupFil" 		type="hidden" id="cSupFil" 		value="<%=IIF(TYPE(cFilial1)== 'U','',cFilial1)%>">
+            <input name="cMat" 			type="hidden" id="cMat" 		value="<%=IIF(TYPE(cMat)=='U','',cMat)%>">
+            <input name="cCargo1" 		type="hidden" id="cCargo1" 		value="<%=IIF(TYPE(cCargo1)== 'U','',cCargo1)%>">
+            <input name="cDepartamento1" 	type="hidden" id="cDepartamento1" 	value="<%=IIF(TYPE(cDepartam1)== 'U','',cDepartam1)%>">
+            <input name="cCenCusto1" 	type="hidden" id="cCenCusto1" 		value="<%=IIF(TYPE(cCenCusto1)== 'U','',cCenCusto1)%>">
+            <% If lBtAprova %>
+            <label>Tipo do Curso: *</label> <!--Tipo do Curso:-->
+            <select name="cBenefitCode" class="Combo" required>
+               <option></option>
+               <% If OLISTA3 != NIL %>
+               <% For nCnt := 1 To Len(OLISTA3:OWSITENS:OWSITENSCURSO) %>
+               <option value="<%=OLISTA3:OWSITENS:OWSITENSCURSO[nCnt]:CbenefitCode%>"><%=OLISTA3:OWSITENS:OWSITENSCURSO[nCnt]:CBENEFITNAME%></option>
+               <% Next m %>
+               <%EndIf%>
+            </select>
+            <br>
+            <label>Nome do Curso: *</label> <!--Nome do Curso:-->
+            <input type="text" name="cCurseName" size="60" maxlength="30" required>       
+            <br>
+            <label>Nome da Institui&ccedil;&atilde;o:  *</label> <!--Nome da Instituição:-->
+            <select name="cInstituteName" class="Combo" required>
+               <option></option>
+               <% If OLISTA4 != NIL %>
+               <% For nCnt := 1 To Len(OLISTA4:OWSREGISTRO:OWSINSTITU) %>
+               <option value="<%=OLISTA4:OWSREGISTRO:OWSINSTITU[nCnt]:CRA0ENTIDA%>" ><%=OLISTA4:OWSREGISTRO:OWSINSTITU[nCnt]:CRA0DESC%></option>
+               <% Next %>
+               <%EndIf%>
+            </select>
+            <br>
+            <label>E-mail: </label> <!--E-mail:-->
+            <input type="email" name="cContact"   size="70" maxlength="60" >       
+            <br>
+            <label>Telefone: </label> <!--Telefone:-->         
+            <input type="text" name="cPhone" id="cPhone" size="20" maxlength="11" onkeypress="mascara( this, mtele );">         
+            <br>
+            <label>Ramal: </label> <!--Ramal:-->         
+            <input type="text" name="cRamal" size="8" maxlength="4" OnKeyPress="mascara( this, mramal );" >                  
+            <br>
+            <label>Data Inicio: *</label> <!--Data Inicio:-->
+            <input type="text" name="cDtInicio" id="cDtInicio" size="10" maxlength="10" OnKeyPress="formatar('##/##/####', this)" onblur="validaIni(value, document.getElementById('msgdAbertura'))" required />                  
+            <span id="msgdAbertura" style="color:red;"></span>
+            <br>
+            <label>Data T&eacute;rmino:  </label> <!--Data Término:-->         
+            <input type="text" name="cDtFim" id="cDtFim" size="10" maxlength="10" OnKeyPress="formatar('##/##/####', this)" onblur="validaFim(value, document.getElementById('msgdFech'))" />                
+            <span id="msgdFech" style="color:red;"></span>
+            <br>
+            <label>Valor Mensalidade: *</label> <!--Valor Mensalidade:-->
+            <input type="text" name="cMonthlyPayment" id="cMonthlyPayment" size="20" maxlength="8" onkeypress="mascara( this, mvalor );" required>        
+            <br>
+            <label>Dura&ccedil;&atilde;o (em meses):  </label> <!--Duração:-->
+            <input type="text" name="cDuracao" id="cDuracao" class="TextoBold" size="5" maxlength="3" OnKeyPress="mascara( this, mramal );" >         
+            <br>
+            <label>Valor Investimento Ano Vigente: *</label> <!--Valor Investimento Ano Vigente:-->
+            <input type="text" name="cVlinvesanovig" class="TextoBold" size="20" maxlength="12" onkeypress="mascara( this, mvalor );"  required>         
+            <br>
+            <label>Valor Total Curso: *</label> <!--Valor Total Curso:-->
+            <input type="text" name="cVltotcurso" id="cVltotcurso" class="TextoBold" size="20" maxlength="12" onkeypress="mascara( this, mvalor );"  required>         
+            <br>
+            <label>% Beneficio Concedido: </label> <!--Beneficio Concedido:-->
+            <input type="text" name="cBenefconcedido" class="TextoBold" size="20" maxlength="6" max="100" onkeypress="mascara( this, mvalor );" >
+            <br>	
+            <label>Observa&ccedil;&atilde;o: </label> <!--Observação:-->
+            <textarea name="txtobs" cols="82" rows="8" id="txtobs" ></textarea>
+            <% Else %>
+            <input name="cSolic" type="hidden" id="cSolic" 		value="<%=cSolic%>">
+            <br>
+            <label>Tipo do Curso: *</label> <!--Nome do Curso:-->
+            <input type="text" name="cTipo" value="<%=cTipo%>" size="60" maxlength="30" disabled>
+            <br>
+            <label>Nome do Curso: *</label> <!--Nome do Curso:-->
+            <input type="text" name="cCurseName" value="<%=cCurseName%>" size="60" maxlength="30" disabled>       
+            <br>
+            <label>Nome da Institui&ccedil;&atilde;o:  *</label> <!--Nome da Instituição:-->
+            <input type="text" name="cInstituteName" value="<%=cInstituteName%>" size="60" maxlength="40" disabled>        
+            <br>
+            <label>E-mail: </label> <!--E-mail:-->
+            <input type="email" name="cContact"  value="<%=cContact%>" size="50" maxlength="30" disabled>       
+            <br>
+            <label>Telefone: </label> <!--Telefone:-->         
+            <input type="text" name="cPhone" value="<%=cPhone%>" size="20" maxlength="11" disabled>         
+            <br>
+            <label>Ramal: </label> <!--Ramal:-->         
+            <input type="text" name="cRamal" value="<%=cRamal%>" size="8" maxlength="4" disabled>                  
+            <br>
+            <label>Data Inicio: *</label> <!--Data Inicio:-->
+            <input type="text" name="cStartDate" value="<%=STOD(cStartDate)%>" size="10" maxlength="10" disabled>                  
+            <br>
+            <label>Data T&eacute;rmino:  *</label> <!--Data Término:-->         
+            <input type="text" name="cEndDate"  value="<%=STOD(cEndDate)%>" size="10" maxlength="10" disabled>                
+            <br>
+            <label>Valor Mensalidade: *</label> <!--Valor Mensalidade:-->
+            <input type="text" name="cMonthlyPayment"  value="<%=cMonthlyPayment%>" size="20" maxlength="8"  disabled>        
+            <br>
+            <label>Dura&ccedil;&atilde;o (em meses):  </label> <!--Duração:-->
+            <input type="text" name="cDuracao" class="TextoBold" value="<%=cDuracao%>" size="5" maxlength="3" disabled>         
+            <br>
+            <label>Valor Investimento Ano Vigente: *</label> <!--Valor Investimento Ano Vigente:-->
+            <input type="text" name="cVlinvesanovig" class="TextoBold" value="<%=cVltotcurso%>" size="20" maxlength="16" disabled>         
+            <br>
+            <label>Valor Total Curso: *</label> <!--Valor Total Curso:-->
+            <input type="text" name="cVltotcurso" class="TextoBold" value="<%=cVlinvesanovig%>" size="20" maxlength="16" disabled>         
+            <br>
+            <label>% Beneficio Concedido: </label> <!--Beneficio Concedido:-->
+            <input type="text" name="cBenefconcedido" class="TextoBold" value="<%=cBenefconcedido%>" size="20" maxlength="16" disabled>         
+            <br>	
+            <label>Observa&ccedil;&atilde;o: </label> <!--Observação:-->
+            <textarea name="txtobs" cols="82" rows="8" value="<%=cObservacao%>" id="txtobs" disabled><%=cObservacao%></textarea>
+            <% EndIf %>
+            <br>
+            <% If cObsApr == 'S' %>
+            <%If oLista2 != NIL%>
+            <% If OLISTA2:OWSREGISTRO:OWSINFHIS[1]:lLRET != .F. %>
+            <p class="Titulo">
+            <h3>	
+               Histórico de Aprovações
+            </h3>
+            </p>
+            <% For nCnt := 1 to Len(OLISTA2:OWSREGISTRO:OWSINFHIS)%>
+            <label><%="Nome Aprovador: "%></label>
+            <input type="text" name="cPAENOMEAP" class="Texto" size="35" disabled="true" value="<%=OLISTA2:OWSREGISTRO:OWSINFHIS[nCnt]:cPAENOMEAP%>">
+            <br> 
+            <label><%="Função Aprovador: "%></label>
+            <input type="text" name="cPAEFUNAPR" class="Texto" size="35" disabled="true" value="<%=OLISTA2:OWSREGISTRO:OWSINFHIS[nCnt]:cPAEFUNAPR%>">
+            <br> 
+            <label><%="Desc C.C. Aprovador: "%></label>
+            <input type="text" name="cPAEDCCAPR" class="Texto" size="35" disabled="true" value="<%=OLISTA2:OWSREGISTRO:OWSINFHIS[nCnt]:cPAEDCCAPR%>">
+            <br> 
+            <label><%="Observacao da Aprovação/Reprovação:"%></label>
+            <textarea name="cPAEOBS" cols="80" rows="5" id="cPAEOBS" disabled="true"><%=OLISTA2:OWSREGISTRO:OWSINFHIS[nCnt]:cPAEOBS%></textarea>
+            <br> 
+            <hr>
+            <br>
+            <% Next %>
+            <%EndIf%>
+            <%EndIf%>
+            <label><%="Observacao da Aprovação/Reprovação:"%></label>
+            <textarea name="cObs" cols="80" rows="5" id="cObs"> </textarea>
+            <br>  
+            <%EndIf%>
+            <% If lBtAprova %>
+            <br>
+            <label></label>
+            <p style='color:red;'>*Campos obrigat&oacute;rios</p>
+            <br>
+            <input name="Button" type="button" class="botoes" value="VOLTAR" onClick="javascript:history.go(-1);" />
+            <input name="Submit" id="button" type="button" class="botoes" value="SALVAR" onClick="fSValid();" />
+            <% Else %>
+            <% If lRet %>
+            <br>
+            <br>
+            <input name="Button" type="button" class="botoes" value="VOLTAR" onClick="javascript:history.go(-1);" />
+            <input type="Submit" id="button2" name="button2" onClick="javascript:fReprova()" class="botoes" value="REPROVAR">
+            <input type="Submit" id="button3" name="button3" onClick="javascript:fAprova()" class="botoes" value="APROVAR">
+            <% Else %>
+            <br>
+            <br>
+            <input name="Button" type="button" class="botoes" value="VOLTAR" onClick="javascript:fsubmit();" /> 
+            <% EndIf %>
+            <% EndIf %>
+         </fieldset>
+      </form>
+   </body>
+</html>

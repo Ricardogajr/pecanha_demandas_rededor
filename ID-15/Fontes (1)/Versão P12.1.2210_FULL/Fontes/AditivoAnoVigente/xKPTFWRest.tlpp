@@ -1,0 +1,223 @@
+#INCLUDE "RestFul.ch"
+#INCLUDE "Protheus.ch"
+#INCLUDE "tlpp-core.th"
+#INCLUDE "TOTVS.ch"
+/*/{Protheus.doc} xKPTFWRest
+Rotina generica para realizar requisições via API REST ao Onergy
+@type function
+@version 1.0
+@author Joalisson Laurentino
+@since 11/12/2021
+@param cTipo, 	   	character, "GET" ou "POST" ou "PUT"
+@param cUrl, 	   	character, "https://gateway.onergy.com.br/functions/Save"
+@param cSetPath,   	character, "6d533b03-0e3c-4f88-857a-49bcb6d097c5"
+@param cPostParams, character, "{"rotina":"MATA120"}"
+@param aHeader, 	array, 	   {'Content-Type: application/json'}
+@param lCallBack, 	logical,   .T. ou .F.
+@param cIDOnergy, 	character, "6d533b03-0e3c-4f88-857a-49bcb6d097c5"
+@return variant, aRet[1] := .F.
+                 aRet[2] := cIDOnergy
+                 aRet[3] := cRetorno
+                 aRet[4] := cUrl+cSetPath
+                 aRet[5] := lErro
+                 aRet[6] := lErroConn
+/*/
+User Function xKPTFWRest(cTipo,cUrl,cSetPath,cPostParams,aHeader,lCallBack,cIDOnergy,cTabela)
+    Local aRet        := {"","","","","",""} //Posição 1 indica o sucesso da requisição, Posição 2 traz o retorno da requisição em objeto, 3 json de retorno em string
+	Local nTimeOut	  := SuperGetMv("KT_TMOUTR",,10)
+	Local cUrlOut	  := SuperGetMv("KT_URLOUT",,"")
+	Local cUrlInb	  := SuperGetMv("KT_URLINB",,"")
+	Local cOpcApim	  := SuperGetMv("KT_OPCAPM",,"")
+	Local lAtivaLog   := SuperGetMv("KT_LOGMSG",,.F.)
+	Local oRest		  := Nil
+	Local oRetorno    := Nil
+	Local cInbSetPath := ""
+	Local cOutSetPath := ""
+	Local nAttempt 	  := 1
+	Local nSecond     := 0
+    Local cRetorno    := ""
+	Local cJson 	  := ""
+	Local lRet		  := .F.
+	Local lRest		  := .F.
+	Local lErro 	  := .F.
+    Local lErroConn   := .T.
+
+	Default cTabela = ""
+
+	If cTabela == "SC7"
+		
+		cToken := GetToken()
+		
+		If lAtivaLog
+			Conout("TOKEN AWS: "+cToken)
+		EndIf
+
+		cUrl := SuperGetMv("KT_URLAWS",,"")
+		cSetPath := "v1/purchase-order"
+		
+		aHeader	:= {}
+		aadd(aHeader, 'Authorization: Bearer '+ cToken )
+		aadd(aHeader, 'Content-Type: application/json;charset=UTF-8' )
+	EndIf
+
+	//Token ambiente de Produção
+	cASSID := "&assid="+SuperGetMv("KT_ASSID",,"")
+	cUSRID := "&usrid="+SuperGetMv("KT_USRID",,"")
+
+	//TOKEN OUTBOUND -> Protheus para TAXFY
+	cOutSetPath += "?fdtid="+SuperGetMv("KT_FDTID",,"")
+	cOutSetPath += cASSID+cUSRID
+	//-----------------------------------------------------------------
+
+	//cInbSetPath += "?fdtid=846f66f0-8822-489e-a0ce-ade8bc963da0"
+	//cInbSetPath += cASSID+cUSRID
+	//cInbSetPath += "&skip=0&take=1000&execAction=true"
+	//-----------------------------------------------------------------
+
+	Default cTipo      := "GET" 
+	Default cUrl       := IIf(Empty(cUrl),IIf(cTipo == "GET",cUrlInb,cUrlOut),cUrl) 
+    Default cSetPath   := IIf(Empty(cSetPath),IIf(cTipo == "GET",cInbSetPath,cOutSetPath),cSetPath) 
+    Default cPostParams:= ""
+	Default aHeader    := {}
+	Default lCallBack  := .F.
+	Default cIDOnergy   := ""
+
+	U_xKPTLogMsg("------======= INICIO FWREST ONERGY xKPTFWRest.tlpp =======------ ")
+	
+	If !lCallBack .AND. Len(aHeader) = 0
+		aAdd(aHeader,'Content-Type: application/json')
+		aAdd(aHeader,'Ocp-Apim-Subscription-Key: '+cOpcApim)
+	ElseIf lCallBack
+		cSetPath := ""
+	EndIf 
+
+	If lAtivaLog
+		Conout("URL ONERGY: "+cUrl)
+		Conout(" cSetPath: "+cSetPath)
+		Conout(" cOpcApim: "+cOpcApim)
+		Conout(" cPostParams: "+cPostParams)
+	EndIf
+
+	oRest := FWREST():New(cUrl)
+    oRest:SetPath(cSetPath)
+    oRest:SetPostParams(cPostParams)
+	oRest:nTimeOut := nTimeOut	//tempo em segundos para resposta
+	Do Case
+		Case cTipo = "POST"  
+			lRest := oRest:POST(aHeader)                      
+		Case cTipo = "GET"              
+			lRest := oRest:GET(aHeader)
+		Case cTipo = "PUT"              
+			lRest := oRest:PUT(aHeader,cPostParams) 
+	EndCase  
+
+	cHttpCode := oRest:GetHTTPCode()
+
+	If lAtivaLog
+		Conout(" cHttpCode: "+cHttpCode +" TIPO: "+cTipo)
+	EndIf
+
+	If lRest
+		lRet 	  := .T.
+		lErroConn := .F.
+		lErro 	  := .F.
+
+		cRetorno := oRest:GetResult()
+		oRetorno := JsonObject():New()
+		cJson := oRetorno:FromJson(DecodeUtf8(cRetorno))
+		
+		If ValType(cJson) == "U"
+			If !lCallBack .AND. cTabela <> "SC7"
+				cIDOnergy := oRetorno:GetJsonText('Id')
+			Else 
+				cIDOnergy := SubStr(oRetorno:GetJsonText('message'),31,36) 
+				If lAtivaLog
+					Conout("lCallBack RETORNO message cIDOnergy: "+cIDOnergy)
+				EndIf
+			EndIf 
+		Else
+			cRetorno := "Falha ao popular JsonObject. Erro: " + cJson
+		EndIf
+
+		If lAtivaLog
+			Conout(" Foi enviado: "+cRetorno)
+		EndIf
+	Else 
+		cRetorno  := cValtoChar(oRest:GetLAstError())
+
+		If lAtivaLog
+			Conout(" Erro envio: "+cRetorno)
+		EndIf
+
+		lErroConn := .T.
+		lErro 	  := .T.
+		lRet 	  := .F.
+
+		If (nSecond > 0)
+			Sleep(nSecond * 1000)
+		EndIf
+
+		nAttempt++
+	EndIf
+	
+	If lRet
+		aRet[1] := .T.
+		aRet[2] := IIf(Empty(cIDOnergy),oRetorno,cIDOnergy)
+		aRet[3] := DecodeUTF8(cRetorno)
+		aRet[4] := cUrl+cSetPath	
+		aRet[5] := lErro
+		aRet[6] := lErroConn
+	Else
+		aRet[1] := .F.
+		aRet[2] := cIDOnergy
+		aRet[3] := cRetorno
+		aRet[4] := cUrl+cSetPath
+		aRet[5] := lErro
+		aRet[6] := lErroConn
+	EndIf    
+	FreeObj(oRetorno)
+	U_xKPTLogMsg("------======= FIM FWREST ONERGY xKPTFWRest.tlpp =======------ ")
+Return(aRet)
+
+Static Function GetToken()
+	Local cCLIIDAWS	:= SuperGetMv("KT_AWSCLI",,"")
+	Local cAWSCRT	:= SuperGetMv("KT_AWSCRT",,"")
+	Local aArea     := GetArea()
+	Local cUrlAuth  := ""
+	Local cToken    := ""
+	Local oRestAuth := nil
+	Local nSleep    := 180
+	Local aHeaderAuth   := {}
+	Local nxTent	:= 0
+	Local nTent		:= 5
+	Local nTimeOut	:= 180
+	Local jBody   As JSON      // Auxiliar de =manipulação do retorno da requisição
+
+    // Inicialização de variáveis
+    jBody   := JSONObject():New()
+
+	cUrlAuth := Alltrim(SuperGetMv("KT_URLTK",,""))+"?grant_type=client_credentials&client_id="+cCLIIDAWS+"&client_secret="+cAWSCRT
+	
+	aAdd(aHeaderAuth, "Content-Type:application/x-www-form-urlencoded")
+
+	For nxTent := 1 to nTent //tres tentativas de pegar o token
+
+		oRestAuth := FwRest():New(cUrlAuth)
+		oRestAuth:SetPath("")
+		oRestAuth:SetPostParams("")
+		oRestAuth:nTimeOut := nTimeOut
+		oRestAuth:Post(aHeaderAuth)
+    
+		IF oRestAuth:GetHTTPCode() == "200"
+			jBody:FromJSON(oRestAuth:GetResult())
+			cToken := jBody["access_token"]
+			Exit
+		Else
+			cToken := "ERROR na Autenticação Token AWS: "+cUrlAuth
+		EndIf
+
+		Sleep(nSleep)
+	Next nxTent
+
+	RestArea(aArea)
+Return cToken

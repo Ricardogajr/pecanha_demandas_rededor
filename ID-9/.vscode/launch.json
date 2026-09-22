@@ -1,0 +1,29 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"type": "totvs_language_web_debug",
+			"request": "launch",
+			"name": "Smart Client Web Debug",
+			"program": "${command:AskForProgramName}",
+			"isMultiSession": true,
+			"enableTableSync": true,
+			//"smartclientUrl": "http://10.150.52.25:4444/webapp/"
+			"smartclientUrl": "https://protheus12qa.rededor.com.br:8093"
+		}
+	],
+	"lastPrograms": [
+		{
+			"args": [],
+			"label": "U_GETLOG435"
+		},
+		{
+			"label": "U_XFINA435"
+		},
+		{
+			"label": "SIGAMDI"
+		}
+	],
+	"lastProgramExecuted": "U_XFINA435",
+	"lastProgramArguments": []
+}

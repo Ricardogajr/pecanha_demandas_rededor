@@ -1,0 +1,509 @@
+<%
+   #Include 'Protheus.ch'
+   #INCLUDE "APWEBEX.CH"
+   
+   /*
+   {Protheus.doc} F0100305.aph
+   formulário para solicitação de vaga
+   @Author     Bruno de Oliveira
+   @Since      07/10/2016
+   @Version    P12.1.07
+   @Project    MAN00000462901_EF_003
+   */
+   
+   Local nIndiceDepto := Val(HttpGet->nIndiceDepto)
+   Local cSolic       := ""
+   Local cVaga        := "1"	
+   Local cTipVaga     := "1"
+   Local cCateg       := "M"
+   Local cPicture     := ""
+   Local cContr       := "1"
+   Local cFxAux       := ""
+   Local cNvAux       := ""
+   Local nCnt         := 0
+   Local nCont        := 0
+   
+   cCodDepto    := HttpSession->Department[nIndiceDepto]:cDepartment
+   cDescrDepto  := HttpSession->Department[nIndiceDepto]:cDescrDepartment
+   cFilPEsc     := HttpPost->Posto:cPostFilial
+   cPostoEsc	:= HttpPost->Posto:cPosto
+   %>
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!doctype html public "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <title></title>
+      <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+      <link href="styles/consulta.css" rel="stylesheet" type="text/css">
+      <link href="styles/estilo.css" rel="stylesheet" type="text/css">
+      <script src="pplanguage.js" type="text/javascript"></script>
+      <script src="criaobj.js" type="text/javascript"></script>
+      <script src="scripts/prototype.js" language="JavaScript" type="text/javascript"></script>
+      <script src="scripts/scriptaculous.js" language="JavaScript" type="text/javascript"></script>
+      <script src="scripts/ajax.js" language="JavaScript" type="text/javascript"></script>
+      <script language="Javascript">
+         function formatar(mascara, documento){
+         	var i = documento.value.length;
+         	var saida = mascara.substring(0,1);
+         	var texto = mascara.substring(i);
+             if (texto.substring(0,1) != saida){
+         		documento.value += texto.substring(0,1);
+          		}
+         }
+         
+         /* Máscaras ER */
+         function mascara(o,f){
+            	v_obj=o
+           	 	v_fun=f
+            	setTimeout("execmascara()",1)
+         }
+         function execmascara(){
+            	v_obj.value=v_fun(v_obj.value)
+         }
+         
+         function mnumero(v){
+            	v=v.replace(/\D/g,"");                    //Remove tudo o que não é dígito
+            	return v;
+         }
+         function mvalor(v){
+            	v=v.replace(/\D/g,"");//Remove tudo o que não é dígito
+            	v=v.replace(/(\d)(\d{8})$/,"$1.$2");//coloca o ponto dos milhões
+            	v=v.replace(/(\d)(\d{5})$/,"$1.$2");//coloca o ponto dos milhares
+         
+            	v=v.replace(/(\d)(\d{2})$/,"$1,$2");//coloca a virgula antes dos 2 últimos dígitos
+            	return v;
+         }
+         
+         function validaIni(stringData, textoErro)
+         {
+            /******** VALIDA DATA NO FORMATO DD/MM/AAAA *******/
+            var regExpCaracter = /[^\d]/;     //Expressão regular para procurar caracter não-numérico.
+            var regExpEspaco = /^\s+|\s+$/g;  //Expressão regular para retirar espaços em branco.
+            
+            if(stringData.length != 10)
+            {
+				document.getElementById('dAbertura').focus();
+                //alert('Data fora do padrão DD/MM/AAAA');
+				document.getElementById('dAbertura').style.borderColor = "red";
+				textoErro.innerHTML = 'Data fora do padrão DD/MM/AAAA';
+                return false;
+            }else{
+				document.getElementById('dAbertura').style.borderColor = "#e6e6e6";
+			}
+            
+            splitData = stringData.split('/');
+            
+            if(splitData.length != 3)
+            {
+                //alert('Data fora do padrão DD/MM/AAAA');
+         		document.getElementById('dAbertura').focus();
+				document.getElementById('dAbertura').style.borderColor = "red";
+				textoErro.innerHTML = 'Data fora do padrão DD/MM/AAAA';
+                return false;
+            }else{
+				document.getElementById('dAbertura').style.borderColor = "#e6e6e6";
+			}
+            
+            /* Retira os espaços em branco do início e fim de cada string. */
+            splitData[0] = splitData[0].replace(regExpEspaco, '');
+            splitData[1] = splitData[1].replace(regExpEspaco, '');
+            splitData[2] = splitData[2].replace(regExpEspaco, '');
+            
+            if ((splitData[0].length != 2) || (splitData[1].length != 2) || (splitData[2].length != 4))
+            {
+                //alert('Data fora do padrão DD/MM/AAAA');
+         		document.getElementById('dAbertura').focus();
+				 document.getElementById('dAbertura').style.borderColor = "red";
+				textoErro.innerHTML = 'Data fora do padrão DD/MM/AAAA';
+                return false;
+            }else{
+				document.getElementById('dAbertura').style.borderColor = "#e6e6e6";
+				textoErro.innerHTML = "";
+			}
+            
+            /* Procura por caracter não-numérico. EX.: o "x" em "28/09/2x11" */
+            if (regExpCaracter.test(splitData[0]) || regExpCaracter.test(splitData[1]) || regExpCaracter.test(splitData[2]))
+            {
+                //alert('Caracter inválido encontrado!');
+         		document.getElementById('dAbertura').focus();
+				document.getElementById('dAbertura').style.borderColor = "red";
+				textoErro.innerHTML = 'Caracter inválido encontrado!';
+              	return false;
+            }else{
+				document.getElementById('dAbertura').style.borderColor = "#e6e6e6";
+				textoErro.innerHTML = "";
+			}
+            
+            dia = parseInt(splitData[0],10);
+            mes = parseInt(splitData[1],10)-1; //O JavaScript representa o mês de 0 a 11 (0->janeiro, 1->fevereiro... 11->dezembro)
+            ano = parseInt(splitData[2],10);
+            
+            var novaData = new Date(ano, mes, dia);
+            
+            if ((novaData.getDate() != dia) || (novaData.getMonth() != mes) || (novaData.getFullYear() != ano))
+            {
+                //alert('Data Inválida!');
+         		document.getElementById('dAbertura').focus();
+				document.getElementById('dAbertura').style.borderColor = "red";
+				textoErro.innerHTML = 'Data Inválida!';
+					
+                return false;
+            }else{
+				textoErro.innerHTML = "";
+				document.getElementById('dAbertura').style.borderColor = "#e6e6e6";
+			}
+         
+         
+         	return true;
+         }
+         
+
+		function validaFim(stringData, textoErro)
+         {
+			var regExpCaracter = /[^\d]/;     //Expressão regular para procurar caracter não-numérico.
+            var regExpEspaco = /^\s+|\s+$/g;  //Expressão regular para retirar espaços em branco.
+			var dDataIni = document.getElementById("dAbertura").value;
+          
+			splitData = stringData.split('/');
+			splitDtIn = dDataIni.split('/');
+            
+            /* Retira os espaços em branco do início e fim de cada string. */
+            splitData[0] = splitData[0].replace(regExpEspaco, '');
+            splitData[1] = splitData[1].replace(regExpEspaco, '');
+            splitData[2] = splitData[2].replace(regExpEspaco, '');
+
+			splitDtIn[0] = splitDtIn[0].replace(regExpEspaco, '');
+            splitDtIn[1] = splitDtIn[1].replace(regExpEspaco, '');
+            splitDtIn[2] = splitDtIn[2].replace(regExpEspaco, '');
+            
+            dia = parseInt(splitData[0],10);
+            mes = parseInt(splitData[1],10)-1; //O JavaScript representa o mês de 0 a 11 (0->janeiro, 1->fevereiro... 11->dezembro)
+            ano = parseInt(splitData[2],10);
+
+            diaIn = parseInt(splitDtIn[0],10);
+            mesIn = parseInt(splitDtIn[1],10)-1; //O JavaScript representa o mês de 0 a 11 (0->janeiro, 1->fevereiro... 11->dezembro)
+            anoIn = parseInt(splitDtIn[2],10);			
+
+            var dGetDtFim = new Date(ano, mes, dia);
+			var dGetDtIni = new Date(anoIn, mesIn, diaIn);
+
+        	 if(dGetDtFim < dGetDtIni){
+         		//alert("Data Final Invalida!");
+        	 	document.getElementById('dFech').focus();
+				document.getElementById('dFech').style.borderColor = "red";
+				textoErro.innerHTML = "Data Final Invalida!";
+        	 	return false;
+        	 }
+			textoErro.innerHTML = "";
+			document.getElementById('dFech').style.borderColor = "#e6e6e6";
+         	return true;
+         }
+         
+         function montTab(campo, textoErro){
+
+			var jornada = document.getElementById('cHrMes').value;			
+			var userInput = '';
+            document.getElementById('cHrSeman').value = String(Number(jornada) / 5);
+
+			var table = document.getElementById('dataTable');
+			var rowCount = table.getElementsByTagName('th');
+			var lineCount = table.getElementsByTagName('tr');
+			var colunas = table.getElementsByTagName('td');
+			var tabela = document.createElement("TABLE");
+			
+			if(jornada > 220){
+                //alert('Jornada deve ser menor ou igual a 220h!');
+         		document.getElementById('cHrMes').focus();
+				document.getElementById('cHrMes').style.borderColor = "red";
+				textoErro.innerHTML = "Jornada não pode ser maior que 220h.";
+                return false;
+			}else{
+				textoErro.innerHTML = "";
+				document.getElementById('cHrMes').style.borderColor = "#e6e6e6";
+			}
+			if(jornada > 0 && jornada < 220 ){
+				var aux = 0;
+				document.body.appendChild(tabela);
+				userInput = "<table style='float: left;padding: 1px;position: center;width: 49%;'>";
+				userInput += "<caption>Tabela Base de " + jornada + "h</caption>";
+				userInput += "<tr>";
+				for (j=0;j<rowCount.length;j++)
+				{
+					userInput += "<th>";
+					userInput += rowCount[j].firstChild.nodeValue;
+					userInput += "</th>";
+				}
+				userInput += "</tr>";
+				userInput += "<tr>";
+				for (i=0;i<colunas.length;i++)
+				{
+					if(i % rowCount.length == 0){
+						userInput += "</tr>";
+						aux = 0;
+						if(i < colunas.length){
+							userInput += "<tr>";
+						}
+					}
+					userInput += "<td>";
+					if(aux != 0){
+						var x = (((colunas[i].firstChild.nodeValue/220) * jornada ));
+						userInput += x.toFixed(2);
+					}else{
+						userInput += colunas[i].firstChild.nodeValue;
+						aux = 1;
+					}
+					//userInput += "<\td>"
+				}
+				userInput += "</table>"
+				document.getElementById('tabAlt').innerHTML = userInput;
+			}else{
+				userInput = "<table></table>"
+				document.getElementById('tabAlt').innerHTML = userInput;
+			}	 
+		}
+		
+		function fHorSemanais(campo, textoErro){
+			var jornada = document.getElementById('cHrMes').value;
+			var userInput;
+			if(jornada > 220){
+                //alert('Jornada deve ser menor ou igual a 220h!');
+         		document.getElementById('cHrMes').focus();
+				document.getElementById('cHrMes').style.borderColor = "red";
+				textoErro.innerHTML = "Jornada não pode ser maior que 220h.";
+                return false;
+			}else{
+				textoErro.innerHTML = "";
+				document.getElementById('cHrMes').style.borderColor = "#e6e6e6";
+			}
+           
+		}
+        function fcalcula(){
+            var custo = document.getElementById('cCusto').value; //Valor mensal
+            var hora = document.getElementById('cHrMes').value;  //Jornada
+            var valor = 0;
+            custo = custo.replace('.','');
+            custo = custo.replace(',','.');
+			if (hora == ""){
+				alert("Preencha o Valor da Jornada para calcular o valor hora");
+			}else{
+				valor = custo / hora;
+				valor = String(valor.toFixed(2));
+				valor = valor.replace('.',',');
+			}
+            document.getElementById('cSalHora').value = valor;
+        }
+		function fSubmit() {
+			
+			if (document.getElementById('cTurno').value == ""){
+				alert('É necessário preencher o turno');
+				return			
+			}
+			if (document.getElementById('cCatFun').value == ""){
+				alert('É necessário preencher o campos Categoria Funcional');
+				return			
+			}
+			if (document.getElementById('cCusto').value == ""){
+				alert('É necessário preencher o valor do salário Mensal');
+				return			
+			}
+			if (document.getElementById('cHrMes').value == ""){
+				alert('É necessário preencher a jornada');
+				return			
+			}
+			if (document.getElementById('ddltpvaga').value == ""){
+				alert('É necessário preencher o campo Tipo');
+				return			
+			}
+			if (document.getElementById('ddltpcon').value == ""){
+				alert('É necessário preencher o campo Contrato');
+				return			
+			}
+			if (document.getElementById('cCargo').value == ""){
+				alert('É necessário preencher o cargo');
+				return			
+			}
+			if (document.getElementById('cFuncao').value == ""){
+				alert('É necessário preencher a função');
+				return			
+			}
+			if (document.getElementById('cCcusto').value == ""){
+				alert('É necessário preencher o centro de custo');
+				return						
+			}
+			if (document.getElementById('cDscVaga').value == ""){
+				alert('É necessário preencher a descrição da vaga');
+				return						
+			}
+			var cHrSeman = "";
+			var cSalHora = "";
+			var r = confirm("Solicitação será cadastrada, continuar?");
+			if(r == true){
+				document.getElementById('button').disabled=true;
+				cHrSeman = document.getElementById('cHrSeman').value;
+				cSalHora = document.getElementById('cSalHora').value;
+				document.forms[0].action = "U_F0100306.APW?cDptoEsc=<%=cCodDepto%>&cPostEsc=<%=cPostoEsc%>&cFlPEsc=<%=cFilPEsc%>&cDptoDsc=<%=cDescrDepto%>&cHrSeman=" + cHrSeman + "&cSalHora=" + cSalHora + "";
+				document.forms[0].submit();
+			}
+	
+		}
+         <%	If(valtype(cMsg) != "U" .OR. cMsg != NIL) %>
+         	alert('<%=cMsg%>');
+         <%	EndIf %>
+      </script>
+   </head>
+   <body>
+      <h2>Solicitação de Vagas</h2>
+      <div id="divCabec" name="divCabec">
+         <fieldset>
+            <div class="container-cabec">
+               <div class="div-titulo"><%="Codigo"%></div>
+               <!--Codigo-->
+               <div class="div-conteudo"><%=cCodDepto%></div>
+            </div>
+            <div class="container-cabec">
+               <div class="div-titulo"><%="Departamento"%></div>
+               <!--Departamento-->
+               <div class="div-conteudo"><%=cDescrDepto%></div>
+            </div>
+            <h3>Posto de Trabalho</h3>
+            <div class="container-cabec">
+               <div class="div-titulo"><%="Filial:"%></div>
+               <!-- Filial Posto: -->
+               <div class="div-conteudo"><%=cFilPEsc%></div>
+            </div>
+            <div class="container-cabec">
+               <div class="div-titulo"><%="Posto:"%></div>
+               <!-- Posto: -->
+               <div class="div-conteudo"><%=cPostoEsc%></div>
+            </div>
+         </fieldset>
+      </div>
+      <form name="formSolicVg" id="formSolicVg" onSubmit="return CheckOut(this)" action="U_F0100306.APW?cDptoEsc=<%=cCodDepto%>&cPostEsc=<%=cPostoEsc%>&cFlPEsc=<%=cFilPEsc%>&cDptoDsc=<%=cDescrDepto%>" method="post">
+         <div id="divSolicitvaga" name="divSolicitvaga">
+         <title></title>
+         <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+         <link href="styles/consulta.css" rel="stylesheet" type="text/css">
+         <link href="styles/estilo.css" rel="stylesheet" type="text/css">
+         <br>
+         <% If lCntPrcss %>
+         	<label></label><span style="color:red;">Este posto está ocupado. Caso não realize a adequação, a quantidade</span> <br>
+			<label></label><span style="color:red;"> de colaboradores existentes será maior que a quantidade prevista. </span>
+			<br>         
+         <% EndIf %>
+         <br>
+         <label><%="Centro de custo:"%></label>
+         <input name="cCcusto" type="text" class="Texto" readonly id="cCcusto" size="9" value="<%=HttpPost->Posto:CCC%>" required>
+         <input name="cDscCC" type="text" class="Texto" id="cDscCC" size="40" disabled="true" value="<%=HttpPost->Posto:cDESCRCC%>">
+         <br>	
+         <label><%="Funcao:"%></label>
+         <input name="cFuncao" type="text" readonly class="Texto" id="cFuncao" size="5" value="<%=HttpPost->Posto:CCODFUNCAO%>" required>
+         <input name="cFuncaod" type="text" class="Texto" id="cFuncaod" size="24" disabled="true" value="<%=HttpPost->Posto:CDESCRFUNCAO%>" >
+         <br>
+         <label><%="Cargo:"%></label>
+         <input name="cCargo" type="text" class="Texto" id="cCargo" value="<%=HttpPost->Posto:CCODCARGO%>" size="5" readonly required>
+         <input name="cCargod" type="text" class="Texto" id="cCargod" size="24" disabled="true" value="<%=HttpPost->Posto:CDESCRCARGO%>" >
+         <br>	        	
+         <label><%="Desc.Detalhada:"%></label>
+         <textarea name="cDscDetal" cols="90" rows="10" id="cDscDetal" disabled ><%=cDscDetal%></textarea>
+         <br>
+         <label><%="Turno:"%></label>
+         <input name="cTurno" type="text" readonly class="Texto" id="cTurno" size="3" value="<%=''%>" required>
+         <a href="#"><img align="left" src="imagens-rh/search.png" id="btnSearchState" name="btnSearchState" width="25" height="25" border="0" align="absmiddle" onClick="ShowSearch(this, 'cTurno', 'SR6')" title="<%="Selecione o turno de trabalho"%>" /></a>
+         <br>
+         <label><%="Categoria Funcional:"%></label>
+         <input name="cCatFun" type="hidden" id="cCatFun" value="<%=cCateg%>" required />
+         <select name="ddltpcat" class="Texto" id="ddltpcat" <%=''%>>
+            <option value="M" <%=Iif(cCateg == 'M','selected','')%>><%="Mensalista"%></option>
+            <option value="E" <%=Iif(cCateg == 'E','selected','')%>><%="Estagiário"%></option>
+            <option value="A" <%=Iif(cCateg == 'A','selected','')%>><%="Autônomo"%></option>
+         </select>
+         <br>
+         <label><%="Contrato:"%></label>
+         <input name="cContrat" type="hidden" id="cContrat" value="<%=cContr%>" required />  
+         <select name="ddltpcon" class="Texto" id="ddltpcon" <%=''%>>
+            <option value="2" <%=Iif(cContr == '2','selected','')%>><%="Determinado"%></option>
+            <option value="1" <%=Iif(cContr == '1','selected','')%>><%="Indeterminado"%></option>
+         </select>
+         <br>
+         <label><%="Tipo:"%></label>
+         <input name="cTipVg" type="hidden" id="cTipVg" value="<%=cTipVaga%>" required />  
+         <select name="ddltpvaga" class="Texto" id="ddltpvaga" <%=''%>>
+            <option value="1" <%=Iif(cTipVaga == '1','selected','')%>><%="Int./Ext."%></option>
+            <option value="2" <%=Iif(cTipVaga == '2','selected','')%>><%="Interna"%></option>
+            <option value="3" <%=Iif(cTipVaga == '3','selected','')%>><%="Externa"%></option>
+         </select>
+         <br>
+         <% If oInf != NIL %>
+         <label><%="Jornada:"%></label>
+         <input name="cHrMes" type="text" class="Texto" id="cHrMes" size="4" maxlength="3" max="220" onblur="montTab(this, document.getElementById('msgNome'));" value="" required>
+         <span id="msgNome" style="color:red;"></span>
+         <br>
+         <% Else %>
+         <label><%="Jornada:"%></label>
+         <input name="cHrMes" type="text" class="Texto" id="cHrMes" size="4" maxlength="3" max="220" onblur="fHorSemanais(this, document.getElementById('msgNome'));" value="" required>
+         <span id="msgNome" style="color:red;"></span>
+         <br>
+         <% EndIf %>
+         <label><%="Horas semanais:"%></label>
+         <input name="cHrSeman" type="text" class="Texto" disabled id="cHrSeman" size="8" value="" required>
+         <br>
+         <label><%="Salario Mensal:"%></label>
+         <input name="cCusto" type="text" class="Texto"   id="cCusto" onkeypress="mascara( this, mvalor );" onBlur="fcalcula();" size="10" maxlength="10" required>
+          <span id="msgSal" style="color:red;"></span>
+         <br>
+         <label><%="Salario Hora:"%></label>
+         <input name="cSalHora" type="text" class="Texto" disabled id="cSalHora" onkeypress="mascara( this, mvalor );" size="10" maxlength="10" required>
+         <br>	        	
+         <label><%="Desc.Vaga:"%></label>
+         <textarea name="cDscVaga" cols="90" rows="10" id="cDscVaga" ></textarea>
+         
+         <br>
+         <br>
+         <% If oInf != NIL %>
+         <% If !(EMPTY(oInf:OWSRegistro:OWSFaixSal[1]:cNIVEL)) %>
+         <div style="text-align: center; vertical-align: middle;position: relative;">
+	         <div id='tabInf' >
+	            <table id='dataTable' style="float: left;padding: 1px;position: center;width: 49%;" >
+	               <caption>Tabela Base de 220h</caption>
+	               <tr>
+	                  <th>Nivel Tabela</th>
+	                  <% For nCnt := 1 to Len(oInf:OWSRegistro:OWSFaixSal)%>
+	                  <% If oInf:OWSRegistro:OWSFaixSal[nCnt]:cNIVEL = cFxAux .OR. EMPTY(cFxAux)%>
+	                  <th><%= "Faixa " + oInf:OWSRegistro:OWSFaixSal[nCnt]:cFAIXA %></th>
+	                  <% cFxAux := oInf:OWSRegistro:OWSFaixSal[nCnt]:cNIVEL %>	
+	                  <% EndIf %>
+	                  <%Next%>
+	               </tr>
+	               <% For nCnt := 1 to Len(oInf:OWSRegistro:OWSFaixSal)%>
+	               <% If oInf:OWSRegistro:OWSFaixSal[nCnt]:cNIVEL != cNvAux %>
+	               <tr>
+	                  <% EndIf %>	
+	                  <% If oInf:OWSRegistro:OWSFaixSal[nCnt]:cNIVEL != cNvAux %>
+	                  <td><%=oInf:OWSRegistro:OWSFaixSal[nCnt]:cNIVEL%></td>
+	                  <% cNvAux := oInf:OWSRegistro:OWSFaixSal[nCnt]:cNIVEL %>
+	                  <% EndIf %>
+	                  <% If oInf:OWSRegistro:OWSFaixSal[nCnt]:cNIVEL = cNvAux  .OR. EMPTY(cNvAux)%>
+	                  <td><%=oInf:OWSRegistro:OWSFaixSal[nCnt]:cVALOR%></td>
+	                  <% cNvAux := oInf:OWSRegistro:OWSFaixSal[nCnt]:cNIVEL %>
+	                  <% EndIf %>
+	                  <% If oInf:OWSRegistro:OWSFaixSal[nCnt]:cNIVEL != cNvAux %>
+	               </tr>
+	               <% EndIf %>		
+	               <% Next %>
+	            </table>
+	         </div>
+	         <div id='tabAlt' ></div>
+         </div>
+         <% Else %>
+         	<label></label><span style="color:red;">Não foi encontrado amarração do cargo com a tabela salarial</span>
+         <% EndIf %>  
+         <% Else %>
+         	<label></label><span style="color:red;">Não foi encontrado amarração do cargo com a tabela salarial</span>
+         <% EndIf %>  
+         <br>	
+         <br>
+         <input name="Button" type="button" class="botoes" value="Voltar" onClick="javascript:history.go(-1);" />
+         <input name="Submit" id="button" type="button" class="botoes" value="Salvar" onClick="javascript:fSubmit();">
+      </form>
+   </body>
+</html>

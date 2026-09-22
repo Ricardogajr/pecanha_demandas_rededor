@@ -1,0 +1,67 @@
+<%
+#Include 'Protheus.ch'
+#INCLUDE "APWEBEX.CH"
+
+/*
+{Protheus.doc} F0100309.aph
+Exibe solicitações a qual o usuario precisa aprovar ou reprovar
+@Author     Bruno de Oliveira
+@Since      07/10/2016
+@Version    P12.1.07
+@Project    MAN00000462901_EF_003
+*/
+
+Local nI       := 1
+Local nIndex   := 0
+Local nCodSts  := 0
+Local msg      := HttpGet->msg 
+Local aLegenda := {	"br_amarelo_ocean.png",;
+					"br_verde_ocean.png",;
+					"br_vermelho_ocean.png",;
+					"br_azul_ocean.png",;
+					"br_laranja_ocean.png"	}	
+%> 
+<div id="divSolicitEqp" name="divSolicitEqp">	
+	
+    <table width="800">
+    <tr>
+      <th width="20">&nbsp;</td>
+      <th width="20">&nbsp;</td>      
+      <th width="64"><%="Codigo"%></th>
+      <th width="96"><%="Data"%></th>
+      <th width="260"><%="Status"%></th>
+      <th width="96"><%="Acao"%></th>
+    </tr>
+    
+	<%	If oListARp != Nil	%>
+		<% For nI := 1 To Len(oListARp:oWSAApRep:oWSApRepVaga)%>
+	      <tr class="Texto">
+	      	<td><img src="imagens-rh/<%=aLegenda[VAL(oListARp:oWSAApRep:oWSApRepVaga[nI]:cStatSol)]%>" title="<%=IIF(VAL(oListARp:oWSAApRep:oWSApRepVaga[nI]:cStatSol)==1,"Em processo de aprova&ccedil;&atilde;o",IIF(VAL(oListARp:oWSAApRep:oWSApRepVaga[nI]:cStatSol)==2,"Atendida",IIF(VAL(oListARp:oWSAApRep:oWSApRepVaga[nI]:cStatSol)==3,"Reprovada","Aguardando Efetiva&ccedil;&atilde;o do RH")))%>"></td>
+	        <td><%="<img src='imagens-rh/warning.png' title='" + "Esta solicitacao necessita de sua atenção!" + "'>"%></td>
+		    <% If cTpSol == "002" %>
+		    	<td><a href="U_F0100310.APW?nGrid=9&cSolic=<%=oListARp:oWSAApRep:oWSApRepVaga[nI]:cCodApRp%>&cStatus=<%=oListARp:oWSAApRep:oWSApRepVaga[nI]:cCodApRp%>&cFilil=<%=oListARp:oWSAApRep:oWSApRepVaga[nI]:cFilSolc%>" class="links"><%=oListARp:oWSAApRep:oWSApRepVaga[nI]:cCodApRp%></a></td>
+		    <% Else %>
+		    	<td><a href="U_F0100321.APW?nGrid=9&cSolic=<%=oListARp:oWSAApRep:oWSApRepVaga[nI]:cCodApRp%>&cStatus=<%=oListARp:oWSAApRep:oWSApRepVaga[nI]:cCodApRp%>&cFilil=<%=oListARp:oWSAApRep:oWSApRepVaga[nI]:cFilSolc%>" class="links"><%=oListARp:oWSAApRep:oWSApRepVaga[nI]:cCodApRp%></a></td>
+		    <% EndIf %>
+		    <td><%=STOD(oListARp:oWSAApRep:oWSApRepVaga[nI]:cDtSolic)%></td>
+			<td><%=IIF(VAL(oListARp:oWSAApRep:oWSApRepVaga[nI]:cStatSol)==1,"Em processo de aprova&ccedil;&atilde;o",IIF(VAL(oListARp:oWSAApRep:oWSApRepVaga[nI]:cStatSol)==2,"Atendida",IIF(VAL(oListARp:oWSAApRep:oWSApRepVaga[nI]:cStatSol)==3,"Reprovada","Aguardando Efetiva&ccedil;&atilde;o do RH")))%></td>
+			<td>
+			<font color = "red">
+			<%=oListARp:oWSAApRep:oWSApRepVaga[nI]:cAcaoSol%>
+			</font>
+			</td>
+	      </tr>
+		<% Next nI %>
+	<% Else %>
+	    <tr bgcolor="#F2F2F2" class="Texto" height="20">
+	      <td colspan="8">
+		      <span class="TituloMenor">
+			      <strong>
+			      		<center>N&atilde;o existem registros para exibi&ccedil;&atilde;o</center>
+			      </strong>
+		      </span>
+	      </td>
+	    </tr>
+	<% EndIf %>
+	</table>
+</div>

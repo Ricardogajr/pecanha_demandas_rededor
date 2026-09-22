@@ -1,0 +1,63 @@
+<%
+/*
+{Protheus.doc} F0200303()
+solicitações de incentivo a educação
+@Author     Henrique Madureira
+@Since      
+@Version    P12.7
+@Project    MAN00000463301_EF_003
+@Return	 
+*/
+	Local nCnt      := 0
+	Local cStatus   := ""
+	Local aLegenda  := {"br_amarelo_ocean.png" ,;
+						"br_verde_ocean.png"   ,;
+					 	"br_vermelho_ocean.png",;
+						"br_azul_ocean.png",;
+						"br_pink_ocean.png"}
+
+%>
+
+<div id="divMinhasSolic" name="divMinhasSolic">	
+		
+	<table  width="800">
+		<tr>
+			<th>&nbsp;</th>
+			<th>C&oacute;d</th>
+			<th>Matricula</th>
+			<th>Nome</th>
+			<th>Status</th>
+			
+		</tr>
+		<% If OLISTA2 != NIL %>
+			<% If !(EMPTY(OLISTA2:OWSREGISTRO:oWSRETFERIAS[1]:CCOD))%>
+			<% For nCnt := 1 to Len(OLISTA2:OWSREGISTRO:oWSRETFERIAS)%>
+				<tr> 
+					<td><img src="imagens-rh/<%=aLegenda[Val(OLISTA2:OWSREGISTRO:oWSRETFERIAS[nCnt]:CSTATUS)]%>" title="<%=IIF(VAL(OLISTA2:OWSREGISTRO:oWSRETFERIAS[nCnt]:CSTATUS)==1,"Em processo de aprova&ccedil;&atilde;o",IIF(VAL(OLISTA2:OWSREGISTRO:oWSRETFERIAS[nCnt]:CSTATUS)==2,"Aprovada",IIF(VAL(OLISTA2:OWSREGISTRO:oWSRETFERIAS[nCnt]:CSTATUS)==3,"Reprovada",IIF(VAL(OLISTA2:OWSREGISTRO:oWSRETFERIAS[nCnt]:CSTATUS)==4,"Aguardando Efetiva&ccedil;&atilde;o do RH","Cancelada"))))%>"></td>
+					<td>
+					<a href="U_F0801104.APW?nOperacao=4&cSolic=<%=OLISTA2:OWSREGISTRO:oWSRETFERIAS[nCnt]:CCOD%>&funcodigo=<%=OLISTA2:OWSREGISTRO:oWSRETFERIAS[nCnt]:CMATRICULA%>&cFilFun=<%=OLISTA2:OWSREGISTRO:oWSRETFERIAS[nCnt]:CFILIALS%>&nIndiceSolic=<%=nCnt%>&nIndice=<%=nCnt%>" class="links">
+					<%= OLISTA2:OWSREGISTRO:oWSRETFERIAS[nCnt]:CCOD%>
+					</a>
+					</td>
+					<td><%= OLISTA2:OWSREGISTRO:oWSRETFERIAS[nCnt]:CMATRICULA%></td>
+					<td><%= OLISTA2:OWSREGISTRO:oWSRETFERIAS[nCnt]:CNOME%></td>
+					<% cStatus := OLISTA2:OWSREGISTRO:oWSRETFERIAS[nCnt]:CSTATUS %>
+					<td><%= IIf(cStatus == "1", "Em processo de aprova&ccedil;&atilde;o", IIf(cStatus == "2", "Atendida", IIf(cStatus == "3", "Reprovada",IIf(cStatus == "4", "Aguardando Efetiva&ccedil;&atilde;o do RH","Cancelada"))))%></td>
+				</tr>
+			<% Next %>
+			<% Else %>
+			<tr bgcolor="#F2F2F2" class="Texto">
+             <td align="center" colspan="6">Nao existem registros para exibicao</td>
+          </tr>
+			<% EndIf%>
+		<% Else %> 
+          <tr bgcolor="#F2F2F2" class="Texto">
+             <td align="center" colspan="6">Nao existem registros para exibicao</td>
+          </tr>
+		<% EndIf %>  
+		<tr>
+			<td class="info-cent" colspan="6">
+			</td>
+		</tr>
+	</table>
+</div>

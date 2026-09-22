@@ -1,0 +1,173 @@
+<%
+   #Include 'Protheus.ch'
+   #INCLUDE "APWEBEX.CH"
+   
+   /*
+   {Protheus.doc} F0100319.aph
+   Formulário para inclusão da solicitação de aumento de postos
+   @Author     Bruno de Oliveira, Henrique Madureira
+   @Since      07/10/2016
+   @Version    P12.1.07
+   @Project    MAN00000462901_EF_003
+   */
+   
+   %>
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!doctype html public "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <title></title>
+      <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+      <link href="styles/consulta.css" rel="stylesheet" type="text/css">
+      <link href="styles/estilo.css" rel="stylesheet" type="text/css">
+      <script src="pplanguage.js" type="text/javascript"></script>
+      <script src="criaobj.js" type="text/javascript"></script>
+      <script src="scripts/prototype.js" language="JavaScript" type="text/javascript"></script>
+      <script src="scripts/scriptaculous.js" language="JavaScript" type="text/javascript"></script>
+      <script src="scripts/ajax.js" language="JavaScript" type="text/javascript"></script>
+      <script language="JavaScript">
+         function formatar(mascara, documento){
+         	var i = documento.value.length;
+         	var saida = mascara.substring(0,1);
+         	var texto = mascara.substring(i);
+            if (texto.substring(0,1) != saida){
+         		documento.value += texto.substring(0,1);
+          	}
+         }
+         
+         function mascara(o,f){
+            v_obj=o
+           	v_fun=f
+            setTimeout("execmascara()",1)
+         }
+         function execmascara(){
+            v_obj.value=v_fun(v_obj.value)
+         }
+         
+         function mnumero(v){
+            v=v.replace(/\D/g,"");                    //Remove tudo o que não é dígito
+            return v;
+         }
+         function mvalor(v){
+            v=v.replace(/\D/g,"");//Remove tudo o que não é dígito
+            v=v.replace(/(\d)(\d{8})$/,"$1.$2");//coloca o ponto dos milhões
+            v=v.replace(/(\d)(\d{5})$/,"$1.$2");//coloca o ponto dos milhares
+         
+            v=v.replace(/(\d)(\d{2})$/,"$1,$2");//coloca a virgula antes dos 2 últimos dígitos
+            return v;
+         }
+         	
+         function fVai() {
+				
+			var r      = confirm("Solicitação será cadastrada, continuar?");
+			var TpCon  = document.getElementById("ddltpcontrato");
+			var TpPos  = document.getElementById("ddltpposto");
+			var strCon = TpCon.options[TpCon.selectedIndex].value;
+			var strPos = TpPos.options[TpPos.selectedIndex].value;
+				
+			if (document.getElementById('cObs').value == ""){
+				alert('É necessário preencher a Observação');
+				return
+			}
+			if(r == true){
+				document.getElementById('button').disabled=true;
+       			document.forms[0].action = "U_F0100320.APW?cCcusto=<%=cCcusto%>&cDscCC=<%=cDscCC%>&nOperacao=1&nIndDept=<%=HttpGet->nIndiceDepto%>&cNPost=1&cOpc=<%=cOpc%>&cCodDepto=<%=cCodDepto%>&cDescrDepto=<%=cDescrDepto%>&cPostRepor=<%=cPostRepor%>&cDesDpRepor=<%=cDesDpRepor%>&cDepRepor=<%=cDepRepor%>&cDescRepor=<%=cDescRepor%>&cFilRepor=<%=cFilRepor%>&cFilSol=<%=cFilSol%>&cDescSol=<%=cDescSol%>&cDeptSol=<%=cDeptSol%>&cDescDeptSol=<%=cDescDeptSol%>&cNvDesen=1&cDptoEsc=<%=cCodDepto%>&cPostEsc=<%=cPostRepor%>&cNvPosto=<%=1%>&cPostFilial=<%=cFilSol%>&cTipCon="+strCon+"&cTipPos="+strPos+"";
+       			document.forms[0].submit();
+			}
+
+         }
+       
+      </script>		
+   </head>
+   <body>
+      <h2><%= "Aumento de Quadro – Novo Posto"%></h2>
+      <div id="divCabec" name="divCabec">
+         
+	      <fieldset>
+	         <div class="container-cabec">
+	            <div class="div-titulo"><%="Filial Reporte"%></div>
+	            <div class="div-conteudo"><%=cFilRepor%></div>
+	         </div>
+	         <div class="container-cabec">
+	            <div class="div-titulo"><%="Descrição"%></div>
+	            <div class="div-conteudo"><%=cDescRepor%></div>
+	         </div>
+	         <div class="container-cabec">
+	            <div class="div-titulo"><%="Departamento Reporte"%></div>
+	            <div class="div-conteudo"><%=cDepRepor%></div>
+	         </div>
+	         <div class="container-cabec">
+	            <div class="div-titulo"><%="Descrição"%></div>
+	            <div class="div-conteudo"><%=cDesDpRepor%></div>
+	         </div>
+	         <div class="container-cabec">
+	            <div class="div-titulo"><%="Posto Reporte"%></div>
+	            <div class="div-conteudo"><%=cPostRepor%></div>
+	         </div>
+	      </fieldset>
+	  </div>
+      <h3><%="Posto de Trabalho"%></h3>
+
+      <form name="formSolicQdr" id="formSolicQdr" onSubmit="return CheckOut(this)" method="post">
+         <div id="divSolicitvaga" name="divSolicitvaga">
+         
+         <input name="cCodDepto" type="hidden" class="Texto" id="cCodDepto" size="24" value="<%=cCodDepto%>" >
+         <input name="cDescrDepto" type="hidden" class="Texto" id="cDescrDepto" size="24" value="<%=cDescrDepto%>" >
+         <br>	
+         <label><%="Filial:"%></label>
+	         <input name="cFilNvQuadro" type="text" class="Texto" id="cFilNvQuadro" size="8" value="<%=cFilSol%>" disabled>
+	         <input name="cFilNvQuadrod" type="text" class="Texto" id="cFilNvQuadrod" size="50"  value="<%=cDescSol%>" disabled>
+	         <input name="cFilNvQuadro" type="hidden" class="Texto" id="cFilNvQuadro" size="8" value="<%=cFilSol%>" >
+	         <input name="cFilNvQuadrod" type="hidden" class="Texto" id="cFilNvQuadrod" size="50"  value="<%=cDescSol%>" >
+         <br>	       
+         <label><%="Departamento:"%></label>
+	         <input name="cDepNvQuadro" type="text" class="Texto" id="cDepNvQuadro" size="9" value="<%=cDeptSol%>" disabled>
+	         <input name="cDepNvQuadrod" type="text" class="Texto" id="cDepNvQuadrod" size="50"  value="<%=cDescDeptSol%>" disabled>
+	         <input name="cDepNvQuadro" type="hidden" class="Texto" id="cDepNvQuadro" size="9" value="<%=cDeptSol%>" >
+	         <input name="cDepNvQuadrod" type="hidden" class="Texto" id="cDepNvQuadrod" size="50"  value="<%=cDescDeptSol%>" >
+         <br>	       
+         <label><%="Funcao:"%></label>
+	         <input name="cFuncao" type="text" class="Texto" id="cFuncao" size="5" value="<%=cCodFunc%>" disabled>
+	         <input name="cFuncao" type="hidden" class="Texto" id="cFuncao" size="5" value="<%=cCodFunc%>" >
+	         <input name="cFuncaod" type="text" class="Texto" id="cFuncaod" size="50"  value="<%=cDescFunc%>" disabled>
+	         <input name="cFuncaod" type="hidden" class="Texto" id="cFuncaod" size="24" value="<%=cDescFunc%>" >
+         <br>	        	
+         <label><%="Cargo:"%></label>
+	         <input name="cCargo" type="text" class="Texto" id="cCargo" value="<%=cCodFunc%>" size="5" disabled>
+	         <input name="cCargo" type="hidden" class="Texto" id="cCargo" value="<%=cCodFunc%>" size="5" >
+	         <input name="cCargod" type="text" class="Texto" id="cCargod" size="50"  value="<%=cDescFunc%>" disabled>		
+	         <input name="cCargod" type="hidden" class="Texto" id="cCargod" size="24" value="<%=cDescFunc%>" >	
+         <br>
+         <label><%="Centro de custo:"%></label>
+	         <input name="cCcusto" type="hidden" class="Texto" id="cCcusto" size="12" value="<%=cCcusto%>" >
+	         <input name="cDscCC" type="hidden" class="Texto" id="cDscCC" size="50"  value="<%=cDscCC%>" >
+	         <input name="cCcusto" type="text" class="Texto" id="cCcusto" size="9" value="<%=cCcusto%>" disabled>
+	         <input name="cDscCC" type="text" class="Texto" id="cDscCC" size="40" disabled="true" value="<%=cDscCC%>" disabled>			
+		 
+		 <br>
+         <label><%="Tipo de contrato:"%></label>
+	         <select name="ddltpcontrato" class="Texto" id="ddltpcontrato">
+	            <option value="1"><%="Indeterminado"%></option>
+	            <option value="2"><%="Determinado"%></option>
+	         </select>
+
+	     <br>
+	     <label><%="Quantidade:"%></label>
+	         <input name="cQtd" value="1"  type="text" class="Texto" OnKeyPress="mascara( this, mnumero );" id="cQtd" size="10" maxlength="5" required>
+	     
+	     <br>    
+         <label><%="Tipo do posto:"%></label>
+	         <select name="ddltpposto" class="Texto" id="ddltpposto" >
+	            <option value="1"><%="Individual"%></option>
+	            <option value="2"><%="Generico"%></option>
+	         </select>
+
+         <br>      	
+         <label><%="Observacao:"%></label>
+         	<textarea name="cObs" cols="80" rows="5" id="cObs" class="Texto" value="" required> </textarea>
+         	<br>	
+         	<input name="Button" type="button" class="botoes" value="Voltar" onClick="javascript:history.go(-1);" />
+         	<input name="Button" id="button" type="button" class="botoes" value="Salvar" onClick="javascript:fVai();" />
+      </form>
+   </body>
+</html>

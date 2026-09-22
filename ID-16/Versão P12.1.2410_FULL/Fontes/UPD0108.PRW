@@ -1,0 +1,572 @@
+#INCLUDE "TOTVS.CH"
+#INCLUDE "PROTHEUS.CH"
+#INCLUDE "TOPCONN.CH"
+#INCLUDE "PROTHEUS.CH"
+#INCLUDE "GPEA320.CH" 
+
+////////////////////////////////////////////////////////////////////////////////////
+// VALIDACAO TABELA SRG SEGUINDO REGRA DEFINIDA PELOS FUNCIONAIS E EQUIPE REDEDOR //
+////////////////////////////////////////////////////////////////////////////////////                 
+
+***********************
+USER FUNCTION UPD0108()
+***********************
+
+	LOCAL CLINHA 	 := ""
+	LOCAL LRET		 := .T.
+	LOCAL LPRIM 	 := .F.
+	LOCAL CTEXT 	 := OEMTOANSI("SELECIONE O ARQUIVO DE IMPORTAÇÃO:")
+    LOCAL NQTDREG := 0
+
+	PRIVATE ADADOS 	 := {}
+    PRIVATE CARQUIVO := SPACE(150)
+    PRIVATE LOK      :=.F.
+
+    DBSELECTAREA("SRG")  
+    DBSETORDER(1)
+    DBGOTOP()         
+    NQTDREG := SRG->(RECCOUNT())
+    IF NQTDREG > 0
+       PROCESSA( {|| IMPORTDAD( NQTDREG ) }, "UPD108 - VALIDACAO TABELA SRG", "AGUARDE...", .F.)
+	   MSGSTOP( "FIM DA ROTINA", "UPD108" )
+	ELSE
+	   MSGSTOP( "SEM REGISTROS PROCESSADOS", "UPD108" )
+	ENDIF
+    
+	FT_FUSE()
+
+RETURN
+
+********************************
+STATIC FUNCTION IMPORTDAD(NQTD1)
+********************************
+	LOCAL I 		  := 0
+	LOCAL J 		  := 0
+	LOCAL LRET		  := .T.
+	LOCAL ARETORNO	  :={}
+	LOCAL NSALARIO 	  := 0
+    LOCAL CFIL        := ""
+	LOCAL CMAT        := ""
+	LOCAL CNOME		  :=""
+	LOCAL CSEQ		  :=""
+	LOCAL CCARGO	  :=""
+	LOCAL CCENTROC 	  :=""
+	LOCAL CSINDICA	  :=""
+	LOCAL CCATFUNC    :=""
+	LOCAL SITFOLH     :=""
+	LOCAL LOK         :=.T.
+	LOCAL LATUALIZA   := .T.
+	LOCAL AAREASRG    := SRG->(GETAREA())
+    
+	PROCREGUA(NQTD1)
+
+    DBSELECTAREA("SRG")
+    DBSETORDER(1)
+	DBGOTOP()
+	
+    WHILE !EOF()
+
+       SRA->(DBSETORDER(1))
+	   IF SRA->(DBSEEK(SRG->RG_FILIAL+SRG->RG_MAT))
+	      CFIL :=SRA->RA_FILIAL
+		  CMAT :=SRA->RA_MAT
+          CNOME:= SRA->RA_NOME	
+	   ELSE
+	      CFIL :=" "
+		  CMAT :=" "
+	      CNOME:=" "
+	   ENDIF
+
+	   DBSELECTAREA("SRG")
+       DBSETORDER(1)
+
+       IF EMPTY(SRG->RG_TPAVISO)
+	      AADD(ARETORNO,{PADL(CFIL,TAMSX3("RG_FILIAL")[1],"0"),;
+		                 PADL(CMAT,TAMSX3("RG_MAT")[1],"0"),;
+						 PADL(CNOME,TAMSX3("RA_NOME")[1]," "),;
+						 "ERRO 08",;
+						 "RG_TPAVISO ESTA VAZIO"})
+	      cTpAv := Upd0110(SRG->RG_TIPORES)
+		  If !Empty(cTpAv)
+             IF LATUALIZA
+		        RECLOCK("SRG",.F.)
+		        SRG->RG_TPAVISO := cTpAv
+			    MSUNLOCK()
+			 ENDIF
+		  Else
+             LOK := .F.
+		  Endif
+	   ENDIF
+
+       IF DTOS(SRG->RG_DTAVISO)='        '
+	      AADD(ARETORNO,{PADL(CFIL,TAMSX3("RG_FILIAL")[1],"0"),;
+		                 PADL(CMAT,TAMSX3("RG_MAT")[1],"0"),;
+						 PADL(CNOME,TAMSX3("RA_NOME")[1]," "),;
+						 "ERRO 10",;
+						 "RG_DTAVISO ESTA VAZIO"})
+	      If DTOS(SRG->RG_DATADEM)>='20180301' .AND. SRG->RG_TPAVISO $'IT'
+             IF LATUALIZA
+  	            RECLOCK("SRG",.F.)
+	            SRG->RG_DTAVISO := SRG->RG_DATADEM
+		        MSUNLOCK()
+			 ENDIF
+		  ENDIF
+	   ENDIF                        
+	   
+       IF LOK	   
+	   
+           IF SRG->RG_TPAVISO = 'T' .AND. SRG->RG_INDAV <> '0'
+		      AADD(ARETORNO,{PADL(CFIL,TAMSX3("RG_FILIAL")[1],"0"),;
+			                 PADL(CMAT,TAMSX3("RG_MAT")[1],"0"),;
+							 PADL(CNOME,TAMSX3("RA_NOME")[1]," "),;
+							 "ERRO 01",;
+							 "RG_TPAVISO = 'T' E RG_INDAV DIFERENTE '0'"})
+              IF LATUALIZA
+		         RECLOCK("SRG",.F.)
+			     SRG->RG_INDAV := '0'
+			     MSUNLOCK()    
+			  ENDIF
+		   ENDIF
+		   
+           IF SRG->RG_TPAVISO $'IDN' .AND. SRG->RG_INDAV <> '4'
+		      AADD(ARETORNO,{PADL(CFIL,TAMSX3("RG_FILIAL")[1],"0"),;
+			                 PADL(CMAT,TAMSX3("RG_MAT")[1],"0"),;
+							 PADL(CNOME,TAMSX3("RA_NOME")[1]," "),;
+							 "ERRO 02",;
+							 "RG_TPAVISO FOR 'I/D/N' E RG_INDAV DIFERENTE '4'"})
+		      IF LATUALIZA
+		         RECLOCK("SRG",.F.)
+			     SRG->RG_INDAV := '4'
+			     MSUNLOCK()
+			  ENDIF
+		   ENDIF
+
+           IF SRG->RG_TPAVISO = 'I'  .AND. SRG->RG_DAVIND = 0
+		      AADD(ARETORNO,{PADL(CFIL,TAMSX3("RG_FILIAL")[1],"0"),;
+			                 PADL(CMAT,TAMSX3("RG_MAT")[1],"0"),;
+							 PADL(CNOME,TAMSX3("RA_NOME")[1]," "),;
+							 "ERRO 03",;
+							 "RG_TPAVISO = 'I'  E RG_DAVIND = 0"})
+		      IF LATUALIZA
+		         RECLOCK("SRG",.F.)
+			     SRG->RG_DAVIND := SRG->RG_DAVISO
+			     MSUNLOCK()
+              ENDIF
+		   ENDIF
+		   
+           IF SRG->RG_TPAVISO $'TDN' .AND. SRG->RG_DAVIND > 0
+		      AADD(ARETORNO,{PADL(CFIL,TAMSX3("RG_FILIAL")[1],"0"),;
+			                 PADL(CMAT,TAMSX3("RG_MAT")[1],"0"),;
+							 PADL(CNOME,TAMSX3("RA_NOME")[1]," "),;
+							 "ERRO 04",;
+							 "RG_TPAVISO FOR 'T/D/N' E RG_DAVIND DIFERENTE DE '0'"})
+              IF LATUALIZA
+		         RECLOCK("SRG",.F.)
+			     SRG->RG_DAVIND := 0
+			     MSUNLOCK()
+			  ENDIF
+		   ENDIF
+		   
+           IF SRG->RG_TPAVISO $'IT' .AND. EMPTY(SRG->RG_DTPROAV)
+		      AADD(ARETORNO,{PADL(CFIL,TAMSX3("RG_FILIAL")[1],"0"),;
+			                 PADL(CMAT,TAMSX3("RG_MAT")[1],"0"),;
+							 PADL(CNOME,TAMSX3("RA_NOME")[1]," "),;
+							 "ERRO 05",;
+							 "RG_TPAVISO FOR 'I/T' E RG_DTPROAV ESTA VAZIA"})
+              IF LATUALIZA							 
+		         IF SRG->RG_DAVIND > 0 
+		            RECLOCK("SRG",.F.)       
+		            IF !EMPTY(SRG->RG_DTAVISO)
+                       SRG->RG_DTPROAV := DAYSUM( SRG->RG_DTAVISO, SRG->RG_DAVIND )
+                    ELSE                 
+                       SRG->RG_DTPROAV := SRG->RG_DTAVISO
+                    ENDIF
+			        MSUNLOCK()
+			     ENDIF
+              ENDIF	   
+           ENDIF
+		   
+           IF SRG->RG_TPAVISO $'DN'  .AND. !EMPTY(SRG->RG_DTPROAV)
+		      AADD(ARETORNO,{PADL(CFIL,TAMSX3("RG_FILIAL")[1],"0"),;
+			                 PADL(CMAT,TAMSX3("RG_MAT")[1],"0"),;
+							 PADL(CNOME,TAMSX3("RA_NOME")[1]," "),;
+							 "ERRO 06",;
+							 "RG_TPAVISO FOR 'D/N' E RG_DTPROAV NAO ESTA VAZIA"})
+              IF LATUALIZA
+		         RECLOCK("SRG",.F.)
+			     SRG->RG_DTPROAV := CTOD("  /  /    ")
+			     MSUNLOCK()
+			  ENDIF
+		   ENDIF
+		
+		   IF SRG->RG_DAVIND > 0 .AND. EMPTY(SRG->RG_DTPROAV)
+		      AADD(ARETORNO,{PADL(CFIL,TAMSX3("RG_FILIAL")[1],"0"),;
+			                 PADL(CMAT,TAMSX3("RG_MAT")[1],"0"),;
+							 PADL(CNOME,TAMSX3("RA_NOME")[1]," "),;
+							 "ERRO 07",;
+							 "RG_DAVIND DIFERENTE DE '0' E RG_DTPROAV ESTA VAZIA"})
+              IF LATUALIZA
+		         RECLOCK("SRG",.F.) 
+		         IF !EMPTY(SRG->RG_DTAVISO)
+                    SRG->RG_DTPROAV := DAYSUM( SRG->RG_DTAVISO, SRG->RG_DAVIND )
+                 ELSE                 
+                    SRG->RG_DTPROAV := SRG->RG_DTAVISO
+                 ENDIF
+			     MSUNLOCK()
+			  ENDIF
+           ENDIF 
+       
+       ENDIF	   
+	   
+	   SRG->( DBSKIP() )
+       
+	   LOK := .T.
+	   
+	   INCPROC("PROCESSANDO ...")	
+
+	END
+	
+	IF !EMPTY(ARETORNO)
+		AVISO('PROCESSAMENTO REALIZADO!',"VERIFIQUE O LOG DO PROCESSAMENTO", {'OK'}, 1)
+        GERALOG(ARETORNO)
+	ENDIF
+	RESTAREA(AAREASRG)
+
+RETURN
+
+*********************************
+STATIC FUNCTION GERALOG(ARETORNO)
+*********************************
+LOCAL OEXCEL                                            
+LOCAL CTEMPPATH:=GETTEMPPATH()
+LOCAL CDIRUSR  := __RELDIR
+LOCAL CDIRSRV  := '\SPOOL\'
+LOCAL CARQ     := 'UPD108LOG.CSV'
+
+CARQ4  := CDIRSRV+CARQ
+
+NHANDLE4 := FCREATE(CARQ4,0)		// CRIA O ARQUIVO
+IF FERROR() != 0
+   CONOUT("HOUVE ERRO NA CRIAÇÃO DO ARQUIVO LOGEMPRE")
+ENDIF                        
+CMSG := "UPD0108 LOG DE PROCESSAMENTO"+CRLF
+FWRITE(NHANDLE4,CMSG,LEN(CMSG))    
+CMSG := "FILIAL;MATRICULA;NOME FUNCIONARIO;ERRO;DESCRICAO ERRO "+CRLF
+FWRITE(NHANDLE4,CMSG,LEN(CMSG))    
+FOR NI := 1 TO LEN(ARETORNO)       
+    CMSG = ""
+    CMSG = ARETORNO[NI][1]+";"+;
+	       ARETORNO[NI][2]+";"+;
+	       ARETORNO[NI][3]+";"+;
+	       ARETORNO[NI][4]+";"+;
+		   ARETORNO[NI][5]+";"+CRLF
+    FWRITE(NHANDLE4,CMSG,LEN(CMSG))    
+NEXT
+FCLOSE (NHANDLE4)    
+
+//CPYS2T(CDIRSRV+CARQ, CTEMPPATH)
+//OEXCEL:=MSEXCEL():NEW()
+//OEXCEL:WORKBOOKS:OPEN(CTEMPPATH+CARQ)
+//OEXCEL:SETVISIBLE(.T.)
+//OEXCEL:DESTROY()
+
+RETURN
+
+*********************************
+STATIC FUNCTION UPD0110(CTIPORES)
+*********************************
+LOCAL CALIAS        := "RCC"
+LOCAL CCOND         := "RCC_FILIAL + RCC_CODIGO"
+LOCAL CCHAVE        := XFILIAL("RCC")+ "S043"
+LOCAL NOPCX         := 2
+LOCAL CTPAVISO      := " "
+LOCAL A320NFIELD    := {"RCC_FILIAL","RCC_CODIGO","RCC_CONTEU"}
+PRIVATE ACOLSREC    := {}                 
+PRIVATE ACOLSANT    := {}
+PRIVATE ACOLS       := {}
+PRIVATE AHEADER     := {}
+PRIVATE NUSADO	    := 0
+PRIVATE LANOMES		 := .T.
+PRIVATE CCODIGO 	:= CRIAVAR("RCB_CODIGO")
+PRIVATE CDESCRI		:= CRIAVAR("RCB_DESC")
+PRIVATE CFILTAB 	:= CRIAVAR("RCC_FIL")  
+PRIVATE CCHAVRCC	:= CRIAVAR("RCC_CHAVE")
+
+//CTIPORES := "01"
+
+DBSELECTAREA("RCB")
+DBSETORDER(1)
+IF DBSEEK(XFILIAL("RCB")+"S043")
+   CCODIGO		        := RCB->RCB_CODIGO
+   CDESCRI		        := RCB->RCB_DESC  
+   CFILRCC		        := XFILIAL(CALIAS)
+
+   DBSELECTAREA(CALIAS)
+   DBSETORDER(1)
+   IF DBSEEK( CFILRCC + CCODIGO )                                                                       
+   
+      CCOND	    := "RCC_FILIAL + RCC_CODIGO"
+      CCHAVE    := XFILIAL("RCC")+ CCODIGO
+      CFILTAB	:= RCC->RCC_FIL
+      CCHAVRCC  := RCC->RCC_CHAVE
+      AHEADER	:= GP320AHEAD(A320NFIELD,CALIAS)  								          
+      ACOLS	    := GP320ACOLS(A320NFIELD,CALIAS,CCOND,CCHAVE,NOPCX,@ACOLSREC,@ACOLSANT) 
+      CTPAVISO  := " "
+      FOR NI = 1 TO LEN(ACOLS)
+         IF ACOLS[NI,4] = CTIPORES
+            CTPAVISO := ACOLS[NI,7]
+         ENDIF
+      NEXT
+   ELSE
+      CTPAVISO  :=" "
+   ENDIF
+ELSE
+   CTPAVISO  :=" "
+ENDIF
+
+RETURN CTPAVISO
+
+******************************************
+STATIC FUNCTION GP320AHEAD(AFIELDS,CALIAS)
+******************************************
+LOCAL ARETORNO 	:= {}											
+LOCAL AEXCLRCB  := { 'RCB_FILIAL','RCB_CODIGO','RCB_DESC'} 		
+LOCAL AEXCLRCC	:= { 'RCC_FILIAL','RCC_CODIGO','RCC_CONTEU'}
+LOCAL AAREA		:= GETAREA()
+LOCAL ASX3AREA	:= SX3->(GETAREA()) 
+LOCAL CVALID
+Local _aCpoX3	:= {} //Thais Paiva - Compatibilização P27
+	
+PRIVATE AHEADER := {}
+PRIVATE NUSADO	:= 0
+	
+	// AADD(AFIELDS, "RCC_CHAVE"	      
+	// MONTA ARRAY DOS CAMPOS DO ARQUIVO DE PESQUISA.	
+	//Início - Thais Paiva - Compatibilização P27
+	//DBSELECTAREA( 'SX3' )
+	//SX3->( DBSETORDER(1) )
+	//DBSEEK( 'RCC' )
+	//DO WHILE !EOF() .AND. ( X3_ARQUIVO == 'RCC' )
+	_aCpoX3 := FWSX3Util():GetAllFields( 'RCC' , .F. ) 
+	For _nX3 := 1 To Len(_aCpoX3)
+		//IF X3USO(X3_USADO) .AND. CNIVEL >= X3_NIVEL .AND.;
+		//ASCAN(AEXCLRCC,{ |X| X == TRIM(X3_CAMPO) } ) == 0
+		IF X3USO(GetSx3Cache(_aCpoX3[_nX3], 'X3_USADO')) .AND. CNIVEL >= GetSx3Cache(_aCpoX3[_nX3], 'X3_NIVEL') .AND.;
+			ASCAN(AEXCLRCC,{ |X| X == TRIM(GetSx3Cache(_aCpoX3[_nX3], 'X3_CAMPO')) } ) == 0
+			//IF !LANOMES .AND. ALLTRIM(X3_CAMPO) == "RCC_CHAVE"
+			IF !LANOMES .AND. ALLTRIM(GetSx3Cache(_aCpoX3[_nX3], 'X3_CAMPO')) == "RCC_CHAVE"
+				DBSKIP()
+			ENDIF
+			NUSADO ++
+			/*AADD(AHEADER,{ TRIM(X3_TITULO), X3_CAMPO  , X3_PICTURE,;
+								X3_TAMANHO , X3_DECIMAL, X3_VALID  ,;
+								X3_USADO   , X3_TIPO   , X3_F3,;
+								X3_CONTEXT } )*/
+			AADD(AHEADER,{ TRIM(GetSx3Cache(_aCpoX3[_nX3], 'X3_TITULO')), GetSx3Cache(_aCpoX3[_nX3], 'X3_CAMPO')  , GetSx3Cache(_aCpoX3[_nX3], 'X3_PICTURE'),;
+								GetSx3Cache(_aCpoX3[_nX3], 'X3_TAMANHO') , GetSx3Cache(_aCpoX3[_nX3], 'X3_DECIMAL'), GetSx3Cache(_aCpoX3[_nX3], 'X3_VALID')  ,;
+								GetSx3Cache(_aCpoX3[_nX3], 'X3_USADO')   , GetSx3Cache(_aCpoX3[_nX3], 'X3_TIPO')   , GetSx3Cache(_aCpoX3[_nX3], 'X3_F3'),;
+								GetSx3Cache(_aCpoX3[_nX3], 'X3_CONTEXT') } )
+			//IF ALLTRIM(X3_CAMPO) == "RCC_CHAVE" .AND. CPAISLOC == "BRA" .AND. CCODIGO == "S033"
+			IF ALLTRIM(GetSx3Cache(_aCpoX3[_nX3], 'X3_CAMPO')) == "RCC_CHAVE" .AND. CPAISLOC == "BRA" .AND. CCODIGO == "S033"
+				CVALID := 'IIF( !EMPTY(SUBSTR(M->RCC_CHAVE,1,2) ) , ENTRE( "01","13",SUBSTR(M->RCC_CHAVE,1,2) ) ,.T.)'
+				AHEADER[LEN(AHEADER),6] := IF(!EMPTY(CVALID),CVALID+" .AND. ",CVALID)+ "GP320MOV( .T. )"			
+			//ELSEIF ALLTRIM(X3_CAMPO) == "RCC_CHAVE"
+			ELSEIF ALLTRIM(GetSx3Cache(_aCpoX3[_nX3], 'X3_CAMPO')) == "RCC_CHAVE"
+				CVALID := ALLTRIM(AHEADER[LEN(AHEADER),6])
+				AHEADER[LEN(AHEADER),6] := IF(!EMPTY(CVALID),CVALID+" .AND. ",CVALID)+ "GP320MOV( .T. )"
+			ENDIF	
+		ENDIF		
+		//DBSKIP()
+	Next _nX3
+	//ENDDO
+	//Fim - Thais Paiva - Compatibilização P27
+	
+	DBSELECTAREA("RCB")
+	RCB->( DBSETORDER(1) )
+	IF !DBSEEK( XFILIAL(CALIAS) + CCODIGO ,.F.)
+		MSGALERT(OEMTOANSI(STR0089), OEMTOANSI(STR0083))	// "NAO EXISTE ESTA TABELA PARA A EMPRESA/UN.NEGOCIO/FILIAL SELECIONADA !"###"ATENCAO"
+		AHEADER := {}
+	ENDIF
+	DO WHILE !EOF() .AND. XFILIAL("RCB")+ CCODIGO  = ( RCB->RCB_FILIAL + RCB->RCB_CODIGO )
+			NUSADO ++                                               
+							
+			AADD(AHEADER,{  TRIM(RCB_DESCPO),RCB_CAMPOS ,RCB_PICTUR,;
+						    RCB_TAMAN        ,RCB_DECIMA ,RCB_VALID ,;
+							'X'              ,RCB_TIPO   ,RCB_PADRAO,;
+							' '} )
+					
+		DBSKIP()
+	ENDDO
+	
+	// RESTAURA AREA E ORDEM DE ENTRADA        
+	RESTAREA( ASX3AREA )
+	RESTAREA( AAREA ) 
+	
+RETURN ( AHEADER )
+
+*******************************************************************************
+STATIC FUNCTION GP320ACOLS(AFIELDS,CALIAS,CCOND,CCHAVE,NOPCX,ACOLSREC,ACOLSANT)
+*******************************************************************************
+LOCAL CANOMES	:= ""
+LOCAL NCNTFOR 	:= 0
+LOCAL NACOLS  	:= 0
+LOCAL NUSAR 	:= 0          
+LOCAL NTAMCPO	:= 0
+LOCAL NPOSICAO  := 0
+LOCAL AAREA		:= GETAREA()
+LOCAL ACONTEU	:= {"RCC_FILIAL","RCC_CODIGO","RCC_FIL","RCC_CHAVE","RCC_SEQUEN"}   // ARRAY COM  OS CAMPOS QUE ESTAO FORA DO CONTEUDO 
+LOCAL NPOSDUM   := 0
+LOCAL NCNT      := 0
+Local _aCpoX3	:= {} //Thais Paiva - Compatibilização P27
+PRIVATE NUSADO	:= LEN(AHEADER)
+PRIVATE ACOLS   := {}
+	
+	// QUANDO FOR INCLUSAO CRIAR COM 1 ELEMENTO
+	IF NOPCX == 3
+		NCNT  := 1
+		ACOLS := ARRAY( NCNT , NUSADO+1 )
+	ENDIF
+	IF !LANOMES // SE COLUNA MES/ANO NÃO FOR EXIBIDA ADICIONA RCC_CHAVE COMO CAMPO NAO EDITAVEL
+		AADD(AFIELDS,"RCC_CHAVE")
+	ENDIF
+	DBSELECTAREA(CALIAS)
+	IF DBSEEK(CCHAVE) .AND. NOPCX # 3
+		WHILE !EOF() .AND. &CCOND == CCHAVE
+			AADD(ACOLS,ARRAY(NUSADO+IF(NOPCX#1,1,0)))
+			NACOLS 		:= LEN(ACOLS)     
+			NPOSICAO	:= 1
+			CCONTEU	:= FIELDGET(FIELDPOS( "RCC_CONTEU" ) )
+			CANOMES	:= FIELDGET(FIELDPOS( "RCC_CHAVE" ) )
+			FOR NCNTFOR := 1 TO LEN(AHEADER)
+				NTAMCPO	:= AHEADER[NCNTFOR][4]  		// TAMANHO DO CAMPO
+				CCAMPO  := TRIM(AHEADER[NCNTFOR][2])
+							
+				IF	ASCAN(ACONTEU,{ |X| X == CCAMPO } ) > 0                          
+				   	IF CCAMPO == "RCC_CHAVE"
+				   		// CARREGA COMO MES/ANO 
+						ACOLS[NACOLS][NCNTFOR] := SUBSTR(CANOMES,5,2) + SUBSTR(CANOMES,1,4)
+	 				ELSE
+						ACOLS[NACOLS][NCNTFOR] := FIELDGET(FIELDPOS(AHEADER[NCNTFOR][2]))
+					ENDIF	
+				ELSE
+					IF NCNTFOR == 9
+						NCNTFOR := 9
+					ENDIF		
+					// CARREGA O CONTEUDO DO RCC_CONTEU NA ACOLS
+					IF AHEADER[NCNTFOR,8] = "C"						// TIPO CARACTER
+						ACOLS[NACOLS][NCNTFOR] := SUBSTR(CCONTEU,NPOSICAO,NTAMCPO)
+					ELSEIF  AHEADER[NCNTFOR,8] = "N"				// TIPO NUMERICO
+						ACOLS[NACOLS][NCNTFOR] := VAL( SUBSTR(CCONTEU,NPOSICAO,NTAMCPO) )
+					ELSEIF AHEADER[NCNTFOR,8] = "D"					// TIPO DATA
+						ACOLS[NACOLS][NCNTFOR] := STOD(SUBSTR(CCONTEU,NPOSICAO,NTAMCPO) )
+						IF EMPTY(STOD(SUBSTR(CCONTEU,NPOSICAO,NTAMCPO) )) .AND. NCNTFOR == LEN(AHEADER)
+							NTAMCPO := NTAMCPO + 2 // CONSIDERA AS DUAS "/" CASO TENHA GRAVADO EM BRANCO
+						ENDIF
+					ENDIF                                                                
+					NPOSICAO	+= NTAMCPO
+				ENDIF
+			NEXT NCNTFOR
+			IF NOPCX # 1
+				ACOLS[NACOLS][NUSADO+1] := .F.
+			ENDIF
+			DBSELECTAREA(CALIAS)
+			AADD(ACOLSREC,RECNO())
+			DBSKIP()
+		ENDDO
+	ELSEIF NOPCX == 3
+		// POSICIONA PONTEIRO DO ARQUIVO CABECA E INICIALIZA VARIAVEIS  
+		//Início - Thais Paiva - Compatibilização P27
+		//DBSELECTAREA("SX3")
+		//DBSETORDER(1)
+		//DBSEEK(CALIAS) //-- RCC
+		//NUSADO:= 0
+		// AFIELDS:= {"RCC_FILIAL","RCC_CODIGO","RCC_CONTEU"} CAMPOS NAO EDITAVEIS NO ACOLS
+		//WHILE !EOF() .AND. (X3_ARQUIVO == CALIAS)
+		_aCpoX3 := FWSX3Util():GetAllFields( CALIAS , .F. ) 
+		For _nX3 := 1 to Len(_aCpoX3)
+			//IF X3USO(X3_USADO) .AND. CNIVEL >= X3_NIVEL .AND. ASCAN(AFIELDS,{|X| X == TRIM(X3_CAMPO)}) == 0
+			IF X3USO(GetSx3Cache(_aCpoX3[_nX3], 'X3_USADO')) .AND. CNIVEL >= GetSx3Cache(_aCpoX3[_nx3], 'X3_NIVEL') .AND. ASCAN(AFIELDS,{|X| X == TRIM(GetSx3Cache(_aCpoX3[_nx3], 'X3_CAMPO'))}) == 0
+				NUSADO++
+				// MONTA ARRAY DO 1§ ELEMENTO VAZIO. SE INCLUSAO                
+				//IF X3_TIPO == "C"
+				IF GetSx3Cache(_aCpoX3[_nx3], 'X3_TIPO') == "C"
+					//ACOLS[1][NUSADO] := SPACE(X3_TAMANHO)
+					ACOLS[1][NUSADO] := SPACE(GetSx3Cache(_aCpoX3[_nx3], 'X3_TAMANHO'))
+				//ELSEIF X3_TIPO == "N"
+				ELSEIF GetSx3Cache(_aCpoX3[_nx3], 'X3_TIPO') == "N"
+					ACOLS[1][NUSADO] := 0
+				//ELSEIF X3_TIPO == "D"
+				ELSEIF GetSx3Cache(_aCpoX3[_nx3], 'X3_TIPO') == "D"
+					ACOLS[1][NUSADO] := CTOD("  /  /  ")
+				ENDIF
+			ENDIF                 
+			//DBSKIP()
+		Next _nX3
+		//ENDDO
+		//Fim - Thais Paiva - Compatibilização P27
+		DBSELECTAREA("RCB")
+		DBSETORDER(1)
+		DBSEEK( CCHAVE )
+		WHILE !EOF() .AND.  CCHAVE = XFILIAL("RCB") + RCB->RCB_CODIGO
+		    NUSADO ++ 
+			//-- MONTA ARRAY DO 1§ ELEMENTO VAZIO UTILIZANDO RCB              
+			IF RCB_TIPO = "C"
+				ACOLS[1][NUSADO] := SPACE(RCB_TAMAN)
+			ELSEIF RCB_TIPO = "N"
+				ACOLS[1][NUSADO] := 0
+			ELSEIF RCB_TIPO = "D"
+				ACOLS[1][NUSADO] := CTOD("  /  /  ")
+			ELSE
+				ACOLS[1][NUSADO] := .F.
+			ENDIF
+			RCB->( DBSKIP() )
+		ENDDO
+		ACOLS[1,NUSADO+1] := .F.
+	ENDIF
+	
+	IF CCODIGO == "S119"
+	    //A REMOÇÃO DESTA COLUNA SO FOI POSSIVEL POR SE TRATAR DA "ULTIMA" COLUNA DO BROWSE.
+	    //CASO CONTRARIO, DEVIDO AO SISTEMA GRAVAR TODOS OS DADOS CONCATENADOS EM UM UNICO CAMPO DA RCC
+	    //SERIA PRECISO RODAR UMA RE-ESTRUTURAÇÃO DOS DADOS DA S119 GRAVADOS NA RCC!
+		NPOSDUM	:=	ASCAN(AHEADER,{|X| ALLTRIM(X[2]) == "CTRDEF"})
+		IF NPOSDUM > 0 .AND. LEN(AHEADER) == NPOSDUM //CONFIRMO SE É ULTIMA COLUNA MESMO
+			ADEL(AHEADER,NPOSDUM)
+			ASIZE(AHEADER,LEN(AHEADER)-1)
+			
+			FOR NCNT := 1 TO LEN(ACOLS)	
+				ADEL(ACOLS[NCNT],NPOSDUM)
+				ASIZE(ACOLS[NCNT],LEN(ACOLS[NCNT])-1)
+			NEXT
+		ENDIF
+
+		IF ISINCALLSTACK("GPE320ALT")
+			FOR NCNT := 1 TO LEN(AHEADER)	
+				IF ALLTRIM(AHEADER[NCNT][2]) != "COD" .AND. ALLTRIM(AHEADER[NCNT][2]) != "RCC_SEQUEN" 
+					AADD(AALTER119,AHEADER[NCNT][2])
+				ENDIF
+			NEXT
+		ENDIF
+	ENDIF
+	
+	IF CCODIGO == "S120"
+		IF ISINCALLSTACK("GPE320ALT")
+			FOR NCNT := 1 TO LEN(AHEADER)	
+				IF ALLTRIM(AHEADER[NCNT][2]) != "COD" .AND. ALLTRIM(AHEADER[NCNT][2]) != "RCC_SEQUEN" 
+					AADD(AALTER119,AHEADER[NCNT][2])
+				ENDIF
+			NEXT
+		ENDIF
+	ENDIF
+	
+	ACOLS[1][GDFIELDPOS("RCC_SEQUEN")] := '001' // INICIA ORDEM COM 1
+	
+	// QUANDO FOR ALTERACAO COPIA O VETOR ACOLS
+	IF NOPCX == 4
+		ACOLSANT := ACLONE(ACOLS)
+	ENDIF
+	
+	ACOLSBKP := ACLONE(ACOLS)
+	NBKP     := LEN(ACOLSBKP)
+	RESTAREA( AAREA )
+
+RETURN ( ACOLS )

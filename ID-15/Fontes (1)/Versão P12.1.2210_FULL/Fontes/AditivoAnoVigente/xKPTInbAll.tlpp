@@ -1,0 +1,508 @@
+#INCLUDE "TOTVS.ch"
+#INCLUDE "FWMVCDef.ch"
+
+/*/{Protheus.doc} xKPTInbAll
+Rotina responsavel por executar as rotinas automaticas 
+@type function
+@author Joalisson Laurentino - Skype: jslaurentino - 1198975-3610
+@since OUT/2021
+/*/
+User Function xKPTInbAll(aAllExecAuto,cLogMsg,lDuplic)
+	Local cError 	    := ""
+	Local bError 	    := ErrorBlock({|oError| cError := oError:Description + oError:ErrorStack})
+	Local cFilOri       := cFilAnt
+	Local cFilBkp       := "" 
+	Local cId           := ""
+	Local cRotina       := ""
+	Local cExecAuto     := ""
+	Local cTabHead      := ""
+	Local cTabItem      := "" 
+	Local lMultExec     := .F.
+	Local nI            := 0
+	Local aVldCondPg	:= {.T.,"OK"}
+
+	Private cPedComp    := "SC701|SC702|SC703|SC704"    //MATA120 | PEDIDO DE COMPRA
+	Private cUserIdBk	:= ""
+	Private aCabecAuto  := {}
+	Private aItensAuto  := {}
+	Private lItens      := .F.
+	Private nOpc        := 3
+	Private lRet        := .T.
+	Private clink       := ""
+	Private lExist      := .F. //SC704 - Para evitar duplicidade na SP
+
+	Default cLogMsg      := ""
+	Default aAllExecAuto := {}
+	Default lDuplic      := .F.
+
+	Begin Transaction
+		Begin Sequence
+			For nI := 1 To Len(aAllExecAuto)
+				//  VALIDA E PREPADA OS PARAMETROS PARA EXECUCAO DO MSEXECAUTO  |
+				aDadosAuto := aClone(aAllExecAuto[nI][1])
+				aCabecAuto := aClone(aDadosAuto[1])
+				lMultExec  := Len(aAllExecAuto) >= 2
+				cRotina    := UPPER(AllTrim(aAllExecAuto[nI][2]))
+				nOpc       := aAllExecAuto[nI][3]
+				cCallbk    := aAllExecAuto[nI][4]
+				cFilOri    := aAllExecAuto[nI][5]
+				cId        := aAllExecAuto[nI][6]
+				cOnergy    := aAllExecAuto[nI][7]
+				cTabHead   := aAllExecAuto[nI][8]
+				cTabItem   := aAllExecAuto[nI][9]
+				cFilBkp    := cFilAnt
+				cFilAnt    := cFilOri
+
+				If Len(aDadosAuto) >= 2 .AND. Len(aDadosAuto[2]) > 0
+					lItens := .T.
+					aItensAuto := aClone(aDadosAuto[2])
+				EndIf
+
+				//  Trata os dados (JSON) para o processamento
+				lRet := PreparaDados(cId,@aCabecAuto,@aItensAuto,cRotina,@cLogMsg)
+
+				//FAZ A EXECUÇÃO DA ROTINA AUTOMATICA PARA O ID INFORMADO
+				If lRet .AND. !lExist
+					//Organiza os Arrays conforme dicionario
+					aCabecAuto := FWVetByDic(aCabecAuto,cTabHead,.F.)
+
+					If lItens
+						aItensAuto := FWVetByDic(aItensAuto,cTabItem,.T.)
+					EndIf
+
+					cExecAuto := "MSExecAuto({|x,y,z,a,b| "+cRotina+"(x,y,z,a,b)},"+IIF(cId $ cPedComp,"1,","")+""+IIF(lItens,"aCabecAuto,aItensAuto","aCabecAuto")+",nOpc,,)"
+
+					lAutoErrNoFile := .T. //para nao gerar arquivo e pegar o erro com a funcao GETAUTOGRLOG()
+					lMsErroAuto    := .F.
+
+					aVldCondPg := fVldCondPg(cRotina,aCabecAuto,aDadosAuto)
+					If !aVldCondPg[1]
+						SetErroLog("FVLDCONDPG",cRotina,cId,lDuplic,aVldCondPg[2])
+						cLogMsg := FwNoAccent(cLogMsg)+ " | FIM: "+ Strtran(time(),':',':') +""
+						DisarmTransaction()
+						Return .F.
+					EndIf
+					IIF(cId $ cPedComp,PutMv("MV_HISTAPC",.F.),"")
+
+					&(cExecAuto)
+
+					IIF(cId $ cPedComp,PutMv("MV_HISTAPC",.T.),"")
+
+					If (!lMsErroAuto)
+						lRet    := .T.
+						cLogMsg += IIF(cId $ cPedComp,"Solicitação Pagamento: "+SC7->C7_NUM,"")+" - "+cRotina + " - " + cId + " OK | "
+
+						fAjustaD1(aCabecAuto,aItensAuto,cRotina)
+
+						If !Empty(clink)
+							GravaP09(clink)
+						EndIf
+					Else
+						SetErroLog("MSEXECAUTO",cRotina,cId,lDuplic)
+
+						lRet    := .F.
+						DisarmTransaction()
+						Exit
+					EndIf
+				EndIf
+
+				__cUserId := cUserIdBk
+				lItens    := .F.
+				cFilAnt   := cFilBkp
+			Next
+			Recover
+			//Caso tenha ocorrido erro a transaçao sera desfeita
+			cLogMsg += FwNoAccent(cError)
+			DisarmTransaction()
+			lRet := .F.
+		End Sequence
+		ErrorBlock(bError)
+	End Transaction
+
+	cLogMsg := FwNoAccent(cLogMsg)+ " | FIM: "+ Strtran(time(),':',':') +""
+
+Return(lRet)
+
+Static Function PreparaDados(cId,aCabecAuto,aItensAuto,cRotina,cLogMsg)
+	Local lRet := .T.
+	Local nI   := 0
+
+	Do Case
+		// ID SC704 | Solicitação de Pagamentos
+	Case cRotina $ "MATA120" .AND. cId == "SC704"
+		clink := GetValCampo(aCabecAuto,"P09_NOMDOC",.T.)
+
+		__cUserId := xGetMailToUserId(AllTrim(GetValCampo(aCabecAuto,"C7_OBS")))
+
+		If Empty(__cUserId)
+			lRet := .F.
+			lExist := .T.
+			cLogMsg += "Email não encontrado! Verifique o email no cadastro de usuarios Protheus. Email: "+AllTrim(GetValCampo(aCabecAuto,"C7_OBS"))
+			Return(lRet)
+		EndIf
+		cUserIdBk := __cUserId
+
+		DeParaCampos("C7_NUM",@cLogMsg)
+		DeParaCampos("C7_FORNECE",@cLogMsg)
+
+		SetValCampo(@aCabecAuto,"C7_OBS","")//Apenas para limpar o campo de email
+		SetValCampo(@aCabecAuto,"C7_FILENT",cFilAnt,.T.)
+		SetValCampo(@aCabecAuto,"C7_MOEDA",1,.T.)
+		SetValCampo(@aCabecAuto,"C7_TXMOEDA",0,.T.)
+		SetValCampo(@aCabecAuto,"C7_XUSRSP",Upper(UsrFullName(cUserIdBk)),.T.)
+
+		For nI := 1 To Len(aItensAuto)
+			SetValCampo(aItensAuto[nI],"C7_XUSRSP",Upper(UsrFullName(cUserIdBk)),.T.)
+			SetValCampo(aItensAuto[nI],"C7_XUSR",__cUserId,.T.)
+			SetValCampo(aItensAuto[nI],"C7_XSOLPAG","1",.T.)
+
+			cQuery := " SELECT COUNT(*) OVER (PARTITION BY ' ') TOTREG,C7_NUM"
+			cQuery += " FROM " + RetSqlName("SC7")
+			cQuery += " WHERE C7_FILIAL = '"+cFilAnt+"'"
+			cQuery += " AND C7_XDOC  = '" + AllTrim(GetValCampo(aItensAuto[nI],"C7_XDOC"))+ "'"
+			cQuery += " AND C7_XSERIE  = '" + AllTrim(GetValCampo(aItensAuto[nI],"C7_XSERIE"))+ "'"
+			cQuery += " AND C7_XESPECI = '" + AllTrim(GetValCampo(aItensAuto[nI],"C7_XESPECI"))+ "'"
+			cQuery += " AND C7_FORNECE = '" + AllTrim(GetValCampo(aCabecAuto,"C7_FORNECE"))+ "'"
+			cQuery += " AND C7_LOJA    = '" + AllTrim(GetValCampo(aCabecAuto,"C7_LOJA"))+ "'"
+			cQuery += " AND D_E_L_E_T_ = ''"
+
+			cAliasQry := MPSysOpenQuery(ChangeQuery(cQuery))
+
+			If (cAliasQry)->TOTREG > 0
+				lRet := .T.
+				lExist := .T.
+				cLogMsg += "Documento e Serie já utilizada na Solicitação de Pagamento: "+(cAliasQry)->C7_NUM
+				Exit
+			EndIf
+			(cAliasQry)->(DBCloseArea())
+		Next nI
+
+		DeParaCampos("C7_USER",@cLogMsg)
+		SetValCampo(@aCabecAuto,"C7_SOLICIT",AllTrim(UsrRetName(__cUserId)),.T.)
+
+		// ID PRÉ-NOTA | DOCUMENTO DE ENTRADA
+	Case cRotina $ "MATA140|MATA103"  //"SF101" - MATA140/SF102 - MATA103
+		clink := GetValCampo(aCabecAuto,"P09_NOMDOC",.T.)
+		lRet := DeParaCampos( "F1_FORNECE", @cLogMsg )
+
+		If ( lRet )
+			SetValCampo(@aCabecAuto,"F1_DOC"  ,PadR(GetValCampo(aCabecAuto,"F1_DOC"),TAMSX3("F1_DOC")[1]))
+			SetValCampo(@aCabecAuto,"F1_SERIE",PadR(GetValCampo(aCabecAuto,"F1_SERIE"),TAMSX3("F1_SERIE")[1]))
+
+			If nOpc == MODEL_OPERATION_INSERT
+
+			ElseIf nOpc == MODEL_OPERATION_UPDATE
+
+				cF1_DOC	 := PadR(GetValCampo(aCabecAuto,"F1_DOC"),TAMSX3("F1_DOC")[1])
+				cF1_SERIE:= PadR(GetValCampo(aCabecAuto,"F1_SERIE"),TAMSX3("F1_SERIE")[1])
+				cF1_FORN := PadR(GetValCampo(aCabecAuto,"F1_FORNECE"),TAMSX3("F1_FORNECE")[1])
+				cF1_LOJA := PadR(GetValCampo(aCabecAuto,"F1_LOJA"),TAMSX3("F1_LOJA")[1])
+
+				cChaveSF1 := cFilAnt + cF1_DOC + cF1_SERIE + cF1_FORN + cF1_LOJA //+ cF1_TIPO
+
+				DbSelectArea("SF1")
+				SF1->(DbSetOrder(1)) //F1_FILIAL+F1_DOC+F1_SERIE+F1_FORNECE+F1_LOJA+F1_TIPO
+				If SF1->(!DbSeek(cChaveSF1))
+					lRet := .F.
+					cLogMsg += "O Documento de Entrada não foi localizado para alteração. [F1_FILIAL+F1_DOC+F1_SERIE+F1_FORNECE+F1_LOJA] " + cFilAnt + cF1_DOC + cF1_SERIE + cF1_FORN + cF1_LOJA
+				EndIf
+
+				If lRet .And. cId == "SF102" .And. cRotina == "MATA103"
+					AddLinPos( @aItensAuto )
+				EndIf
+			EndIf
+		EndIf
+	OtherWise
+		lRet := .F.
+		cLogMsg += "Não existe ID ["+cId+"] parametrizado no processo, configure uma execução."
+	EndCase
+Return(lRet)
+
+Static Function GetValCampo(aArrayCpos,cNomeCpo,lDel)
+	Local xValor  := Nil
+	Local aStruct := {}
+	Local nPos    := aScan(aArrayCpos,{|x| Upper(AllTrim(x[1])) == cNomeCpo })
+
+	If nPos > 0
+		If cNomeCpo $ "F1_FORNECE|C7_FORNECE"
+			cNomeCpo := "A2_CGC"
+		EndIf
+
+		aStruct := TAMSX3(cNomeCpo)
+
+		If (aStruct[3] <> "C")
+			xValor := aArrayCpos[nPos,2]
+		Else
+			If cNomeCpo $ "P09_NOMDOC" .And. Valtype(aArrayCpos[nPos,2]) == "A"
+				xValor := aArrayCpos[nPos,2]
+			Else
+				xValor := AllTrim(PadR(aArrayCpos[nPos,2],IIF(aStruct[1] == 25,26,aStruct[1])))
+			EndIf
+		EndIf
+	EndIf
+
+	If lDel
+		//Deleta o elemento da posição
+		aDel(aArrayCpos, nPos)
+
+		//Redimensiona o Array, diminuindo uma posição que estava como Nil
+		aSize(aArrayCpos, Len(aArrayCpos) - 1)
+	EndIf
+Return xValor
+
+Static Function SetValCampo(aArrayCpos,cNomeCpo,xValor,lCreateNoExist)
+	Local nPos := aScan(aArrayCpos,{|x| Upper(AllTrim(x[1])) == cNomeCpo })
+
+	Default lCreateNoExist := .F.
+
+	If nPos > 0
+		aArrayCpos[nPos,2] := xValor
+	Else
+		If (lCreateNoExist)
+			aAdd(aArrayCpos,{cNomeCpo,xValor,Nil})
+		EndIf
+	EndIf
+Return .T.
+
+/*/{Protheus.doc} SetErroLog()
+    Configura o Log de Erro
+    @type  Function
+    @author Joalisson Laurentino
+    @since 14/02/2022
+    @version version
+    @param cOrigLog,caractere,a origem do erro é: "MSEXECAUTO" ou "MVC"
+    @return nil,nulo,sem retorno
+/*/
+Static Function SetErroLog(cOrigLog,cRotina,cIdm,lDuplic,cErrocond)
+	Local oModel   := Nil
+	Local cMsgLog  := ""
+	Local cNFiscal := ""
+	Local cLogAuto := ""
+
+	Default cOrigLog:= "MSEXECAUTO"
+	Default lDuplic := .F.
+	Default cErrocond := ""
+
+	cLogAuto := GetLogAuto(GetAutoGRLog())
+
+	If (cOrigLog == "MSEXECAUTO")
+		If "EXISTNF" $ AllTrim(cLogAuto)
+			cNFiscal := PadR(GetValCampo(aCabecAuto,"F1_DOC"),TAMSX3("F1_FORNECE")[1])
+			lDuplic := .T.
+			cLogMsg += "Nota Fiscal [ "+cNFiscal+"] ja cadastrado. "+cRotina + " - " + cId + " ERROR: "
+		EndIf
+		cLogMsg += cLogAuto+" | "
+	ElseIf (cOrigLog == "FVLDCONDPG")
+		cLogMsg += cErrocond
+	Else
+		oModel := FwModelActive()
+		cMsgLog := GTPGetErrorMsg(oModel)
+	EndIf
+Return()
+
+Static Function GetLogAuto(aErros,lShowInv)
+	Local cStrErro := ""
+	Local nErro    := 0
+
+	Default aErros   := GetAutoGRLog()
+	Default lShowInv := .F.
+
+	If (lShowInv)
+		nErro  := Ascan(aErros,{|x| "INVALIDO" $ AllTrim(Upper(x))})
+	EndIf
+
+	If nErro > 0
+		cStrErro += aErros[nErro]
+	Else
+		For nErro := 1 To Len(aErros)
+			cStrErro += (aErros[nErro]+CRLF)
+		Next nErro
+	EndIf
+
+	cStrErro := AllTrim(cStrErro)
+Return(cStrErro)
+
+Static Function AddLinPos(aItensAuto)
+	Local cItem := ""
+	Local nI 	:= 0
+
+	For nI := 1 To Len(aItensAuto)
+		cItem 	:= GetValCampo(aItensAuto[nI],"D1_ITEM")
+
+		aAdd(aItensAuto[nI],{"LINPOS","D1_ITEM",cItem})
+	Next nI
+
+Return()
+
+Static Function DeParaCampos( cCampo, cLogMsg )
+	Local cCGCForn  := ""
+	Local cFornece  := ""
+	Local cLoja     := ""
+	Local lRet      := .T.
+
+	Default cCampo := ""
+
+	If cCampo $ "F1_FORNECE|C7_FORNECE"
+		cCGCForn := GetValCampo(aCabecAuto,Iif(cCampo == "F1_FORNECE","F1_FORNECE","C7_FORNECE"))
+		cCGCForn := PadR(cCGCForn,TAMSX3("A2_CGC")[1])
+		cFornece := Posicione("SA2",3,xFilial("SA2")+cCGCForn,"A2_COD")
+		cLoja    := SA2->A2_LOJA
+
+		If !Empty(cFornece)
+			SetValCampo(@aCabecAuto,Iif(cCampo == "F1_FORNECE","F1_FORNECE","C7_FORNECE"), cFornece)
+			SetValCampo(@aCabecAuto,Iif(cCampo == "F1_FORNECE","F1_LOJA","C7_LOJA")      , cLoja,.T.)
+		Else
+			cLogMsg := "O CNPJ ["+ cCGCForn +"] do Fornecedor informado na TAG [_FORNECE] não foi encontrado no cadastro de fornecedores."
+			lRet := .F.
+		EndIf
+	EndIf
+
+	If cCampo == "C7_NUM"
+		cNrmPed := GetSX8Num("SC7","C7_NUM")
+		DbSelectArea("SC7")
+		DbSetOrder(1)
+		Do While SC7->(DbSeek(FWxFilial("SC7")+cNrmPed))
+			ConfirmSX8()
+			cNrmPed := GetSX8Num("SC7","C7_NUM")
+		EndDo
+
+		SetValCampo(@aCabecAuto,"C7_NUM",cNrmPed,.T.)
+	EndIf
+
+	If cCampo == "C7_USER"
+		DbSelectArea("P02")
+		P02->(DbSetOrder(1))
+		If P02->(DbSeek(FWxFilial('P02') + GetValCampo(aItensAuto[1],"C7_XTIPO")))
+			DbSelectArea("SY1")
+			DbSetOrder(1)
+			If SY1->(DbSeek(FWxFilial("SY1") + Alltrim(P02->P02_COMPRA)))
+				SetValCampo(@aCabecAuto,"C7_USER",SY1->Y1_USER,.T.)
+				__cUserId := SY1->Y1_USER
+				cUserName := UsrRetName(__cUserId)
+			EndIF
+
+			SetValCampo(@aCabecAuto,"C7_APROV",Alltrim(P02->P02_COMPRA),.T.)
+			SetValCampo(@aCabecAuto,"C7_COMPRA",Alltrim(P02->P02_COMPRA),.T.)
+		Endif
+	EndIf
+Return( lRet )
+
+Static Function xGetMailToUserId(cEmail)
+	Local aUsers  := {}
+	Local nPos    := 0
+
+	aUsers := FWSFAllUsers() // Retorna vetor com informações dos usuários
+	nPos := aScan(aUsers, { |u| AllTrim(Upper(u[5])) == Upper(AllTrim(cEmail))})
+
+	If nPos > 0
+		__cUserId := aUsers[nPos,2]
+	Else
+		__cUserId := ""
+	Endif
+
+Return __cUserId
+
+Static Function GravaP09(cLink)
+
+	Default cLink := ""
+	Local nL      := 0
+	Local aAnexos := IIF(Valtype(cLink) = "A", aClone(cLink), {})
+
+	If Len(aAnexos) > 0
+		For nL := 1 to Len(aAnexos)
+			cCodigo  := GetSXENum('P09','P09_CODDOC')
+			RecLock('P09',.T.)
+			P09->P09_FILIAL := FWxFilial('P09')
+			P09->P09_CODDOC := cCodigo
+			P09->P09_NOMDOC := aAnexos[nL]
+			P09->P09_DTHORA := DtoS(Date()) + Strtran(time(),':','')
+			P09->P09_NIVEL  := IIF(cId == "SC704","08","03")
+			P09->P09_CODORI := IIF(cId == "SC704",SC7->C7_NUM,SF1->F1_DOC+SF1->F1_SERIE+SF1->F1_FORNECE+SF1->F1_LOJA)
+			P09->P09_ROTINA := IIF(cId == "SC704","F0100401","MATA103")
+			P09->(MSUnlock())
+		Next nL
+	Else
+		cCodigo  := GetSXENum('P09','P09_CODDOC')
+		RecLock('P09',.T.)
+		P09->P09_FILIAL := FWxFilial('P09')
+		P09->P09_CODDOC := cCodigo
+		P09->P09_NOMDOC := cLink
+		P09->P09_DTHORA := DtoS(Date()) + Strtran(time(),':','')
+		P09->P09_NIVEL  := IIF(cId == "SC704","08","03")
+		P09->P09_CODORI := IIF(cId == "SC704",SC7->C7_NUM,SF1->F1_DOC+SF1->F1_SERIE+SF1->F1_FORNECE+SF1->F1_LOJA)
+		P09->P09_ROTINA := IIF(cId == "SC704","F0100401","MATA103")
+		P09->(MSUnlock())
+	EndIf
+
+
+Return( .T. )
+
+
+Static Function fAjustaD1(aCabecAuto,aItensAuto,cRotina)
+
+
+	Local nX := 01
+	Local cNota := ""
+	Local cSerie := ""
+	Local cForn := ""
+	Local cLoja := ""
+	Local cCod := ""
+	Local cItem := ""
+
+	Default aCabecAuto := {}
+	Default aItensAuto := {}
+	Default cRotina    := ""
+
+	If Alltrim(cRotina) <> "MATA103"
+		Return
+	EndIf
+
+	cNota  := aCabecAuto[aScan(aCabecAuto, { |u| AllTrim(Upper(u[1])) == Upper(AllTrim("F1_DOC"))})][2]
+	cSerie := aCabecAuto[aScan(aCabecAuto, { |u| AllTrim(Upper(u[1])) == Upper(AllTrim("F1_SERIE"))})][2]
+	cForn  := aCabecAuto[aScan(aCabecAuto, { |u| AllTrim(Upper(u[1])) == Upper(AllTrim("F1_FORNECE"))})][2]
+	cLoja  := aCabecAuto[aScan(aCabecAuto, { |u| AllTrim(Upper(u[1])) == Upper(AllTrim("F1_LOJA"))})][2]
+
+	For nX := 01 To Len(aItensAuto)
+
+		cCod := Padr(aItensAuto[nX][aScan(aItensAuto[nX],{|x| Upper(AllTrim(x[1])) == "D1_COD" })][2],Tamsx3("D1_COD")[1])
+		cItem := aItensAuto[nX][aScan(aItensAuto[nX],{|x| Upper(AllTrim(x[1])) == "D1_ITEM" })][2]
+
+		DbSelectArea("SD1")
+		SD1->(DbSetOrder(1))
+
+		If SD1->(DbSeek(xFilial("SD1")+cNota+cSerie+cForn+cLoja+cCod+cItem))
+			If Empty(SD1->D1_TES)
+				Reclock("SD1",.F.)
+				SD1->D1_TES := aItensAuto[nX][aScan(aItensAuto[nX],{|x| Upper(AllTrim(x[1])) == "D1_TES" })][2]
+				SD1->(MSUnlock())
+			EndIf
+		EndIf
+
+	Next nX
+
+Return
+
+Static Function fVldCondPg(cRotina,aCabecAuto,aDados)
+
+	Local aRet := {.T.,"OK"}
+	Local cCond := ""
+	Local cFornPg := ""
+	Local cLojaPg := ""
+
+	Default cRotina := ""
+	Default aCabecAuto := {}
+	Default aDados := {}
+
+	If cRotina == "MATA120"
+		cCond := aCabecAuto[aScan(aCABECAUTO,{|x| Upper(AllTrim(x[1])) == "C7_COND" })][2]
+		cFornPg := aCabecAuto[aScan(aCABECAUTO,{|x| Upper(AllTrim(x[1])) == "C7_FORNECE" })][2]
+		cLojaPg := aCabecAuto[aScan(aCABECAUTO,{|x| Upper(AllTrim(x[1])) == "C7_LOJA" })][2]
+		aRet := U_MSCHKCOND(cCond,cFornPg,cLojaPg,,,,aDados[2][1][aScan(aDados[2][1],{|x| Upper(AllTrim(x[1])) == "C7_XDTVEN" })][2])
+	ElseIf cRotina $ "MATA140|MATA103"
+		cCond := aCabecAuto[aScan(aCABECAUTO,{|x| Upper(AllTrim(x[1])) == "F1_COND" })][2]
+		cFornPg := aCabecAuto[aScan(aCABECAUTO,{|x| Upper(AllTrim(x[1])) == "F1_FORNECE" })][2]
+		cLojaPg := aCabecAuto[aScan(aCABECAUTO,{|x| Upper(AllTrim(x[1])) == "F1_LOJA" })][2]
+		aRet := U_MSCHKCOND(cCond,cFornPg,cLojaPg)
+	EndIf
+
+Return aRet

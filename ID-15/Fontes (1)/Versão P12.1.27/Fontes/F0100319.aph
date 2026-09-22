@@ -1,0 +1,270 @@
+<%
+   #Include 'Protheus.ch'
+   #INCLUDE "APWEBEX.CH"
+   
+   /*
+   {Protheus.doc} F0100319.aph
+   Formulário para inclusão da solicitação de aumento de postos
+   @Author     Bruno de Oliveira, Henrique Madureira
+   @Since      07/10/2016
+   @Version    P12.1.07
+   @Project    MAN00000462901_EF_003
+   */
+   cCodPost := IIF(HttpPost->Posto == Nil,"",HttpPost->Posto:cPosto)
+   aRetPosto := IIF(HttpPost->Posto == Nil,"",HttpPost->Posto)
+   
+   cCodDepto := IIF (Type("cCodDepto") != "U",cCodDepto,"")
+   cDescrDepto := IIF (Type("cDescrDepto") != "U",cDescrDepto,"")
+   cPostFilial := IIF (Type("cPostFilial") != "U",cPostFilial,"")
+   nIndiceDepto := IIF (Type("nIndiceDepto") != "U",nIndiceDepto,"")
+   cNPosto := IIF (Type("cNPosto") != "U",cNPosto,"")
+   cFilDepto := IIF (Type("cFilDepto") != "U",cFilDepto,"")
+   
+   cFilDepart := IIF(Empty(cFilDepto), cFilPEsc, cFilDepto)
+   %>
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!doctype html public "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <title></title>
+      <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+      <link href="styles/consulta.css" rel="stylesheet" type="text/css">
+      <link href="styles/estilo.css" rel="stylesheet" type="text/css">
+      <script src="pplanguage.js" type="text/javascript"></script>
+      <script src="criaobj.js" type="text/javascript"></script>
+      <script src="scripts/prototype.js" language="JavaScript" type="text/javascript"></script>
+      <script src="scripts/scriptaculous.js" language="JavaScript" type="text/javascript"></script>
+      <script src="scripts/ajax.js" language="JavaScript" type="text/javascript"></script>
+      <script language="JavaScript">
+         function formatar(mascara, documento){
+         	var i = documento.value.length;
+         	var saida = mascara.substring(0,1);
+         	var texto = mascara.substring(i);
+             if (texto.substring(0,1) != saida){
+         		documento.value += texto.substring(0,1);
+          		}
+         }
+         
+         /* Máscaras ER */
+         function mascara(o,f){
+            	v_obj=o
+           	 	v_fun=f
+            	setTimeout("execmascara()",1)
+         }
+         function execmascara(){
+            	v_obj.value=v_fun(v_obj.value)
+         }
+         
+         function mnumero(v){
+            	v=v.replace(/\D/g,"");                    //Remove tudo o que não é dígito
+            	return v;
+         }
+         function mvalor(v){
+            	v=v.replace(/\D/g,"");//Remove tudo o que não é dígito
+            	v=v.replace(/(\d)(\d{8})$/,"$1.$2");//coloca o ponto dos milhões
+            	v=v.replace(/(\d)(\d{5})$/,"$1.$2");//coloca o ponto dos milhares
+         
+            	v=v.replace(/(\d)(\d{2})$/,"$1,$2");//coloca a virgula antes dos 2 últimos dígitos
+            	return v;
+         }
+         	
+         	function fVai() {
+         if (document.getElementById('cFuncao').value == ""){
+         alert('É necessário preencher a função');
+         return
+         }
+         if (document.getElementById('cCargo').value == ""){
+         alert('É necessário preencher o cargo');
+         return
+         }
+         if (document.getElementById('cCcusto').value == ""){
+         alert('É necessário preencher o centro de custo');
+         return
+         }
+         if (document.getElementById('cObs').value == ""){
+         alert('É necessário preencher a Observação');
+         return
+         }
+         var r = confirm("Solicitação será cadastrada, continuar?");
+         var TpCon = document.getElementById("ddltpcontrato");
+         var TpPos = document.getElementById("ddltpposto");
+         var strCon = TpCon.options[TpCon.selectedIndex].value;
+         var strPos = TpPos.options[TpPos.selectedIndex].value;
+         if(r == true){
+         document.getElementById('button').disabled=true;
+         document.forms[0].action = "U_F0100320.APW?cCcusto=<%=cCcusto%>&cDscCC=<%=cDscCC%>&nOperacao=1&nIndDept=<%=HttpGet->nIndiceDepto%>&cNPost=1&cOpc=<%=cOpc%>&cCodDepto=<%=cCodDepto%>&cDescrDepto=<%=cDescrDepto%>&cPostRepor=<%=cPostRepor%>&cDesDpRepor=<%=cDesDpRepor%>&cDepRepor=<%=cDepRepor%>&cDescRepor=<%=cDescRepor%>&cFilRepor=<%=cFilRepor%>&cFilSol=<%=cFilSol%>&cDescSol=<%=cDescSol%>&cDeptSol=<%=cDeptSol%>&cDescDeptSol=<%=cDescDeptSol%>&cNvDesen='1'&cDptoEsc=<%=cCodDepto%>&cPostEsc=<%=cPostoEsc%>&cNvPosto=<%=cNPosto%>&cPostFilial=<%=cPostFilial%>&cTipCon="+strCon+"&cTipPos="+strPos+"";
+         document.forms[0].submit();
+         }
+         	}
+
+		function VoltPag() {
+			document.forms[0].action = "U_F0100315.APW?nIndiceDepto=<%=nIndiceDepto%>";
+			document.forms[0].submit();
+		}       
+         
+      </script>		
+   </head>
+   <body>
+   	  <h2><%= "Aumento de Quadro – Quantidade"%></h2>  
+      
+	  <div id="divCabec" name="divCabec">
+         <fieldset>
+            <div class="container-cabec">
+               <div class="div-titulo"><%="Código"%></div>
+               <div class="div-conteudo"><%=cCodDepto%></div>
+            </div>
+            <div class="container-cabec">
+               <div class="div-titulo"><%="Departamento"%></div>
+               <div class="div-conteudo"><%=cDescrDepto%></div>
+            </div>
+            <% If cNPosto == "2" %>
+            <% If !(EMPTY(cFilPEsc)) .AND. !(EMPTY(cPostoEsc)) %>
+            <div class="container-cabec">
+               <div class="div-titulo"><%="Filial Posto"%></div>
+               <div class="div-conteudo"><%=cFilPEsc%></div>
+            </div>
+            <div class="container-cabec">
+               <div class="div-titulo"><%="Posto"%></div>
+               <div class="div-conteudo"><%=cPostoEsc%></div>
+            </div>
+            <% EndIf %>
+            <%Else%>
+            <div class="container-cabec">
+               <div class="div-titulo"><%="Filial da Solicitação"%></div>
+               <div class="div-conteudo"><%=cFilDepart%></div>
+            </div>
+            <% EndIf %>
+         </fieldset>
+      <% If cNPosto == "1" %>   
+      <fieldset>
+         <div class="container-cabec">
+            <div class="div-titulo"><%="Filial Reporte"%></div>
+            <div class="div-conteudo"><%=cFilRepor%></div>
+         </div>
+         <div class="container-cabec">
+            <div class="div-titulo"><%="Descrição"%></div>
+            <div class="div-conteudo"><%=cDescRepor%></div>
+         </div>
+         <div class="container-cabec">
+            <div class="div-titulo"><%="Departamento Reporte"%></div>
+            <div class="div-conteudo"><%=cDepRepor%></div>
+         </div>
+         <div class="container-cabec">
+            <div class="div-titulo"><%="Descrição"%></div>
+            <div class="div-conteudo"><%=cDesDpRepor%></div>
+         </div>
+         <div class="container-cabec">
+            <div class="div-titulo"><%="Posto Reporte"%></div>
+            <div class="div-conteudo"><%=cPostRepor%></div>
+         </div>
+      </fieldset>
+      <% EndIf %>
+      </div>
+      <h3><%="Posto de Trabalho"%></h3>
+      <form name="formSolicQdr" id="formSolicQdr" onSubmit="return CheckOut(this)" method="post">
+         <div id="divSolicitvaga" name="divSolicitvaga">
+         <title></title>
+         <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+         <link href="styles/consulta.css" rel="stylesheet" type="text/css">
+         <link href="styles/estilo.css" rel="stylesheet" type="text/css">
+         <input name="cCodDepto" type="hidden" class="Texto" id="cCodDepto" size="24" value="<%=cCodDepto%>" >
+         <input name="cDescrDepto" type="hidden" class="Texto" id="cDescrDepto" size="24" value="<%=cDescrDepto%>" >
+         <br>	
+         <label><%="Funcao:"%></label>
+         <% If cNPosto == "1" %>
+         <input name="cFuncao" readonly type="text" class="Texto" id="cFuncao" size="5" value="" required>
+         <a href="#"><img align="left" src="imagens-rh/search.png" id="btnSearchState" name="btnSearchState" width="25" height="25" border="0" align="absmiddle" onClick="ShowSearch(this, 'cFuncao', 'SRJ_01','','','')" title="<%="Selecione a funcao"%>" /></a>
+         <input name="cFuncaod" type="text" class="Texto" id="cFuncaod" size="24" disabled="true" value="" >
+         <input name="cFuncaod" type="hidden" class="Texto" id="cFuncaod" size="24" value="" >
+         <% Else %>
+         <input name="cFuncao" type="text" class="Texto" id="cFuncao" size="5" disabled="true" value="<%=HttpPost->Posto:CCODFUNCAO%>" >
+         <input name="cFuncao" type="hidden" class="Texto" id="cFuncao" size="5" value="<%=HttpPost->Posto:CCODFUNCAO%>" >
+         <input name="cFuncaod" type="text" class="Texto" id="cFuncaod" size="24" disabled="true" value="<%=HttpPost->Posto:CDESCRFUNCAO%>" >
+         <input name="cFuncaod" type="hidden" class="Texto" id="cFuncaod" size="24" value="<%=HttpPost->Posto:CDESCRFUNCAO%>" >
+         <% EndIf %>
+         <br>	        	
+         <label><%="Cargo:"%></label>
+         <% If cNPosto == "1" %>
+         <input name="cCargo" readonly type="text" class="Texto" id="cCargo" value="" size="5" required>
+         <a  href="#"><img align="left" src="imagens-rh/search.png" id="btnSearchCargo" name="btnSearchCargo" width="25"  height="25" border="0" align="absmiddle" onClick="ShowSearch(this, 'cCargo', 'SQ3_01')" title="<%="Selecione o cargo"%>" /></a>
+         <input name="cCargod" type="text" class="Texto" id="cCargod" size="24" disabled="true" value="" >
+         <input name="cCargod" type="hidden" class="Texto" id="cCargod" size="24" value="" >
+         <% Else %>
+         <input name="cCargo" type="text" class="Texto" id="cCargo" disabled="true" value="<%=HttpPost->Posto:CCODCARGO%>" size="5" >
+         <input name="cCargo" type="hidden" class="Texto" id="cCargo" value="<%=HttpPost->Posto:CCODCARGO%>" size="5" >
+         <input name="cCargod" type="text" class="Texto" id="cCargod" size="24" disabled="true" value="<%=HttpPost->Posto:CDESCRCARGO%>" >		
+         <input name="cCargod" type="hidden" class="Texto" id="cCargod" size="24" value="<%=HttpPost->Posto:CDESCRCARGO%>" >	
+         <% EndIf %>		
+         <br>
+         <label><%="Centro de custo:"%></label>
+         <% If cNPosto == "1" %>
+         <input name="cCcusto" type="hidden" class="Texto" id="cCcusto" size="12" value="<%=cCcusto%>" >
+         <input name="cDscCC" type="hidden" class="Texto" id="cDscCC" size="50"  value="<%=cDscCC%>" >
+         <input name="cCcusto" type="text" class="Texto" id="cCcusto" size="12" value="<%=cCcusto%>" disabled>
+         <input name="cDscCC" type="text" class="Texto" id="cDscCC" size="50"  value="<%=cDscCC%>" disabled>
+         <% Else %>
+         <input name="cCcusto" type="hidden" class="Texto" id="cCcusto" size="12" value="<%=HttpPost->Posto:CCC%>" >
+         <input name="cDscCC" type="hidden" class="Texto" id="cDscCC" size="50"  value="<%=HttpPost->Posto:CDESCRCC%>" >
+         <input name="cCcusto" type="text" class="Texto" id="cCcusto" size="9" value="<%=HttpPost->Posto:CCC%>" disabled>
+         <input name="cDscCC" type="text" class="Texto" id="cDscCC" size="40" disabled="true" value="<%=HttpPost->Posto:CDESCRCC%>" disabled>			
+         <% EndIf %>	
+         <% If cOpc == "3" %>	
+         <br>
+         <label><%="Salário R$:"%></label>
+         <% If cNPosto == "1" %>
+         <input name="cSalario" type="text" class="Texto" value="" id="cSalario" OnKeyPress="mascara( this, mvalor );" size="10" maxlength="10" required>
+         <% Else %>
+         <input name="cSalario" type="text" class="Texto" id="cSalario" OnKeyPress="mascara( this, mvalor );" size="10" maxlength="10" value="<%=HttpPost->Posto:NSALARIO%>" readonly >
+         <% EndIf %>
+         <% EndIf %>
+         <br>
+         <label><%="Tipo de contrato:"%></label>
+         <% If cNPosto == "1" %>
+         <select name="ddltpcontrato" class="Texto" id="ddltpcontrato">
+            <option value="1"><%="Indeterminado"%></option>
+            <option value="2"><%="Determinado"%></option>
+         </select>
+         <% Else %>
+         <select name="ddltpcontrato" class="Texto" id="ddltpcontrato" disabled >
+            <% If HttpPost->Posto:CTIPOCONTRATO == "1" %>
+            <option value="1"><%="Indeterminado"%></option>
+            <% Else %>
+            <option value="2"><%="Determinado"%></option>
+            <% EndIf %>	
+         </select>
+         <% EndIf %>
+         <br>
+         <label><%="Quantidade:"%></label>
+         <input name="cQtd" value="1"  type="text" class="Texto" OnKeyPress="mascara( this, mnumero );" id="cQtd" size="10" maxlength="5" required>
+         <br>
+         <label><%="Tipo do posto:"%></label>
+         <% If cNPosto == "1" %>
+         <select name="ddltpposto" class="Texto" id="ddltpposto" >
+            <option value="1"><%="Individual"%></option>
+            <option value="2"><%="Generico"%></option>
+         </select>
+         <% Else %>
+         <select name="ddltpposto" class="Texto" id="ddltpposto" disabled >
+            <%If HttpPost->Posto:CTIPO == "1"%>
+            <option value="1"><%="Individual"%></option>
+            <% Else %>
+            <option value="2"><%="Generico"%></option>
+            <% EndIf %>
+         </select>
+         <%If HttpPost->Posto:CTIPO == "1"%>
+         <span style="color:red;"><%="Atenção, o posto será alterado para Genérico!"%></span>
+         <% EndIf %>
+         <% EndIf %>
+         <br>      	
+         <label><%="Observacao:"%></label>
+         <textarea name="cObs" cols="80" rows="5" id="cObs" class="Texto" value="" required> </textarea>
+         <br>	
+         <% If cNPosto == "1" %>
+         <input name="Button" type="button" class="botoes" value="Voltar" onClick="javascript:history.go(-1);" />
+         <% Else %>
+         <input name="Button" type="button" class="botoes" value="Voltar" onClick="javascript:VoltPag();" />
+         <% EndIf %>
+         <input name="Button" id="button" type="button" class="botoes" value="Salvar" onClick="javascript:fVai();" />
+      </form>
+   </body>
+</html>

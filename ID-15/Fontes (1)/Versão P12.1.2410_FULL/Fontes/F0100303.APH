@@ -1,0 +1,120 @@
+<%
+#Include 'Protheus.ch'
+#INCLUDE "APWEBEX.CH" 
+	
+/*
+{Protheus.doc} F0100303.aph
+Exibe os postos referente ao departamento
+@Author     Bruno de Oliveira
+@Since      05/09/2016
+@Version    P12.1.07
+@Project    MAN00000462901_EF_003
+*/
+Local nPTotal := 0 
+Local nCurrentPage := 0
+Local nIndiceDepto := val(HttpGet->nIndiceDepto)
+Local msg          := HttpGet->msg
+Local nI := 0
+%>
+<?xml version="1.0" encoding="iso-8859-1"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<link href="styles/consulta.css" rel="stylesheet" type="text/css">
+<link href="styles/estilo.css" rel="stylesheet" type="text/css">
+<script src="scripts/prototype.js" language="JavaScript" type="text/javascript"></script>
+<script src="scripts/scriptaculous.js" language="JavaScript" type="text/javascript"></script>
+<script language="JavaScript" type="text/JavaScript">
+<!--
+function fNextPage(nPTotal,nCurrentPage){
+	alert('U_F0100304.APW?nPTotal=' + nPTotal + '&nCurrentPage=' + nCurrentPage + '3')
+
+	document.forms[0].action = 'U_F0100303.APW?nPTotal=' + nPTotal + '&nCurrentPage=' + nCurrentPage + '';
+    document.forms[0].submit();
+
+}
+
+function GoToPage(ev, nPageType, nPage, nTotalPage, cFilterField, cFilterValue) {
+	var cURL
+	var cDestination
+
+	if (ev) {
+		if (ev.type == "keypress") {
+			var keyCode = window.event ? ev.keyCode : ev.which;
+		
+			if (keyCode != 13)
+				return true;
+		
+			if (nPage > nTotalPage) {
+				alert('Página inválida!');
+				return false;
+			}
+		}
+	}
+
+	if (nPageType == 1) {
+		cURL = 'U_F0100304.APW';
+		cDestination = 'divPostos';
+	}
+	
+	var oParams = {};
+
+	oParams.nIndiceDepto = <%=nIndiceDepto%>;
+	
+	if (nPage != null)
+		oParams.Page = nPage;
+
+	if (cFilterField != null)
+		oParams.FilterField = cFilterField;
+
+	if (cFilterValue != null)
+		oParams.FilterValue = cFilterValue;		
+		
+	new Ajax.Updater(	cDestination, 
+						cURL,
+							{
+								method: 'get',     
+								evalScripts: true,
+								parameters: oParams
+							}
+						);
+	return false;
+}
+<%	If(valtype(cMsg) != "U" .OR. cMsg != NIL) %>
+		alert('<%=cMsg%>');
+<%	EndIf %>
+//-->
+</script>
+</head>
+
+<body>
+<h2><%="Solicitação de Vagas"%></h2>
+	<div class="container-cabec">
+		<div class="div-titulo"><%="Código"%></div>
+		<div class="div-conteudo"><%=HttpSession->Department[nIndiceDepto]:cDepartment%></div>
+	</div>	
+	<div class="container-cabec">
+		<div class="div-titulo"><%="Departamento"%></div>
+		<div class="div-conteudo"><%=HttpSession->Department[nIndiceDepto]:cDescrDepartment%></div>
+	</div>	
+
+	<h3><%="Postos de Trabalho"%></h3>
+			
+	<div id="divPostos" name="divPostos">
+		<div class="divAjaxLoad">
+			<img src="imagens-rh/ajax-loader.gif"><br>
+			<span class="TituloMenor">Aguarde</span>
+		</div>
+		<script language="Javascript">
+			<!--
+			GoToPage(null, 1);
+			-->
+		</script>
+	</div>
+
+	<fieldset>
+		<input name="Button3" type="button" class="botoes" value="Voltar" onClick="javascript:history.go(-1);" />
+	</fieldset>
+
+</body>
+</html>

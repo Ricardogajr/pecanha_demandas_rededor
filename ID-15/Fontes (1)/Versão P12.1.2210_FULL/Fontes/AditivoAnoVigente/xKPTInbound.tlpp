@@ -1,0 +1,111 @@
+#INCLUDE "TOTVS.ch"
+#INCLUDE "RestFul.ch"
+/*/{Protheus.doc} xKPTInbound
+Rotina responsavel pela importação de todos os registros pendentes no Onergy
+@type function
+@version  
+@author Joalisson Laurentino
+@since 13/11/2021
+@param aParams, array, param_description
+@return variant, return_description
+/*/
+User Function xKPTInbound(aParams) 			
+    Local cTitulo	 := "Integração Taxfy x Protheus"
+    Local cDescricao := "Realiza a importação dos IDs Pendentes de integração do Taxfy para o Protheus."
+    Local lEnd		 := .F.
+	Local oGrid	 	 := Nil
+    
+	Private lLogado  := Type('cEmpAnt') == 'C'
+    
+    Default aParams  := {cEmpAnt,cFilAnt}
+	
+	U_xKPTLogMsg("INICIO INTEGRAÇÃO ONERGY - xKPTInbound.prw")
+			
+	If !lLogado
+		RPCSetType(3)
+		
+		If RPCSetEnv(aParams[1],aParams[2])
+			U_xKPTLogMsg("VIA JOB RPCSetEnv Iniciado Emp: "+aParams[1]+" Fil: "+aParams[2])
+			cEmpAnt := aParams[1] 
+			cFilAnt := aParams[2]	
+			
+			xExecInb(oGrid,lEnd,lLogado)
+		Else
+			U_xKPTLogMsg("Não foi possivel conectar no ambiente VIA JOB RPCSetEnv - xKPTInbound.prw")
+		Endif 
+    Else
+        U_xKPTLogMsg("VIA INTERFACE - xKPTInbound.prw")
+		oGrid := FWGridProcess():New("xKPTInbound",cTitulo,cDescricao,{|lEnd| xExecInb(oGrid,lEnd,lLogado)},/*cPergunta*/,/*cGrid*/,/*lSaveLog*/)
+
+		oGrid:SetMeters(1)                     
+		oGrid:Activate()
+		oGrid:IsFinished()
+		oGrid:DeActivate()
+		FwFreeObj(oGrid)
+    EndIf
+
+	U_xKPTLogMsg("FIM INTEGRAÇÃO ONERGY - xKPTInbound.prw")
+
+	If !lLogado
+		RpcClearEnv()
+	EndIf
+Return
+/*/{Protheus.doc} xExecInb
+Realiza a gravação dos registros na tabela KPT
+@type function
+@author Joalisson Laurentino
+@since 13/11/2021
+/*/
+Static Function xExecInb(oGrid,lEnd,lLogado)
+    Local cPostParams := ""
+    Local lActiveLog  := SuperGetMv("KPT_MNTLOG",,.T.)
+    Local cObjJson    := ""
+	Local aGetIDs     := {}
+    Local nY          := 0	
+    Local nReg	      := 0
+
+	aGetIDs := U_xKPTFWRest("GET",/*cUrl*/,/*cSetPath*/,/*cPostParams*/,/*aHeader*/,/*lCallBack*/,/*cOnergy*/)
+    
+    oRetorno := JsonObject():New()
+    cObjJson := oRetorno:FromJson(aGetIDs[3])
+
+    If ValType(cObjJson) == "U"
+        nReg := Len(oRetorno)
+
+        For nY := 1 To nReg
+
+            cMsg := "Importando Registros | Total: "+cValtoChar(nY)+" / "+cValtoChar(nReg)
+            
+            If lLogado
+                oGrid:SetIncMeter(1,cMsg)
+            Else 
+                U_xKPTLogMsg(cMsg)
+            EndIf
+
+            If aScan(oRetorno[nY]["protheusData"]:GetNames(),"execauto") > 0
+                jMultRet := oRetorno[nY]["protheusData"]["execauto"]
+                
+                cFilOri   := jMultRet[1]["tenantId"]
+                cCallBack := jMultRet[1]["callback"]
+                cId       := jMultRet[1]["id"]
+                cRotina   := jMultRet[1]["rotina"]  
+                cOnergy   := jMultRet[1]["id-onergy"]    
+            Else
+                cFilOri   := oRetorno[nY]["protheusData"]["tenantId"]
+                cCallBack := oRetorno[nY]["protheusData"]["callback"]
+                cId       := oRetorno[nY]["protheusData"]["id"]
+                cRotina   := oRetorno[nY]["protheusData"]["rotina"]  
+                cOnergy   := oRetorno[nY]["protheusData"]["id-onergy"]    
+            EndIf
+
+            cPostParams := EncodeUTF8(oRetorno[nY]["protheusData"]:ToJson())
+            
+            U_xKPTGrvLog(lActiveLog,cFilOri,cId,cRotina,cOnergy,"TAXFY","PROTHEUS",cPostParams,,"1",/*dDtProc*/,/*cHrProc*/,cCallBack)
+            
+        Next nY	        
+    Else
+        U_xKPTGrvLog(lActiveLog,cFilAnt,"ERRO","ERRO","","TAXFY","PROTHEUS",cObjJson,cValtoChar(aGetIDs[3]),"3")
+        U_xKPTLogMsg("xExecInb - Falha ao popular JsonObject. Erro: " + cObjJson)
+    EndIf
+    FreeObj(oRetorno)
+Return .T.

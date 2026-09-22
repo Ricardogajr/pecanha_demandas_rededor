@@ -1,0 +1,158 @@
+<%
+
+/*
+{Protheus.doc} F0300401()
+Plano de Desenvolvimento em Equipe
+@Author     Henrique Madureira
+@Since      
+@Version    P12.7
+@Project    MAN00000463701_EF_004
+@Return	 
+*/
+
+%>
+
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
+<title></title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link href="styles/consulta.css" rel="stylesheet" type="text/css">
+<link href="styles/estilo.css" rel="stylesheet" type="text/css">
+<script src="scripts/ajax.js" language="JavaScript" type="text/javascript"></script>
+<script src="scripts/prototype.js" language="JavaScript" type="text/javascript"></script>
+<script src="scripts/scriptaculous.js" language="JavaScript" type="text/javascript"></script><script type="text/javascript" src="http://localhost:90/pprededor12/scripts/builder.js"></script><script type="text/javascript" src="http://localhost:90/pprededor12/scripts/effects.js"></script><script type="text/javascript" src="http://localhost:90/pprededor12/scripts/dragdrop.js"></script><script type="text/javascript" src="http://localhost:90/pprededor12/scripts/controls.js"></script><script type="text/javascript" src="http://localhost:90/pprededor12/scripts/slider.js"></script><script type="text/javascript" src="http://localhost:90/pprededor12/scripts/sound.js"></script>
+<script language="Javascript">
+
+	
+function GoToPage(nPageType) {
+
+	if (nPageType == 1) {
+		cURL = 'U_F0300402.APW';
+		cDestination = 'divFuncionarios';
+	}
+	else {
+		cURL = 'U_F0300403.APW';
+		cDestination = 'divSolicitacoes';
+	}			
+		
+	new Ajax.Updater(	cDestination, cURL);
+	return false;
+}
+
+<%	If(valtype(cMsg) != "U" .OR. cMsg != NIL) %>
+	alert('<%=cMsg%>');
+<%	EndIf %>
+	
+function marcarTodos(marcar){
+	var itens = document.getElementsByName('ckb');
+
+	if(marcar){
+		document.getElementById('acao').innerHTML = 'Desm';
+	}else{
+		document.getElementById('acao').innerHTML = 'Marc';
+	}
+
+	var i = 0;
+	for(i=0; i<itens.length;i++){
+		itens[i].checked = marcar;
+	}
+
+}
+function changeTest ()
+{
+	var e = document.getElementById("ItmAcao");
+	var itemSelecionado = e.options[e.selectedIndex].value;
+	var textoSelecionado = e.options[e.selectedIndex].text;
+	testStar.value = itemSelecionado;	
+	ItmAcaoRes.value = textoSelecionado;	
+}	
+
+function changePeriodo ()
+{
+	var e = document.getElementById("periodo");
+	var itemSelecionado = e.options[e.selectedIndex].value;
+	dtInicio.value = itemSelecionado.slice(6, 14);	
+	dtFim.value = itemSelecionado.slice(14, 22);
+}	
+
+function changeInicial ()
+{
+	var nCnt = document.getElementById("periodo"); //Pega a posição do combo
+	var citemSelecionado = nCnt.options[nCnt.selectedIndex].value; // pega o valor do item selecionado
+	var cDtIni = citemSelecionado.slice(6, 14);	// Pega apenas a data inicial 
+	var cGetDtIni = document.getElementById("dtInicio").value; // pega o valor informado no campo data
+	// Modifico o valor para comparação
+	var res = cGetDtIni.substr(0, 4);
+    var res1 = cGetDtIni.substr(5, 2);
+    var res2 = cGetDtIni.substr(8, 2);
+    var res3 = res.concat(res1)
+    var res4 = res3.concat(res2)
+	// Acredite ele efetua essa comparação!!!
+	if(cDtIni >= res4){
+		alert("Data Inicial Invalida!" );
+		return false;
+	}else{
+		return true;
+	}
+}
+
+function changeFinal ()
+{
+	var nCnt = document.getElementById("periodo");
+	var citemSelecionado = nCnt.options[nCnt.selectedIndex].value;
+	var cDtFim = citemSelecionado.slice(14, 22);	
+	var cGetDtFim = document.getElementById("dtFim").value;
+	
+	var res = cGetDtIni.substr(0, 4);
+    var res1 = cGetDtIni.substr(5, 2);
+    var res2 = cGetDtIni.substr(8, 2);
+    var res3 = res.concat(res1)
+    var res4 = res3.concat(res2)
+	
+	if(cDtFim >= res4){
+		alert("Data Final Invalida!");
+		return false;
+	}else{
+		return true;
+	}
+}
+
+function changeSalvar ()
+{
+	if (changeInicial() == false){
+		return false;
+	}
+	if (changeFinal () == false){
+		return false;
+	}
+}
+</script>
+		
+	<body>
+		<h2>Plano de Desenvolvimento em Equipe</h2>
+		<h4>Demosntração da equipe a ser selecionada, para geração do Plano de Desenvolvimento Individual - Coletivo</h4>
+		<div id="divFuncionarios" name="divFuncionarios">
+			<div style="text-align: center; vertical-align: middle; width: 600px;">
+				<img src="imagens-rh/ajax-loader.gif"><br>
+				<span class="TituloMenor">Aguarde</span>
+			</div>
+			<script language="Javascript">
+
+				GoToPage(1);
+
+			</script>
+		</div>
+		
+		
+		<div id="divSolicitacoes" name="divSolicitacoes">
+			<div style="text-align: center; vertical-align: middle; width: 600px;">
+				<img src="imagens-rh/ajax-loader.gif"><br>
+				<span class="TituloMenor">Aguarde</span>
+			</div>
+			<script language="Javascript">
+	
+				GoToPage(2);
+
+			</script>
+		</div>
+	</body>
+</html>
